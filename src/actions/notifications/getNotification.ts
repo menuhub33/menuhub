@@ -6,6 +6,7 @@ import type { Notification } from "@/lib/types";
 export type GetNotificationInput = {
   restaurant_id?: string;
   unread_only?: boolean;
+  limit?: number;
 };
 
 export async function getNotification(
@@ -18,7 +19,8 @@ export async function getNotification(
     .from("notifications")
     .select("*")
     .eq("user_id", auth.user.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(input.limit ?? 50);
 
   if (input.restaurant_id) {
     query = query.eq("restaurant_id", input.restaurant_id);

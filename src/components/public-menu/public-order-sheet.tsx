@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { PublicCartItem } from "@/components/public-menu/public-cart-sheet";
 import { PublicSheet } from "@/components/public-menu/public-sheet";
 import { QrCodePreview } from "@/components/qr/qr-code-preview";
@@ -62,12 +62,10 @@ export function PublicOrderSheet({
     [copy.delivery, copy.dineIn, copy.pickup, deliveryEnabled, venue]
   );
 
-  const [deliveryType, setDeliveryType] = useState<DeliveryType>(
-    deliveryEnabled ? "delivery" : venue ? "dine_in" : "pickup"
-  );
+  const [chosenDeliveryType, setChosenDeliveryType] = useState<DeliveryType | null>(null);
   const [address, setAddress] = useState("");
   const [tableNumber, setTableNumber] = useState("");
-  const [branchId, setBranchId] = useState("");
+  const [chosenBranchId, setChosenBranchId] = useState("");
   const [showQr, setShowQr] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,18 +76,20 @@ export function PublicOrderSheet({
     return [{ value: "main", label: restaurant.name }];
   }, [branches, restaurant.name]);
 
-  useEffect(() => {
-    if (!open) return;
-    setBranchId((current) => current || branchOptions[0]?.value || "main");
-    setError(null);
-  }, [open, branchOptions]);
+  // Both fall back to the first available option, so they stay valid when the
+  // restaurant's settings change without an effect re-syncing them.
+  const deliveryType: DeliveryType =
+    chosenDeliveryType &&
+    deliveryOptions.some((option) => option.id === chosenDeliveryType)
+      ? chosenDeliveryType
+      : (deliveryOptions[0]?.id ?? "pickup");
+  const branchId = chosenBranchId || branchOptions[0]?.value || "main";
 
-  useEffect(() => {
-    const allowed = new Set(deliveryOptions.map((option) => option.id));
-    if (!allowed.has(deliveryType)) {
-      setDeliveryType(deliveryOptions[0]?.id ?? "pickup");
-    }
-  }, [deliveryOptions, deliveryType]);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setError(null);
+  }
 
   const selectedBranch =
     branches.find((branch) => branch.id === branchId) ??
@@ -187,7 +187,7 @@ export function PublicOrderSheet({
                   key={option.id}
                   type="button"
                   onClick={() => {
-                    setDeliveryType(option.id);
+                    setChosenDeliveryType(option.id);
                     setError(null);
                   }}
                   className={cn(
@@ -258,7 +258,7 @@ export function PublicOrderSheet({
             <h3 className="mb-2 text-sm font-bold">فرع</h3>
             <select
               value={branchId}
-              onChange={(event) => setBranchId(event.target.value)}
+              onChange={(event) => setChosenBranchId(event.target.value)}
               className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-3.5 text-sm text-zinc-900 outline-none focus:border-[var(--mh-primary)] focus:ring-4 focus:ring-[var(--mh-primary)]/15"
             >
               {branchOptions.map((option) => (

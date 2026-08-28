@@ -55,12 +55,11 @@ export function AdminRestaurantsView({
   const [password, setPassword] = useState("");
   const [businessType, setBusinessType] = useState<BusinessType>("RESTAURANT");
 
-  const restaurantRows = restaurants ?? [];
   const planRows = plans ?? [];
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return restaurantRows
+    return (restaurants ?? [])
       .filter((item) => (status === "ALL" ? true : item.status === status))
       .filter((item) =>
         `${item.name} ${item.slug} ${item.owner_name ?? ""}`.toLowerCase().includes(needle)
@@ -68,7 +67,7 @@ export function AdminRestaurantsView({
       .sort((a, b) =>
         sort === "name" ? a.name.localeCompare(b.name, "ar") : b.created_at.localeCompare(a.created_at)
       );
-  }, [restaurantRows, query, status, sort]);
+  }, [restaurants, query, status, sort]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);

@@ -1,6 +1,7 @@
 import type { User } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { cache } from "react";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { isValidSlug } from "@/lib/config";
 import type { PlatformRole, RestaurantRole } from "@/lib/types";
 
@@ -17,13 +18,9 @@ export function fail<T>(error: string): ActionResult<T> {
 }
 
 export async function requireUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const [supabase, user] = await Promise.all([createClient(), getCurrentUser()]);
 
-  if (error || !user) {
+  if (!user) {
     return {
       supabase,
       user: null as User | null,
@@ -34,19 +31,26 @@ export async function requireUser() {
   return { supabase, user, error: null };
 }
 
+const loadPlatformProfile = cache(async (userId: string) => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("platform_role, is_active")
+    .eq("id", userId)
+    .single();
+
+  return data as { platform_role: PlatformRole; is_active: boolean } | null;
+});
+
 export async function requirePlatformAdmin(
   allowed: PlatformRole[] = ["ADMIN", "SUPER_ADMIN"]
 ) {
   const auth = await requireUser();
   if (auth.error || !auth.user) return auth;
 
-  const { data: profile, error } = await auth.supabase
-    .from("profiles")
-    .select("platform_role, is_active")
-    .eq("id", auth.user.id)
-    .single();
+  const profile = await loadPlatformProfile(auth.user.id);
 
-  if (error || !profile) {
+  if (!profile) {
     return { ...auth, user: null, error: "تعذر التحقق من صلاحيات الحساب" };
   }
 
@@ -76,11 +80,8 @@ export async function isSlugReserved(
   return Boolean(data);
 }
 
-export async function getRestaurantMembership(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  restaurantId: string,
-  userId: string
-) {
+const loadMembership = cache(async (restaurantId: string, userId: string) => {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("restaurant_users")
     .select("id, role, is_active")
@@ -90,6 +91,14 @@ export async function getRestaurantMembership(
 
   if (error || !data || !data.is_active) return null;
   return data as { id: string; role: RestaurantRole; is_active: boolean };
+});
+
+export async function getRestaurantMembership(
+  _supabase: Awaited<ReturnType<typeof createClient>>,
+  restaurantId: string,
+  userId: string
+) {
+  return loadMembership(restaurantId, userId);
 }
 
 export function hasRestaurantRole(

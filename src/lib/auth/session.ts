@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
+import { cache } from "react";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 
 export type AuthSession = {
@@ -8,14 +9,10 @@ export type AuthSession = {
   supabase: Awaited<ReturnType<typeof createClient>>;
 };
 
-export async function getSession(): Promise<AuthSession | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+export const getSession = cache(async (): Promise<AuthSession | null> => {
+  const [supabase, user] = await Promise.all([createClient(), getCurrentUser()]);
 
-  if (error || !user) return null;
+  if (!user) return null;
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -42,7 +39,7 @@ export async function getSession(): Promise<AuthSession | null> {
   }
 
   return { user, profile: profile as Profile, supabase };
-}
+});
 
 export async function getUser() {
   const session = await getSession();

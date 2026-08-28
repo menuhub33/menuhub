@@ -165,14 +165,16 @@ export function PublicMenu({
   function setQuantity(productId: string, next: number) {
     setQuantities((current) => {
       if (next <= 0) {
-        const { [productId]: _removed, ...rest } = current;
+        const rest = { ...current };
+        delete rest[productId];
         return rest;
       }
       return { ...current, [productId]: next };
     });
     if (next <= 0) {
       setExtras((current) => {
-        const { [productId]: _removed, ...rest } = current;
+        const rest = { ...current };
+        delete rest[productId];
         return rest;
       });
     }

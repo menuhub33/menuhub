@@ -15,8 +15,16 @@ const AUTH_PATHS = [
   "/auth",
 ];
 
+const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/admin"];
+
 function isAuthPath(pathname: string) {
   return AUTH_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
+}
+
+function isProtectedPath(pathname: string) {
+  return PROTECTED_PREFIXES.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`)
   );
 }
@@ -29,41 +37,38 @@ function copyCookies(from: NextResponse, to: NextResponse) {
 }
 
 export async function proxy(request: NextRequest) {
-  if (request.headers.has("next-action") || request.nextUrl.pathname.startsWith("/api/")) {
+  const { pathname, search } = request.nextUrl;
+
+  if (request.headers.has("next-action") || pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
+  // Public menus are served from tenant subdomains and never need a session,
+  // so resolve them before paying for an auth round-trip.
+  const subdomain = extractSubdomain(request.headers.get("host") ?? "");
+  if (subdomain && !isReservedSubdomain(subdomain)) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/m/${subdomain}${pathname === "/" ? "" : pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
+  // `updateSession` calls the Supabase auth server over the network. Only pages
+  // whose rendering depends on the session are worth that cost.
+  if (!isProtectedPath(pathname) && !isAuthPath(pathname)) {
     return NextResponse.next();
   }
 
   const { user, supabaseResponse } = await updateSession(request);
-  const { pathname, search } = request.nextUrl;
-  const hostname = request.headers.get("host") ?? "";
-  const subdomain = extractSubdomain(hostname);
-
-  if (subdomain && !isReservedSubdomain(subdomain)) {
-    const url = request.nextUrl.clone();
-    url.pathname = `/m/${subdomain}${pathname === "/" ? "" : pathname}`;
-    return copyCookies(supabaseResponse, NextResponse.rewrite(url));
-  }
 
   if (pathname.startsWith("/auth/callback")) {
     return supabaseResponse;
   }
 
-  if (pathname.startsWith("/dashboard") || pathname.startsWith("/onboarding")) {
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      url.search = `?next=${encodeURIComponent(pathname + search)}`;
-      return copyCookies(supabaseResponse, NextResponse.redirect(url));
-    }
-  }
-
-  if (pathname.startsWith("/admin")) {
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      url.search = `?next=${encodeURIComponent(pathname + search)}`;
-      return copyCookies(supabaseResponse, NextResponse.redirect(url));
-    }
+  if (isProtectedPath(pathname) && !user) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.search = `?next=${encodeURIComponent(pathname + search)}`;
+    return copyCookies(supabaseResponse, NextResponse.redirect(url));
   }
 
   if (user && isAuthPath(pathname) && pathname !== "/verify-email") {
@@ -93,6 +98,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ttf|woff2?)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/|m/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|ttf|woff2?)$).*)",
   ],
 };

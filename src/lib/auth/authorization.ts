@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { forbidden, redirect } from "next/navigation";
+import { cache } from "react";
 import { RESTAURANT_COOKIE } from "@/lib/config";
 import { getSession, type AuthSession } from "@/lib/auth/session";
 import {
@@ -108,10 +109,10 @@ async function loadRestaurants(
   return [];
 }
 
-export async function getTenantContext(
-  currentSession?: AuthSession
-): Promise<TenantContext | null> {
-  const session = currentSession ?? (await getSession());
+// Cached per request: the dashboard layout and every page below it resolve the
+// same tenant, and each resolution costs several round-trips.
+export const getTenantContext = cache(async (): Promise<TenantContext | null> => {
+  const session = await getSession();
   if (!session || !session.profile.is_active) return null;
 
   const memberships = await loadMemberships(session);
@@ -138,13 +139,13 @@ export async function getTenantContext(
     membershipId: membership?.id ?? selected.id,
     restaurants,
   };
-}
+});
 
 export async function requireRestaurantAccess(
   nextPath = "/dashboard"
 ): Promise<TenantContext> {
-  const session = await requireAuth(nextPath);
-  const tenant = await getTenantContext(session);
+  await requireAuth(nextPath);
+  const tenant = await getTenantContext();
   if (!tenant || !isRestaurantActivated(tenant.restaurant.status)) {
     redirect("/onboarding");
   }

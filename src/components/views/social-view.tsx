@@ -59,7 +59,7 @@ export function SocialView({
           options={SOCIAL_PLATFORMS.map((item) => ({
             value: item.value,
             label: item.label,
-            icon: <SocialPlatformIcon platform={item.value} sx={{ fontSize: 20 }} />,
+            icon: <SocialPlatformIcon platform={item.value} size={20} />,
           }))}
         />
         <Input
@@ -80,7 +80,7 @@ export function SocialView({
         {links.map((link) => (
           <div key={link.id} className="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-200 bg-white p-3">
             <span className="flex min-w-28 items-center gap-2 text-sm font-medium">
-              <SocialPlatformIcon platform={link.platform} sx={{ fontSize: 22 }} />
+              <SocialPlatformIcon platform={link.platform} size={22} />
               {platformLabel(link.platform)}
             </span>
             <Input

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -23,9 +23,11 @@ export function DuplicateProductDialog({
   const defaultName = product?.name_ar ? `${product.name_ar} (نسخة)` : "";
   const [nameAr, setNameAr] = useState(defaultName);
 
-  useEffect(() => {
-    if (open) setNameAr(product?.name_ar ? `${product.name_ar} (نسخة)` : "");
-  }, [open, product?.name_ar]);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setNameAr(defaultName);
+  }
 
   return (
     <Dialog

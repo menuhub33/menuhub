@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { ImageIcon, CartIcon, XIcon } from "@/components/ui/icons";
 import { cn } from "@/components/lib/cn";
@@ -35,6 +35,16 @@ export function PublicProductModal({
   const [extra, setExtra] = useState(0);
   const [quantity, setQuantity] = useState(Math.max(1, initialQuantity));
 
+  // Reset during render rather than in an effect: an effect would paint the
+  // previous product's selection for a frame before correcting it.
+  const [shownProductId, setShownProductId] = useState(product?.id ?? null);
+  if (product && product.id !== shownProductId) {
+    setShownProductId(product.id);
+    setActiveIndex(0);
+    setExtra(0);
+    setQuantity(Math.max(1, initialQuantity));
+  }
+
   const images = useMemo(() => (product ? sortedImages(product) : []), [product]);
   const unavailable = product?.status === "UNAVAILABLE";
   const groups = product?.option_groups ?? [];
@@ -43,13 +53,6 @@ export function PublicProductModal({
   const unit = product ? product.price + extra : 0;
   const total = unit * quantity;
   const activeImage = images[Math.min(activeIndex, Math.max(images.length - 1, 0))];
-
-  useEffect(() => {
-    if (!product) return;
-    setActiveIndex(0);
-    setExtra(0);
-    setQuantity(Math.max(1, initialQuantity));
-  }, [product, initialQuantity]);
 
   function handleOpenChange(next: boolean) {
     if (!next) {

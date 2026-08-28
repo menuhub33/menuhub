@@ -12,7 +12,7 @@ async function upsertRow(
   table: string,
   payload: Record<string, unknown>
 ) {
-  let current = { ...payload };
+  const current = { ...payload };
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const { error } = await db.from(table).upsert(current);
     if (!error) return null;

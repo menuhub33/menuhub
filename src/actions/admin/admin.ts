@@ -34,31 +34,50 @@ export async function getAdminRestaurants(): Promise<
   if (error) return fail(error.message);
 
   const restaurants = (data ?? []) as Restaurant[];
-  const result = [];
-  for (const restaurant of restaurants) {
-    const { data: owner } = await auth.db
+  if (restaurants.length === 0) return ok([]);
+
+  const ids = restaurants.map((restaurant) => restaurant.id);
+
+  // Two batched lookups for the whole list instead of two queries per row.
+  const [{ data: owners }, { data: subs }] = await Promise.all([
+    auth.db
       .from("restaurant_users")
-      .select("user_id, profiles(full_name)")
-      .eq("restaurant_id", restaurant.id)
-      .eq("role", "OWNER")
-      .limit(1)
-      .maybeSingle();
-    const { data: sub } = await auth.db
+      .select("restaurant_id, profiles(full_name)")
+      .in("restaurant_id", ids)
+      .eq("role", "OWNER"),
+    auth.db
       .from("subscriptions")
-      .select("plan_id, plans(name)")
-      .eq("restaurant_id", restaurant.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const ownerProfile = owner?.profiles as { full_name?: string | null } | { full_name?: string | null }[] | null;
-    const ownerName = Array.isArray(ownerProfile)
-      ? ownerProfile[0]?.full_name
-      : ownerProfile?.full_name;
-    const plan = sub?.plans as { name?: string } | { name?: string }[] | null;
-    const planName = Array.isArray(plan) ? plan[0]?.name : plan?.name;
-    result.push({ ...restaurant, owner_name: ownerName ?? null, plan_name: planName ?? null });
+      .select("restaurant_id, plans(name)")
+      .in("restaurant_id", ids)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const first = <T>(value: T | T[] | null | undefined): T | null =>
+    Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+
+  const ownerByRestaurant = new Map<string, string | null>();
+  for (const row of owners ?? []) {
+    const key = row.restaurant_id as string;
+    if (ownerByRestaurant.has(key)) continue;
+    const profile = first(row.profiles as { full_name?: string | null } | { full_name?: string | null }[] | null);
+    ownerByRestaurant.set(key, profile?.full_name ?? null);
   }
-  return ok(result);
+
+  const planByRestaurant = new Map<string, string | null>();
+  for (const row of subs ?? []) {
+    const key = row.restaurant_id as string;
+    if (planByRestaurant.has(key)) continue;
+    const plan = first(row.plans as { name?: string } | { name?: string }[] | null);
+    planByRestaurant.set(key, plan?.name ?? null);
+  }
+
+  return ok(
+    restaurants.map((restaurant) => ({
+      ...restaurant,
+      owner_name: ownerByRestaurant.get(restaurant.id) ?? null,
+      plan_name: planByRestaurant.get(restaurant.id) ?? null,
+    }))
+  );
 }
 
 export async function getAdminUsers(): Promise<ActionResult<Profile[]>> {

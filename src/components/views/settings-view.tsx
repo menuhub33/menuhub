@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateProfile } from "@/actions/profiles/updateProfile";
 import { PageHeader } from "@/components/layout/page-header";
@@ -29,19 +29,22 @@ export function SettingsView({
 }) {
   const router = useRouter();
   const { toast } = useToast();
-  const [tab, setTab] = useState(() => {
+  const tabFromUrl = () => {
     if (initialTab === "restaurant" && canManageRestaurant) return "restaurant";
     if (initialTab === "subscription" && canManageSubscription) return "subscription";
     if (initialTab === "security" || initialTab === "notifications") return initialTab;
-    return "account";
-  });
+    if (initialTab === "account") return "account";
+    return null;
+  };
 
-  useEffect(() => {
-    if (initialTab === "restaurant" && canManageRestaurant) setTab("restaurant");
-    else if (initialTab === "subscription" && canManageSubscription) setTab("subscription");
-    else if (initialTab === "security" || initialTab === "notifications") setTab(initialTab);
-    else if (initialTab === "account") setTab("account");
-  }, [initialTab, canManageRestaurant, canManageSubscription]);
+  const [tab, setTab] = useState(() => tabFromUrl() ?? "account");
+
+  const [lastInitialTab, setLastInitialTab] = useState(initialTab);
+  if (initialTab !== lastInitialTab) {
+    setLastInitialTab(initialTab);
+    const next = tabFromUrl();
+    if (next) setTab(next);
+  }
   const [fullName, setFullName] = useState(profile.full_name ?? "");
   const [phone, setPhone] = useState(profile.phone ?? "");
   const [loading, setLoading] = useState(false);

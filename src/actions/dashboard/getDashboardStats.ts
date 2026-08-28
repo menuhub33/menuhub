@@ -32,46 +32,42 @@ export async function getDashboardStats(
       : [];
   const menu = menus.find((item) => item.is_default) ?? menus[0] ?? null;
 
-  let categoryCount = 0;
-  let productCount = 0;
-  if (menu) {
-    const { data: categories } = await auth.supabase
-      .from("categories")
-      .select("id")
-      .eq("menu_id", menu.id);
-    categoryCount = categories?.length ?? 0;
-    const ids = (categories ?? []).map((row) => row.id as string);
-    if (ids.length) {
-      const { count } = await auth.supabase
-        .from("products")
-        .select("id", { count: "exact", head: true })
-        .in("category_id", ids);
-      productCount = count ?? 0;
-    }
-  }
-
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const [today, month, recent, audit] = await Promise.all([
-    getAnalyticsEvent({
-      restaurant_id: restaurantId,
-      event_type: "MENU_VIEW",
-      from: startOfToday.toISOString(),
-      limit: 5000,
-    }),
-    getAnalyticsEvent({
-      restaurant_id: restaurantId,
-      event_type: "MENU_VIEW",
-      from: startOfMonth.toISOString(),
-      limit: 5000,
-    }),
+  // Counts are resolved server-side with head requests instead of downloading
+  // thousands of rows only to read their length.
+  const countMenuViews = (from: Date) =>
+    auth.supabase
+      .from("analytics_events")
+      .select("id", { count: "exact", head: true })
+      .eq("restaurant_id", restaurantId)
+      .eq("event_type", "MENU_VIEW")
+      .gte("created_at", from.toISOString());
+
+  const [categories, today, month, recent, audit] = await Promise.all([
+    menu
+      ? auth.supabase.from("categories").select("id").eq("menu_id", menu.id)
+      : Promise.resolve({ data: [] as { id: string }[] }),
+    countMenuViews(startOfToday),
+    countMenuViews(startOfMonth),
     getAnalyticsEvent({ restaurant_id: restaurantId, limit: 500 }),
     getAuditLog({ restaurant_id: restaurantId, limit: 8 }),
   ]);
+
+  const categoryIds = (categories.data ?? []).map((row) => row.id as string);
+  const categoryCount = categoryIds.length;
+  let productCount = 0;
+  if (categoryIds.length) {
+    const { count } = await auth.supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .in("category_id", categoryIds);
+    productCount = count ?? 0;
+  }
 
   const events = recent.data ?? [];
   const summary: AnalyticsSummary = {
@@ -86,8 +82,8 @@ export async function getDashboardStats(
     menu,
     categoryCount,
     productCount,
-    todayViews: today.data?.length ?? 0,
-    monthViews: month.data?.length ?? 0,
+    todayViews: today.count ?? 0,
+    monthViews: month.count ?? 0,
     summary,
     activity: (audit.data ?? []).map((item) => ({
       id: item.id,

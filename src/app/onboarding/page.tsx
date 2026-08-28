@@ -11,7 +11,7 @@ export default async function OnboardingPage() {
     redirect("/admin");
   }
 
-  const tenant = await getTenantContext(session);
+  const tenant = await getTenantContext();
   if (tenant && isRestaurantActivated(tenant.restaurant.status)) {
     redirect("/dashboard");
   }

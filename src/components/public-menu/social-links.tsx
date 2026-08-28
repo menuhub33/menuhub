@@ -47,7 +47,7 @@ export function SocialLinks({
                 className="inline-flex size-11 items-center justify-center rounded-full border-2 bg-transparent transition hover:scale-105"
                 style={{ borderColor: colors, color: colors }}
               >
-                <SocialPlatformIcon platform={link.platform} sx={{ fontSize: 22 }} />
+                <SocialPlatformIcon platform={link.platform} size={22} />
               </a>
             </li>
           );
