@@ -1,0 +1,17 @@
+import { cn } from "@/components/lib/cn";
+
+export function ResponsiveContainer({
+  children,
+  className,
+  as: Tag = "div",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  as?: "div" | "section" | "main";
+}) {
+  return (
+    <Tag className={cn("mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8", className)}>
+      {children}
+    </Tag>
+  );
+}
