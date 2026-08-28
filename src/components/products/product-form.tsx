@@ -159,15 +159,19 @@ export function ProductForm({
   const previewPrice = Number(values.price);
   const previewOldPrice = parseAmount(values.old_price);
 
-  function update<K extends keyof Draft>(key: K, value: Draft[K]) {
-    setValues((current) => ({ ...current, [key]: value }));
-    if (
+  function isFieldKey(key: keyof Draft): key is FieldKey {
+    return (
       key === "name_ar" ||
       key === "price" ||
       key === "category_id" ||
       key === "old_price" ||
       key === "sort_order"
-    ) {
+    );
+  }
+
+  function update<K extends keyof Draft>(key: K, value: Draft[K]) {
+    setValues((current) => ({ ...current, [key]: value }));
+    if (isFieldKey(key)) {
       setFieldErrors((current) => {
         if (!current[key]) return current;
         const next = { ...current };

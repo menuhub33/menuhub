@@ -105,7 +105,7 @@ export function ProductEditorView({
 
     for (const existing of product?.images ?? []) {
       if (!keptIds.has(existing.id)) {
-        const removed = await deleteProductImage(existing.id, product.id);
+        const removed = await deleteProductImage(existing.id, productId);
         if (removed.error) {
           setLoading(false);
           setError(removed.error);
