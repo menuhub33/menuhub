@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getDemoPublicMenu, DEMO_BUSINESS_HOURS, DEMO_MENU_SLUG } from "@/lib/demo-menu";
+import { DEMO_CATALOGS, type DemoCatalog } from "@/lib/demo-catalog";
+import { DEMO_MENU_SLUG } from "@/lib/demo-menu";
+import { DEMO_CARS_MENU_SLUG } from "@/lib/demo-cars-menu";
 import { fail, ok, requirePlatformAdmin, type ActionResult } from "@/lib/action";
 import { createAdminClient, hasServiceRole } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -26,8 +28,11 @@ async function upsertRow(
   return "تعذر حفظ البيانات";
 }
 
-export async function seedDemoCatalog(db: SupabaseClient): Promise<string | null> {
-  const data = getDemoPublicMenu();
+export async function seedDemoCatalog(
+  db: SupabaseClient,
+  catalog: DemoCatalog
+): Promise<string | null> {
+  const data = catalog.getData();
   const restaurant = data.restaurant;
 
   const restaurantError = await upsertRow(db, "restaurants", { ...restaurant });
@@ -57,7 +62,7 @@ export async function seedDemoCatalog(db: SupabaseClient): Promise<string | null
       id: branch.id,
       restaurant_id: restaurant.id,
       name: branch.name,
-      slug: "malki",
+      slug: catalog.branchSlug,
       address: branch.address,
       phone: branch.phone,
       is_active: true,
@@ -68,7 +73,7 @@ export async function seedDemoCatalog(db: SupabaseClient): Promise<string | null
   await db.from("business_hours").delete().eq("restaurant_id", restaurant.id);
   const hoursError = (
     await db.from("business_hours").insert(
-      DEMO_BUSINESS_HOURS.map((row) => ({
+      catalog.hours.map((row) => ({
         restaurant_id: restaurant.id,
         branch_id: null,
         day_of_week: row.day_of_week,
@@ -137,48 +142,68 @@ export async function seedDemoCatalog(db: SupabaseClient): Promise<string | null
   return null;
 }
 
-export async function seedDemoMenu(): Promise<ActionResult<{ slug: string }>> {
+async function seedBySlug(slug: string): Promise<ActionResult<{ slug: string }>> {
+  const catalog = DEMO_CATALOGS.find((item) => item.slug === slug);
+  if (!catalog) return fail("المنيو التجريبي غير معروف");
   const auth = await requirePlatformAdmin();
   if (auth.error || !auth.user) return fail(auth.error ?? "غير مصرح");
   const db = hasServiceRole() ? createAdminClient() : auth.supabase;
-  const error = await seedDemoCatalog(db);
+  const error = await seedDemoCatalog(db, catalog);
   if (error) return fail(error);
-  revalidatePath(`/m/${DEMO_MENU_SLUG}`);
+  revalidatePath(`/m/${catalog.slug}`);
   revalidatePath("/admin/restaurants");
-  return ok({ slug: DEMO_MENU_SLUG });
+  return ok({ slug: catalog.slug });
+}
+
+export async function seedDemoMenu(): Promise<ActionResult<{ slug: string }>> {
+  return seedBySlug(DEMO_MENU_SLUG);
+}
+
+export async function seedDemoCarsMenu(): Promise<ActionResult<{ slug: string }>> {
+  return seedBySlug(DEMO_CARS_MENU_SLUG);
+}
+
+async function catalogHasProducts(db: SupabaseClient, slug: string) {
+  const { data: existing } = await db
+    .from("restaurants")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!existing?.id) return false;
+  const { data: menu } = await db
+    .from("menus")
+    .select("id")
+    .eq("restaurant_id", existing.id)
+    .eq("is_default", true)
+    .maybeSingle();
+  if (!menu?.id) return false;
+  const { count } = await db
+    .from("categories")
+    .select("id", { count: "exact", head: true })
+    .eq("menu_id", menu.id);
+  return (count ?? 0) > 0;
 }
 
 export async function seedDemoMenuIfPossible(): Promise<boolean> {
   try {
     const supabase = await createClient();
-    const { data: existing } = await supabase
-      .from("restaurants")
-      .select("id")
-      .eq("slug", DEMO_MENU_SLUG)
-      .maybeSingle();
-    if (existing?.id) {
-      const { data: menu } = await supabase
-        .from("menus")
-        .select("id")
-        .eq("restaurant_id", existing.id)
-        .eq("is_default", true)
-        .maybeSingle();
-      if (menu?.id) {
-        const { count } = await supabase
-          .from("categories")
-          .select("id", { count: "exact", head: true })
-          .eq("menu_id", menu.id);
-        if ((count ?? 0) > 0) return true;
-      }
+    const missing = [];
+    for (const catalog of DEMO_CATALOGS) {
+      if (!(await catalogHasProducts(supabase, catalog.slug))) missing.push(catalog);
     }
+    if (missing.length === 0) return true;
 
     const auth = await requirePlatformAdmin();
     if (auth.error || !auth.user) return false;
     const db = hasServiceRole() ? createAdminClient() : auth.supabase;
-    const error = await seedDemoCatalog(db);
-    if (error) return false;
-    revalidatePath(`/m/${DEMO_MENU_SLUG}`);
-    return true;
+    let seeded = false;
+    for (const catalog of missing) {
+      const error = await seedDemoCatalog(db, catalog);
+      if (error) continue;
+      revalidatePath(`/m/${catalog.slug}`);
+      seeded = true;
+    }
+    return seeded || missing.length < DEMO_CATALOGS.length;
   } catch {
     return false;
   }

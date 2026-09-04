@@ -13,7 +13,7 @@ import {
   type MenuChatProduct,
   type MenuChatReply,
 } from "@/lib/menu-chat";
-import { DEMO_BUSINESS_HOURS, DEMO_MENU_SLUG, getDemoPublicMenu } from "@/lib/demo-menu";
+import { getDemoCatalog } from "@/lib/demo-catalog";
 import { createClient } from "@/lib/supabase/server";
 import { productPrimaryImageUrl } from "@/components/public-menu/product-image";
 
@@ -69,12 +69,13 @@ export async function askMenuChat(
   if (result.data.kind !== "live") return fail("المنيو غير متاح حالياً");
 
   let data = result.data.data;
-  if (slug === DEMO_MENU_SLUG) {
+  const demo = getDemoCatalog(slug);
+  if (demo) {
     const count = data.categories.reduce(
       (sum, category) => sum + (category.products?.length ?? 0),
       0
     );
-    if (count === 0) data = getDemoPublicMenu();
+    if (count === 0) data = demo.getData();
   }
   if (!isMenuChatbotEnabled(data.restaurant)) {
     return fail("مساعد المنيو غير مفعّل");
@@ -87,9 +88,9 @@ export async function askMenuChat(
     .eq("restaurant_id", data.restaurant.id)
     .is("branch_id", null)
     .order("day_of_week");
-  let hours = (hourRows ?? []) as typeof DEMO_BUSINESS_HOURS;
-  if (slug === DEMO_MENU_SLUG && hours.length === 0) {
-    hours = DEMO_BUSINESS_HOURS;
+  let hours = (hourRows ?? []) as NonNullable<ReturnType<typeof getDemoCatalog>>["hours"];
+  if (demo && hours.length === 0) {
+    hours = demo.hours;
   }
 
   const products: MenuChatProduct[] = [];

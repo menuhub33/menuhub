@@ -9,7 +9,7 @@ import {
   adminSetRestaurantBusinessType,
   adminSetRestaurantStatus,
 } from "@/actions/admin/admin";
-import { seedDemoMenu } from "@/actions/admin/seedDemoMenu";
+import { seedDemoCarsMenu, seedDemoMenu } from "@/actions/admin/seedDemoMenu";
 import { PageHeader } from "@/components/layout/page-header";
 import { SearchInput } from "@/components/common/search-input";
 import { StatusBadge } from "@/components/common/status-badge";
@@ -49,7 +49,7 @@ export function AdminRestaurantsView({
   const [deleting, setDeleting] = useState<Restaurant | null>(null);
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [seeding, setSeeding] = useState(false);
+  const [seeding, setSeeding] = useState<"restaurant" | "cars" | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -104,14 +104,26 @@ export function AdminRestaurantsView({
   }
 
   async function createDemoMenu() {
-    setSeeding(true);
+    setSeeding("restaurant");
     const result = await seedDemoMenu();
-    setSeeding(false);
+    setSeeding(null);
     if (result.error) {
       toast({ title: result.error, variant: "error" });
       return;
     }
     toast({ title: "تم تجهيز منيو بيت الشام التجريبي", variant: "success" });
+    router.refresh();
+  }
+
+  async function createDemoCarsMenu() {
+    setSeeding("cars");
+    const result = await seedDemoCarsMenu();
+    setSeeding(null);
+    if (result.error) {
+      toast({ title: result.error, variant: "error" });
+      return;
+    }
+    toast({ title: "تم تجهيز منيو أوتو الشام التجريبي", variant: "success" });
     router.refresh();
   }
 
@@ -122,8 +134,11 @@ export function AdminRestaurantsView({
         description="إنشاء المواقع وتفعيلها وتحديد نوع النشاط يتم من هنا فقط. صاحب المنيو لا يستطيع تغيير نوع النشاط."
         actions={
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" loading={seeding} onClick={() => void createDemoMenu()}>
-              تجهيز المنيو التجريبي
+            <Button variant="outline" loading={seeding === "restaurant"} onClick={() => void createDemoMenu()}>
+              تجهيز منيو المطعم
+            </Button>
+            <Button variant="outline" loading={seeding === "cars"} onClick={() => void createDemoCarsMenu()}>
+              تجهيز منيو السيارات
             </Button>
             <Button onClick={() => setCreating(true)}>إنشاء مطعم</Button>
           </div>

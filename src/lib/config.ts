@@ -28,6 +28,7 @@ export const RESERVED_SUBDOMAINS = new Set([
   "m",
   "onboarding",
   "demo",
+  "demo-cars",
 ]);
 
 export function publicMenuHost(slug: string) {

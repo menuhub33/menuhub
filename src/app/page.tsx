@@ -41,7 +41,13 @@ export default function HomePage() {
             href="/m/demo"
             className="inline-flex h-12 items-center rounded-xl border border-teal-200 bg-teal-50 px-5 text-base font-medium text-teal-800 hover:bg-teal-100"
           >
-            شاهد منيو تجريبي
+            منيو مطعم تجريبي
+          </Link>
+          <Link
+            href="/m/demo-cars"
+            className="inline-flex h-12 items-center rounded-xl border border-slate-300 bg-slate-50 px-5 text-base font-medium text-slate-800 hover:bg-slate-100"
+          >
+            معرض سيارات تجريبي
           </Link>
           <Link
             href="/login"

@@ -4,7 +4,7 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { fail, ok, type ActionResult } from "@/lib/action";
 import type { PublicMenuData } from "@/components/lib/types";
-import { DEMO_MENU_SLUG, getDemoPublicMenu } from "@/lib/demo-menu";
+import { getDemoCatalog } from "@/lib/demo-catalog";
 import type { Menu, Restaurant, RestaurantStatus, MenuStatus, Branch } from "@/lib/types";
 
 export type PublicMenuState =
@@ -24,8 +24,9 @@ const loadPublicMenu = cache(async function loadPublicMenu(
   const normalized = slug?.trim().toLowerCase();
   if (!normalized) return fail("المعرّف مطلوب");
 
-  if (normalized === DEMO_MENU_SLUG) {
-    return ok({ kind: "live", data: getDemoPublicMenu() });
+  const demo = getDemoCatalog(normalized);
+  if (demo) {
+    return ok({ kind: "live", data: demo.getData() });
   }
 
   const supabase = await createClient();
