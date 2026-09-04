@@ -6,6 +6,7 @@ import type { ProductWithRelations } from "@/components/lib/types";
 import { productPrimaryImageUrl } from "@/components/public-menu/product-image";
 import { ShareMenu } from "@/components/public-menu/share-menu";
 import { ImageIcon } from "@/components/ui/icons";
+import { normalizeBusinessType } from "@/lib/business-type";
 import type { Restaurant } from "@/lib/types";
 
 type HeroSlide = {
@@ -28,6 +29,8 @@ export function PublicMenuHero({
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
+
+  const showName = normalizeBusinessType(restaurant.business_type) !== "SHOP";
 
   const slides = useMemo<HeroSlide[]>(() => {
     const items: HeroSlide[] = [];
@@ -111,24 +114,28 @@ export function PublicMenuHero({
           />
         </div>
 
-        <div className="absolute inset-x-0 bottom-3 px-4">
-          <p className="truncate text-center text-sm font-semibold text-white drop-shadow">
-            {restaurant.name}
-          </p>
-          {slides.length > 1 ? (
-            <div className="mt-2 flex items-center justify-center gap-1.5">
-              {slides.map((slide, slideIndex) => (
-                <span
-                  key={slide.src}
-                  className={cn(
-                    "h-1.5 rounded-full bg-white/70 transition-all",
-                    slideIndex === index ? "w-4 bg-white" : "w-1.5"
-                  )}
-                />
-              ))}
-            </div>
-          ) : null}
-        </div>
+        {showName || slides.length > 1 ? (
+          <div className="absolute inset-x-0 bottom-3 px-4">
+            {showName ? (
+              <p className="truncate text-center text-sm font-semibold text-white drop-shadow">
+                {restaurant.name}
+              </p>
+            ) : null}
+            {slides.length > 1 ? (
+              <div className={cn("flex items-center justify-center gap-1.5", showName && "mt-2")}>
+                {slides.map((slide, slideIndex) => (
+                  <span
+                    key={slide.src}
+                    className={cn(
+                      "h-1.5 rounded-full bg-white/70 transition-all",
+                      slideIndex === index ? "w-4 bg-white" : "w-1.5"
+                    )}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </header>
   );
