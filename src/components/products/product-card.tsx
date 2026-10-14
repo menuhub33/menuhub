@@ -8,6 +8,7 @@ import { ProductPrice } from "@/components/products/product-price";
 import { ProductStatusBadge } from "@/components/products/product-status-badge";
 import { ProductVisibilityToggle } from "@/components/products/product-visibility-toggle";
 import { Card } from "@/components/ui/card";
+import { ContentImage } from "@/components/ui/content-image";
 import { ImageIcon, StarIcon } from "@/components/ui/icons";
 import type { ProductImage } from "@/lib/types";
 
@@ -50,8 +51,12 @@ export function ProductCard({
     >
       <div className="relative aspect-[4/3] bg-zinc-100">
         {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={image.image_url} alt={product.name_ar} className="h-full w-full object-cover" />
+          <ContentImage
+            src={image.image_url}
+            alt={product.name_ar}
+            sizes="(max-width: 640px) 100vw, 360px"
+            className="h-full w-full object-cover"
+          />
         ) : (
           <div className="flex h-full items-center justify-center text-zinc-300">
             <ImageIcon className="size-10" />

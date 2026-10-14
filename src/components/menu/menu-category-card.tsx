@@ -7,6 +7,7 @@ import { cn } from "@/components/lib/cn";
 import { formatPrice } from "@/components/lib/format";
 import type { CategoryWithProducts, ProductWithRelations } from "@/components/lib/types";
 import { Badge } from "@/components/ui/badge";
+import { ContentImage } from "@/components/ui/content-image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -196,8 +197,7 @@ export function MenuCategoryCard({
                   ) : null}
                   <div className="size-10 shrink-0 overflow-hidden rounded-lg bg-zinc-200">
                     {image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={image} alt="" className="size-full object-cover" />
+                      <ContentImage src={image} alt="" sizes="40px" className="size-full object-cover" />
                     ) : null}
                   </div>
                   <div className="min-w-0 flex-1">

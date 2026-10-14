@@ -9,6 +9,7 @@ import {
   requireUser,
   type ActionResult,
 } from "@/lib/action";
+import { releaseStoredImage } from "@/lib/stored-images";
 
 export async function deleteProductImage(
   id: string,
@@ -34,6 +35,13 @@ export async function deleteProductImage(
     return fail("غير مصرح لك بحذف صور المنتج");
   }
 
+  const { data: existing } = await auth.supabase
+    .from("product_images")
+    .select("image_url")
+    .eq("id", id)
+    .eq("product_id", productId)
+    .maybeSingle();
+
   const { error } = await auth.supabase
     .from("product_images")
     .delete()
@@ -41,5 +49,6 @@ export async function deleteProductImage(
     .eq("product_id", productId);
 
   if (error) return fail(error.message);
+  await releaseStoredImage(auth.supabase, existing?.image_url);
   return ok({ success: true });
 }

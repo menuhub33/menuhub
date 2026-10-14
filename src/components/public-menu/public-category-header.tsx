@@ -1,4 +1,5 @@
 import { cn } from "@/components/lib/cn";
+import { ContentImage } from "@/components/ui/content-image";
 import type { Category } from "@/lib/types";
 
 export function PublicCategoryHeader({
@@ -11,12 +12,12 @@ export function PublicCategoryHeader({
   return (
     <header className={cn("mb-4 flex items-start gap-3", className)}>
       {category.image_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <ContentImage
           src={category.image_url}
           alt=""
           width={56}
           height={56}
+          sizes="56px"
           className="size-14 shrink-0 rounded-xl object-cover"
         />
       ) : null}

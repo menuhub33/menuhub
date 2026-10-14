@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Alert } from "@/components/ui/alert";
+import { ContentImage } from "@/components/ui/content-image";
 import { ImageIcon, CartIcon, XIcon } from "@/components/ui/icons";
 import { cn } from "@/components/lib/cn";
 import { formatPrice } from "@/components/lib/format";
@@ -96,10 +97,11 @@ export function PublicProductModal({
             <XIcon className="size-4" />
           </button>
           {activeImage ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <ContentImage
               src={activeImage.image_url}
               alt={product.name_ar}
+              sizes="(max-width: 768px) 100vw, 480px"
+              priority
               className="max-h-72 w-full object-cover"
             />
           ) : (
@@ -124,8 +126,12 @@ export function PublicProductModal({
                 )}
                 aria-label={`صورة ${index + 1}`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={image.image_url} alt="" className="size-full object-cover" />
+                <ContentImage
+                  src={image.image_url}
+                  alt=""
+                  sizes="64px"
+                  className="size-full object-cover"
+                />
               </button>
             ))}
           </div>

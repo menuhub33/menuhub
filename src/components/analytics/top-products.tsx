@@ -3,6 +3,7 @@ import { formatPrice } from "@/components/lib/format";
 import { EmptyState } from "@/components/common/empty-state";
 import type { ProductViewStat } from "@/components/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ContentImage } from "@/components/ui/content-image";
 import { ChartIcon } from "@/components/ui/icons";
 
 function formatCount(value: number): string {
@@ -39,10 +40,10 @@ export function TopProducts({
                   <div className="flex items-center gap-3">
                     <div className="size-11 shrink-0 overflow-hidden rounded-xl bg-zinc-100">
                       {item.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <ContentImage
                           src={item.imageUrl}
                           alt=""
+                          sizes="44px"
                           className="size-full object-cover"
                         />
                       ) : (

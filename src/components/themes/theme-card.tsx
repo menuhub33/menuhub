@@ -2,6 +2,7 @@
 
 import { cn } from "@/components/lib/cn";
 import { Badge } from "@/components/ui/badge";
+import { ContentImage } from "@/components/ui/content-image";
 import { CheckIcon, PaletteIcon } from "@/components/ui/icons";
 import type { Theme } from "@/lib/types";
 
@@ -30,10 +31,10 @@ export function ThemeCard({
     >
       <div className="relative h-36 bg-zinc-100">
         {theme.preview_image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <ContentImage
             src={theme.preview_image_url}
             alt=""
+            sizes="(max-width: 640px) 100vw, 360px"
             className="h-full w-full object-cover"
           />
         ) : (

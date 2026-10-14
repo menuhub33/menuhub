@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
-import { MenuIcon } from "@/components/ui/icons";
+import { LogOutIcon, MenuIcon } from "@/components/ui/icons";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import type { Notification, Profile } from "@/lib/types";
 
@@ -22,13 +23,25 @@ export function DashboardHeader({
   unreadCount?: number;
   notifications?: Notification[];
   onOpenNav?: () => void;
-  onLogout?: () => void;
+  onLogout?: () => void | Promise<void>;
   onProfile?: () => void;
   onMarkAllRead?: () => void;
   onOpenNotifications?: () => void;
 }) {
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    if (!onLogout || loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await onLogout();
+    } finally {
+      setLoggingOut(false);
+    }
+  }
+
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-zinc-200 bg-white/90 px-4 backdrop-blur">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-zinc-200 bg-white/90 px-3 backdrop-blur sm:gap-3 sm:px-4">
       <Button variant="ghost" size="icon" className="lg:hidden" onClick={onOpenNav} aria-label="فتح القائمة">
         <MenuIcon />
       </Button>
@@ -52,11 +65,19 @@ export function DashboardHeader({
               </span>
             </button>
           }
-          items={[
-            { id: "profile", label: "الملف الشخصي", onSelect: onProfile },
-            { id: "logout", label: "تسجيل الخروج", danger: true, onSelect: onLogout },
-          ]}
+          items={[{ id: "profile", label: "الملف الشخصي", onSelect: onProfile }]}
         />
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0"
+          onClick={handleLogout}
+          loading={loggingOut}
+          aria-label="تسجيل الخروج"
+        >
+          <LogOutIcon className="size-4" />
+          تسجيل الخروج
+        </Button>
       </div>
     </header>
   );

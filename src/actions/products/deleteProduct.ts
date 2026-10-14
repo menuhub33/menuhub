@@ -9,6 +9,7 @@ import {
   requireUser,
   type ActionResult,
 } from "@/lib/action";
+import { releaseStoredImages } from "@/lib/stored-images";
 
 export async function deleteProduct(
   id: string
@@ -29,7 +30,16 @@ export async function deleteProduct(
     return fail("غير مصرح لك بحذف المنتج");
   }
 
+  const { data: images } = await auth.supabase
+    .from("product_images")
+    .select("image_url")
+    .eq("product_id", id);
+
   const { error } = await auth.supabase.from("products").delete().eq("id", id);
   if (error) return fail(error.message);
+  await releaseStoredImages(
+    auth.supabase,
+    (images ?? []).map((image) => image.image_url)
+  );
   return ok({ success: true });
 }

@@ -1,5 +1,6 @@
 import { CategoryActions } from "@/components/categories/category-actions";
 import { Badge } from "@/components/ui/badge";
+import { ContentImage } from "@/components/ui/content-image";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageIcon } from "@/components/ui/icons";
 import type { Category } from "@/lib/types";
@@ -21,10 +22,10 @@ export function CategoryCard({
     <Card className="overflow-hidden">
       <div className="h-32 bg-zinc-100">
         {category.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <ContentImage
             src={category.image_url}
             alt={category.name_ar}
+            sizes="(max-width: 640px) 100vw, 320px"
             className="h-full w-full object-cover"
           />
         ) : (

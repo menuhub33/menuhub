@@ -197,10 +197,7 @@ export function OnboardingWizard({
               onChange={async (event) => {
                 const file = event.target.files?.[0];
                 if (!file) return;
-                const uploaded = await uploadImageFile(
-                  file,
-                  `restaurants/${restaurant.id}`
-                );
+                const uploaded = await uploadImageFile(file, "logos");
                 if (uploaded.error || !uploaded.data) {
                   setError(uploaded.error ?? "تعذر رفع الشعار");
                   return;

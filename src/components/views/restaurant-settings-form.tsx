@@ -59,7 +59,8 @@ export function RestaurantSettingsForm({ restaurant }: { restaurant: Restaurant 
   }
 
   async function upload(kind: "logo_url" | "cover_image_url", file: File) {
-    const uploaded = await uploadImageFile(file, `restaurants/${restaurant.id}`);
+    const folder = kind === "logo_url" ? "logos" : "covers";
+    const uploaded = await uploadImageFile(file, folder);
     if (uploaded.error || !uploaded.data) {
       toast({ title: uploaded.error ?? "تعذر الرفع", variant: "error" });
       return;

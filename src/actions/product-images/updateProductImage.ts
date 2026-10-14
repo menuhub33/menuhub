@@ -10,6 +10,7 @@ import {
   type ActionResult,
 } from "@/lib/action";
 import { parseStoredImageUrl } from "@/lib/storage";
+import { releaseStoredImage } from "@/lib/stored-images";
 import type { ProductImage } from "@/lib/types";
 
 export type UpdateProductImageInput = {
@@ -57,6 +58,17 @@ export async function updateProductImage(
       .neq("id", input.id);
   }
 
+  let previousUrl: string | null = null;
+  if (input.image_url !== undefined) {
+    const { data: current } = await auth.supabase
+      .from("product_images")
+      .select("image_url")
+      .eq("id", input.id)
+      .eq("product_id", input.product_id)
+      .maybeSingle();
+    previousUrl = current?.image_url ?? null;
+  }
+
   const payload: Record<string, unknown> = {};
   if (input.image_url !== undefined) {
     const imageUrl = parseStoredImageUrl(input.image_url, true);
@@ -75,5 +87,8 @@ export async function updateProductImage(
     .single();
 
   if (error) return fail(error.message);
+  if (previousUrl && previousUrl !== data.image_url) {
+    await releaseStoredImage(auth.supabase, previousUrl);
+  }
   return ok(data as ProductImage);
 }

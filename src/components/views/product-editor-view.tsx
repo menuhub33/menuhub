@@ -22,7 +22,6 @@ import type { Category } from "@/lib/types";
 export function ProductEditorView({
   product,
   categories,
-  restaurantId,
 }: {
   product?: ProductWithRelations | null;
   categories: Category[];
@@ -149,10 +148,7 @@ export function ProductEditorView({
             : undefined
         }
         onUploadImage={async (file) => {
-          const uploaded = await uploadImageFile(
-            file,
-            `restaurants/${restaurantId}/products`
-          );
+          const uploaded = await uploadImageFile(file, "products");
           if (uploaded.error || !uploaded.data) throw new Error(uploaded.error ?? "رفع فشل");
           return uploaded.data.url;
         }}

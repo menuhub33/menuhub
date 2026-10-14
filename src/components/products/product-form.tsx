@@ -8,6 +8,7 @@ import { ProductGallery, type ProductGalleryItem } from "@/components/products/p
 import { ProductPrice } from "@/components/products/product-price";
 import { ProductStatusBadge } from "@/components/products/product-status-badge";
 import { Alert } from "@/components/ui/alert";
+import { ContentImage } from "@/components/ui/content-image";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -425,8 +426,12 @@ export function ProductForm({
         <Card className="overflow-hidden">
           <div className="relative aspect-[4/3] bg-zinc-100">
             {primaryImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={primaryImage.image_url} alt="" className="h-full w-full object-cover" />
+              <ContentImage
+                src={primaryImage.image_url}
+                alt=""
+                sizes="(max-width: 1024px) 100vw, 272px"
+                className="h-full w-full object-cover"
+              />
             ) : (
               <div className="flex h-full items-center justify-center text-zinc-300">
                 <ImageIcon className="size-10" />

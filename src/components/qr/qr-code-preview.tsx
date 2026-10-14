@@ -36,6 +36,8 @@ export function QrCodePreview({
         src={qrUrl}
         alt={name ? `رمز QR: ${name}` : "رمز QR"}
         className="aspect-square w-full object-contain"
+        loading="lazy"
+        decoding="async"
       />
     </div>
   );

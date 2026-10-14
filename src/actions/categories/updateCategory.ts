@@ -11,6 +11,7 @@ import {
   type ActionResult,
 } from "@/lib/action";
 import { parseStoredImageUrl } from "@/lib/storage";
+import { releaseStoredImage } from "@/lib/stored-images";
 import type { Category } from "@/lib/types";
 
 export type UpdateCategoryInput = {
@@ -55,10 +56,17 @@ export async function updateCategory(
   if (input.description_en !== undefined) {
     payload.description_en = input.description_en;
   }
+  let previousImageUrl: string | null = null;
   if (input.image_url !== undefined) {
     const imageUrl = parseStoredImageUrl(input.image_url);
     if (imageUrl.error) return fail(imageUrl.error);
     payload.image_url = imageUrl.url;
+    const { data: current } = await auth.supabase
+      .from("categories")
+      .select("image_url")
+      .eq("id", input.id)
+      .maybeSingle();
+    previousImageUrl = current?.image_url ?? null;
   }
   if (input.sort_order !== undefined) payload.sort_order = input.sort_order;
 
@@ -70,6 +78,9 @@ export async function updateCategory(
     .single();
 
   if (error) return fail(error.message);
+  if (previousImageUrl && previousImageUrl !== data.image_url) {
+    await releaseStoredImage(auth.supabase, previousImageUrl);
+  }
   await revalidateRestaurantPublicMenu(auth.supabase, restaurantId);
   return ok(data as Category);
 }

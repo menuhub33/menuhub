@@ -1,4 +1,5 @@
 import { ShareMenu } from "@/components/public-menu/share-menu";
+import { ContentImage } from "@/components/ui/content-image";
 import type { Restaurant } from "@/lib/types";
 
 export function PublicMenuHeader({
@@ -14,10 +15,11 @@ export function PublicMenuHeader({
     <header className="relative">
       <div className="relative h-44 overflow-hidden bg-[var(--mh-secondary)] sm:h-56">
         {restaurant.cover_image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <ContentImage
             src={restaurant.cover_image_url}
             alt=""
+            sizes="100vw"
+            priority
             className="size-full object-cover"
           />
         ) : null}
@@ -36,10 +38,11 @@ export function PublicMenuHeader({
         <div className="flex items-end gap-3">
           <span className="relative size-20 shrink-0 overflow-hidden rounded-2xl bg-[var(--mh-primary)]/15 ring-4 ring-[var(--mh-bg)]">
             {restaurant.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <ContentImage
                 src={restaurant.logo_url}
                 alt={restaurant.name}
+                sizes="80px"
+                priority
                 className="size-full object-cover"
               />
             ) : (

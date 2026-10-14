@@ -4,6 +4,7 @@ import { PRODUCT_STATUS_LABELS } from "@/components/lib/labels";
 import type { ProductWithRelations } from "@/components/lib/types";
 import { productPrimaryImageUrl } from "@/components/public-menu/product-image";
 import { PublicQtyStepper } from "@/components/public-menu/public-qty-stepper";
+import { ContentImage } from "@/components/ui/content-image";
 import { ImageIcon } from "@/components/ui/icons";
 
 export function PublicProductCard({
@@ -41,12 +42,10 @@ export function PublicProductCard({
       >
         <div className="relative aspect-square overflow-hidden bg-[var(--mh-text)]/8">
           {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <ContentImage
               src={imageUrl}
               alt=""
-              loading="lazy"
-              decoding="async"
+              sizes="(max-width: 768px) 46vw, 240px"
               className="size-full object-cover"
             />
           ) : (

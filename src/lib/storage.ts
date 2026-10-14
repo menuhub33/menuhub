@@ -52,33 +52,6 @@ export function resolveImageMime(
   return null;
 }
 
-export function mapStorageError(message: string) {
-  const value = message.toLowerCase();
-  if (
-    value.includes("bucket") ||
-    value.includes("not found") ||
-    value.includes("does not exist") ||
-    value.includes("404")
-  ) {
-    return "مجلد الصور غير موجود. نفّذ ملف 00008_ensure_images_bucket.sql في Supabase";
-  }
-  if (
-    value.includes("row-level security") ||
-    value.includes("unauthorized") ||
-    value.includes("403") ||
-    value.includes("access denied")
-  ) {
-    return "لا توجد صلاحية لرفع الصور. نفّذ ملف 00008_ensure_images_bucket.sql في Supabase";
-  }
-  if (value.includes("mime") || value.includes("not allowed")) {
-    return "نوع الملف غير مدعوم. استخدم JPG أو PNG أو WebP.";
-  }
-  if (value.includes("maximum") || value.includes("too large") || value.includes("payload")) {
-    return "حجم الصورة يجب ألا يتجاوز 5 ميغابايت";
-  }
-  return message || "تعذر رفع الصورة";
-}
-
 export function sanitizeStorageFolder(folder: string) {
   const cleaned = folder
     .replace(/\\/g, "/")

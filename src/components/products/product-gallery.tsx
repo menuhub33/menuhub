@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/components/lib/cn";
 import { ProductImageUpload } from "@/components/products/product-image-upload";
 import { Button } from "@/components/ui/button";
+import { ContentImage } from "@/components/ui/content-image";
 import { GripIcon, StarIcon, TrashIcon } from "@/components/ui/icons";
 import type { ProductImage } from "@/lib/types";
 
@@ -117,8 +118,12 @@ export function ProductGallery({
                 image.is_primary && "ring-2 ring-teal-700"
               )}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image.image_url} alt="" className="aspect-square w-full object-cover" />
+              <ContentImage
+                src={image.image_url}
+                alt=""
+                sizes="(max-width: 768px) 45vw, 200px"
+                className="aspect-square w-full object-cover"
+              />
               <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-zinc-950/55 p-1.5">
                 <span
                   className="inline-flex cursor-grab rounded-lg p-1 text-white active:cursor-grabbing"

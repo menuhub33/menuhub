@@ -1,4 +1,5 @@
 import { Avatar } from "@/components/ui/avatar";
+import { ContentImage } from "@/components/ui/content-image";
 import { MapPinIcon, PhoneIcon } from "@/components/ui/icons";
 import type { Restaurant } from "@/lib/types";
 
@@ -7,10 +8,10 @@ export function RestaurantPreview({ restaurant }: { restaurant: Pick<Restaurant,
     <div className="overflow-hidden rounded-2xl border border-zinc-200">
       <div className="h-32 bg-zinc-100">
         {restaurant.cover_image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <ContentImage
             src={restaurant.cover_image_url}
             alt=""
+            sizes="(max-width: 640px) 100vw, 480px"
             className="h-full w-full object-cover"
           />
         ) : null}

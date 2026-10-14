@@ -5,6 +5,7 @@ import { askMenuChat } from "@/actions/public/askMenuChat";
 import { formatPrice } from "@/components/lib/format";
 import { cn } from "@/components/lib/cn";
 import { PublicSheet } from "@/components/public-menu/public-sheet";
+import { ContentImage } from "@/components/ui/content-image";
 import { BotIcon, PhoneIcon, SendIcon, UtensilsIcon, WhatsAppIcon } from "@/components/ui/icons";
 import type { MenuChatContact, MenuChatProduct } from "@/lib/menu-chat";
 import { whatsappHref } from "@/lib/phone";
@@ -167,10 +168,10 @@ export function PublicMenuChat({
                       className="flex items-center gap-2 rounded-2xl border border-zinc-100 bg-white p-2 text-start shadow-sm"
                     >
                       {product.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <ContentImage
                           src={product.image_url}
                           alt=""
+                          sizes="48px"
                           className="size-12 shrink-0 rounded-xl object-cover"
                         />
                       ) : (

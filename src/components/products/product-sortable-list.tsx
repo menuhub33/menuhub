@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/components/lib/cn";
 import type { ProductWithImages } from "@/components/lib/types";
 import { getProductPrimaryImage } from "@/components/products/product-card";
+import { ContentImage } from "@/components/ui/content-image";
 import { GripIcon, ImageIcon } from "@/components/ui/icons";
 
 export function ProductSortableList({
@@ -69,8 +70,12 @@ export function ProductSortableList({
             </span>
             <div className="size-10 shrink-0 overflow-hidden rounded-xl bg-zinc-100">
               {image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={image.image_url} alt="" className="h-full w-full object-cover" />
+                <ContentImage
+                  src={image.image_url}
+                  alt=""
+                  sizes="40px"
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <div className="flex h-full items-center justify-center text-zinc-300">
                   <ImageIcon className="size-4" />

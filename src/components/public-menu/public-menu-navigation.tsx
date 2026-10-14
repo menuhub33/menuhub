@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/components/lib/cn";
 import type { CategoryWithProducts } from "@/components/lib/types";
 import { productPrimaryImageUrl } from "@/components/public-menu/product-image";
+import { ContentImage } from "@/components/ui/content-image";
 import { ChevronLeftIcon, ChevronRightIcon, ImageIcon } from "@/components/ui/icons";
 
 export const ALL_CATEGORIES_ID = "all";
@@ -188,10 +189,10 @@ export function PublicMenuNavigation({
                 )}
               >
                 {imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <ContentImage
                     src={imageUrl}
                     alt=""
+                    sizes="108px"
                     draggable={false}
                     className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
                   />

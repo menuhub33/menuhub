@@ -5,6 +5,7 @@ import { cn } from "@/components/lib/cn";
 import type { ProductWithRelations } from "@/components/lib/types";
 import { productPrimaryImageUrl } from "@/components/public-menu/product-image";
 import { ShareMenu } from "@/components/public-menu/share-menu";
+import { ContentImage } from "@/components/ui/content-image";
 import { ImageIcon } from "@/components/ui/icons";
 import { normalizeBusinessType } from "@/lib/business-type";
 import type { Restaurant } from "@/lib/types";
@@ -80,12 +81,13 @@ export function PublicMenuHero({
             ref={scrollerRef}
             className="flex snap-x snap-mandatory overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {slides.map((slide) => (
+            {slides.map((slide, index) => (
               <div key={slide.src} className="relative h-48 w-full shrink-0 snap-center sm:h-56">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <ContentImage
                   src={slide.src}
                   alt={slide.label}
+                  sizes="100vw"
+                  priority={index === 0}
                   className="size-full object-cover"
                 />
               </div>

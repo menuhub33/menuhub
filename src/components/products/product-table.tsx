@@ -9,6 +9,7 @@ import { ProductPrice } from "@/components/products/product-price";
 import { ProductStatusBadge } from "@/components/products/product-status-badge";
 import { ProductVisibilityToggle } from "@/components/products/product-visibility-toggle";
 import { Card } from "@/components/ui/card";
+import { ContentImage } from "@/components/ui/content-image";
 import { ImageIcon, StarIcon } from "@/components/ui/icons";
 import {
   Table,
@@ -76,10 +77,10 @@ export function ProductTable({
                     <TableCell>
                       <div className="size-12 overflow-hidden rounded-xl bg-zinc-100">
                         {image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <ContentImage
                             src={image.image_url}
                             alt={product.name_ar}
+                            sizes="48px"
                             className="h-full w-full object-cover"
                           />
                         ) : (

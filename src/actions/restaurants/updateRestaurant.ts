@@ -12,6 +12,7 @@ import {
   type ActionResult,
 } from "@/lib/action";
 import { parseStoredImageUrl } from "@/lib/storage";
+import { releaseStoredImage } from "@/lib/stored-images";
 import type { Restaurant } from "@/lib/types";
 
 export type UpdateRestaurantInput = {
@@ -104,6 +105,17 @@ export async function updateRestaurant(
 
   if (payload.name === "") return fail("اسم المطعم مطلوب");
 
+  let previousImages: { logo_url: string | null; cover_image_url: string | null } | null =
+    null;
+  if (input.logo_url !== undefined || input.cover_image_url !== undefined) {
+    const { data: current } = await auth.supabase
+      .from("restaurants")
+      .select("logo_url, cover_image_url")
+      .eq("id", input.id)
+      .maybeSingle();
+    previousImages = current;
+  }
+
   const omitted: Record<string, unknown> = {};
   let current = payload;
   for (let attempt = 0; attempt < 6; attempt += 1) {
@@ -115,8 +127,19 @@ export async function updateRestaurant(
       .single();
 
     if (!error && data) {
+      const saved = data as Restaurant;
+      if (input.logo_url !== undefined && previousImages?.logo_url && previousImages.logo_url !== saved.logo_url) {
+        await releaseStoredImage(auth.supabase, previousImages.logo_url);
+      }
+      if (
+        input.cover_image_url !== undefined &&
+        previousImages?.cover_image_url &&
+        previousImages.cover_image_url !== saved.cover_image_url
+      ) {
+        await releaseStoredImage(auth.supabase, previousImages.cover_image_url);
+      }
       await revalidateRestaurantPublicMenu(auth.supabase, input.id);
-      return ok({ ...(data as Restaurant), ...omitted } as Restaurant);
+      return ok({ ...saved, ...omitted } as Restaurant);
     }
 
     const missing = error?.message.match(/['"]([a-z_]+)['"] column/i)?.[1];
