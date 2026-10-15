@@ -23,6 +23,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { formatDate } from "@/components/lib/format";
 import { PasswordInput } from "@/components/auth/password-input";
+import {
+  emptyBillingForm,
+  MenuBillingFields,
+  type BillingFormState,
+} from "@/components/admin/menu-billing-fields";
+import { parseBillingInput } from "@/lib/menu-billing";
 import { BusinessTypePicker } from "@/components/restaurants/business-type-picker";
 import { isRestaurantActivated } from "@/lib/restaurant-status";
 import { BUSINESS_TYPE_OPTIONS, normalizeBusinessType } from "@/lib/business-type";
@@ -55,6 +61,7 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [businessType, setBusinessType] = useState<BusinessType>("RESTAURANT");
+  const [billing, setBilling] = useState<BillingFormState>(emptyBillingForm());
   const [editing, setEditing] = useState<RestaurantRow | null>(null);
   const [editName, setEditName] = useState("");
   const [editSlug, setEditSlug] = useState("");
@@ -77,7 +84,8 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const canCreate = Boolean(name.trim() && email.trim() && password.length >= 8);
+  const billingInput = parseBillingInput(billing);
+  const canCreate = Boolean(name.trim() && email.trim() && password.length >= 8 && "value" in billingInput);
   const canSave = Boolean(editName.trim() && editSlug.trim());
 
   function openEdit(restaurant: RestaurantRow) {
@@ -98,6 +106,7 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
         email: email.trim(),
         password,
         business_type: businessType,
+        billing: "value" in billingInput ? billingInput.value : undefined,
       });
       if (result.error) {
         toast({ title: result.error, variant: "error" });
@@ -109,6 +118,7 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
       setEmail("");
       setPassword("");
       setBusinessType("RESTAURANT");
+      setBilling(emptyBillingForm());
       router.refresh();
     } catch (error) {
       toast({
@@ -298,7 +308,8 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
         open={creating}
         onOpenChange={setCreating}
         title="إنشاء مطعم"
-        description="أدخل اسم النشاط ونوعه وبريد المالك وكلمة المرور. يُنشأ الحساب والموقع معاً، ثم اضغط تفعيل ليتمكن المالك من فتح لوحة التحكم."
+        size="lg"
+        description="أدخل بيانات النشاط والحساب، ثم سعر المنيو والحسم والتقسيط والتجديد السنوي."
         footer={
           <>
             <Button variant="outline" onClick={() => setCreating(false)}>
@@ -333,6 +344,7 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
               onChange={setPassword}
             />
           </FormField>
+          <MenuBillingFields value={billing} onChange={setBilling} disabled={saving} />
         </div>
       </Dialog>
       <Dialog

@@ -1,16 +1,34 @@
 import Link from "next/link";
 import { getAdminAnalytics, getAdminRestaurants } from "@/actions/admin/admin";
+import { getAdminFinance } from "@/actions/admin/finance";
 import { ErrorState } from "@/components/common/error-state";
 import { StatusBadge } from "@/components/common/status-badge";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { formatDate } from "@/components/lib/format";
+import { formatDate, formatPrice } from "@/components/lib/format";
 import { PageHeader } from "@/components/layout/page-header";
-import { BuildingIcon, EyeIcon, UsersIcon, UtensilsIcon } from "@/components/ui/icons";
+import { contractProfit } from "@/lib/menu-billing";
+import { BuildingIcon, CreditCardIcon, EyeIcon, UsersIcon, UtensilsIcon } from "@/components/ui/icons";
+
+function formatProfit(contracts: { price: number; discount_type: "NONE" | "PERCENT" | "AMOUNT"; discount_value: number; setup_cost: number; currency: string }[]) {
+  const byCurrency = new Map<string, number>();
+  for (const contract of contracts) {
+    const profit = contractProfit(
+      contract.price,
+      contract.discount_type,
+      contract.discount_value,
+      contract.setup_cost
+    );
+    byCurrency.set(contract.currency, (byCurrency.get(contract.currency) ?? 0) + profit);
+  }
+  if (byCurrency.size === 0) return formatPrice(0);
+  return [...byCurrency.entries()].map(([currency, amount]) => formatPrice(amount, currency)).join(" · ");
+}
 
 export default async function AdminHomePage() {
-  const [stats, restaurants] = await Promise.all([
+  const [stats, restaurants, finance] = await Promise.all([
     getAdminAnalytics(),
     getAdminRestaurants(),
+    getAdminFinance(),
   ]);
 
   if (stats.error || !stats.data) {
@@ -37,6 +55,18 @@ export default async function AdminHomePage() {
         </Link>
         <StatCard label="مشاهدات المنيو" value={stats.data.views} hint="إجمالي الزيارات" icon={<EyeIcon />} />
       </div>
+      <Link href="/admin/finance" className="block rounded-2xl transition hover:-translate-y-0.5">
+        <StatCard
+          label="الربح الصافي من المنصة"
+          value={finance.data ? formatProfit(finance.data.contracts) : "—"}
+          hint={
+            finance.error
+              ? "تعذر حساب الربح. راجع الإدارة المالية"
+              : "سعر المنيوهات بعد الحسم ناقص تكلفة الاستضافة والتركيب"
+          }
+          icon={<CreditCardIcon />}
+        />
+      </Link>
 
       <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
         <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-3">

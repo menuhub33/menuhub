@@ -296,6 +296,7 @@ export async function adminCreateRestaurant(input: {
   slug?: string;
   phone?: string | null;
   business_type?: Restaurant["business_type"];
+  billing?: import("@/lib/menu-billing").MenuBillingInput;
 }): Promise<ActionResult<Restaurant>> {
   return bootstrapRestaurant({
     name: input.name,
@@ -304,6 +305,7 @@ export async function adminCreateRestaurant(input: {
     slug: input.slug,
     phone: input.phone,
     business_type: input.business_type,
+    billing: input.billing,
   });
 }
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FormField } from "@/components/forms/form-field";
+import { MENU_CURRENCIES } from "@/components/lib/format";
 import { RestaurantLogoUpload } from "@/components/restaurants/restaurant-logo-upload";
 import { RestaurantCoverUpload } from "@/components/restaurants/restaurant-cover-upload";
 import { Alert } from "@/components/ui/alert";
@@ -165,12 +166,7 @@ export function RestaurantForm({
           <Select
             value={values.currency}
             onChange={(value) => update("currency", value)}
-            options={[
-              { value: "SYP", label: "ليرة سورية" },
-              { value: "USD", label: "دولار" },
-              { value: "TRY", label: "ليرة تركية" },
-              { value: "SAR", label: "ريال سعودي" },
-            ]}
+            options={MENU_CURRENCIES.map((item) => ({ value: item.value, label: item.label }))}
           />
         </FormField>
         <FormField label="اللغة الافتراضية">

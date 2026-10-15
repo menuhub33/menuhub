@@ -7,6 +7,15 @@ const CURRENCY_AR: Record<string, string> = {
   TRY: "₺",
 };
 
+export const MENU_CURRENCIES = [
+  { value: "SYP", label: "ليرة سورية" },
+  { value: "USD", label: "دولار" },
+  { value: "TRY", label: "ليرة تركية" },
+  { value: "EUR", label: "يورو" },
+  { value: "SAR", label: "ريال سعودي" },
+  { value: "AED", label: "درهم إماراتي" },
+] as const;
+
 const DAY_NAMES_AR = [
   "الأحد",
   "الاثنين",

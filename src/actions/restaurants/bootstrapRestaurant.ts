@@ -12,6 +12,8 @@ import { slugifyName } from "@/lib/config";
 import { createAdminClient, hasServiceRole } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Restaurant } from "@/lib/types";
+import type { MenuBillingInput } from "@/lib/menu-billing";
+import { persistMenuBilling } from "@/lib/save-menu-billing";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizeBusinessType } from "@/lib/business-type";
 
@@ -25,6 +27,7 @@ export type BootstrapRestaurantInput = {
   description?: string | null;
   phone?: string | null;
   business_type?: Restaurant["business_type"];
+  billing?: MenuBillingInput;
 };
 
 async function uniqueSlug(
@@ -190,6 +193,7 @@ async function bootstrapRestaurantUnsafe(
     status: "SUSPENDED",
     menu_status: "DRAFT",
     business_type: businessType,
+    currency: input.billing?.currency || "SYP",
   };
   let { error } = await db.from("restaurants").insert(insertPayload);
 
@@ -250,6 +254,15 @@ async function bootstrapRestaurantUnsafe(
     is_default: true,
     status: "DRAFT",
   });
+
+  if (input.billing) {
+    const billing = await persistMenuBilling(db, restaurant.id, input.billing);
+    if (billing.error) {
+      await db.from("restaurants").delete().eq("id", restaurantId);
+      await deleteOwnerAccount(auth.supabase, ownerId);
+      return fail(billing.error);
+    }
+  }
 
   const { data: freePlan } = await db
     .from("plans")

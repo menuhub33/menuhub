@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
 import {
   BuildingIcon,
+  CreditCardIcon,
   HomeIcon,
   LogOutIcon,
   MenuIcon,
@@ -21,6 +22,7 @@ import type { Profile } from "@/lib/types";
 const NAV = [
   { href: "/admin", label: "الرئيسية", icon: HomeIcon, exact: true },
   { href: "/admin/restaurants", label: "المطاعم", icon: BuildingIcon },
+  { href: "/admin/finance", label: "الإدارة المالية", icon: CreditCardIcon },
   { href: "/admin/users", label: "المستخدمون", icon: UsersIcon },
   { href: "/admin/settings", label: "الإعدادات", icon: SettingsIcon },
 ];

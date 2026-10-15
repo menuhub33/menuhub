@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { FormField } from "@/components/forms/form-field";
 import { PRODUCT_STATUS_LABELS } from "@/components/lib/labels";
+import { MENU_CURRENCIES } from "@/components/lib/format";
 import type { OptionGroupWithOptions, ProductWithRelations } from "@/components/lib/types";
 import { ProductGallery, type ProductGalleryItem } from "@/components/products/product-gallery";
 import { ProductPrice } from "@/components/products/product-price";
@@ -49,13 +50,6 @@ type Draft = {
 };
 
 type FieldKey = "name_ar" | "price" | "category_id" | "old_price" | "sort_order";
-
-const CURRENCY_OPTIONS = [
-  { value: "SYP", label: "ليرة سورية" },
-  { value: "USD", label: "دولار" },
-  { value: "TRY", label: "ليرة تركية" },
-  { value: "SAR", label: "ريال سعودي" },
-];
 
 const STATUS_OPTIONS: { value: ProductStatus; label: string }[] = [
   { value: "AVAILABLE", label: PRODUCT_STATUS_LABELS.AVAILABLE },
@@ -276,19 +270,27 @@ export function ProductForm({
           />
         </FormField>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <FormField label="السعر" htmlFor="price" required error={fieldErrors.price}>
-            <Input
-              id="price"
-              type="number"
-              inputMode="decimal"
-              min={0}
-              step="0.01"
-              value={values.price}
-              invalid={Boolean(fieldErrors.price)}
-              onChange={(event) => update("price", event.target.value)}
-              required
-            />
+            <div className="grid grid-cols-[minmax(0,1fr)_11rem] gap-2">
+              <Input
+                id="price"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.01"
+                value={values.price}
+                invalid={Boolean(fieldErrors.price)}
+                onChange={(event) => update("price", event.target.value)}
+                required
+              />
+              <Select
+                id="currency"
+                value={values.currency}
+                onChange={(value) => update("currency", value)}
+                options={MENU_CURRENCIES.map((item) => ({ value: item.value, label: item.label }))}
+              />
+            </div>
           </FormField>
           <FormField
             label="السعر السابق"
@@ -305,14 +307,6 @@ export function ProductForm({
               value={values.old_price}
               invalid={Boolean(fieldErrors.old_price)}
               onChange={(event) => update("old_price", event.target.value)}
-            />
-          </FormField>
-          <FormField label="العملة" htmlFor="currency">
-            <Select
-              id="currency"
-              value={values.currency}
-              onChange={(value) => update("currency", value)}
-              options={CURRENCY_OPTIONS}
             />
           </FormField>
         </div>
