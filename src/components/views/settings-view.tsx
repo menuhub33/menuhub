@@ -18,20 +18,17 @@ export function SettingsView({
   profile,
   restaurant,
   canManageRestaurant,
-  canManageSubscription,
   initialTab,
 }: {
   profile: Profile;
   restaurant: Restaurant;
   canManageRestaurant: boolean;
-  canManageSubscription: boolean;
   initialTab?: string;
 }) {
   const router = useRouter();
   const { toast } = useToast();
   const tabFromUrl = () => {
     if (initialTab === "restaurant" && canManageRestaurant) return "restaurant";
-    if (initialTab === "subscription" && canManageSubscription) return "subscription";
     if (initialTab === "security" || initialTab === "notifications") return initialTab;
     if (initialTab === "account") return "account";
     return null;
@@ -54,7 +51,6 @@ export function SettingsView({
     { id: "restaurant", label: "بيانات النشاط", disabled: !canManageRestaurant },
     { id: "security", label: "الأمان" },
     { id: "notifications", label: "الإشعارات" },
-    { id: "subscription", label: "الاشتراك", disabled: !canManageSubscription },
   ];
 
   return (
@@ -104,15 +100,6 @@ export function SettingsView({
       ) : null}
       {tab === "restaurant" && canManageRestaurant ? (
         <RestaurantSettingsForm restaurant={restaurant} />
-      ) : null}
-      {tab === "subscription" && canManageSubscription ? (
-        <Alert>
-          إدارة الخطة والدفع من صفحة{" "}
-          <Link href="/dashboard/subscription" className="underline">
-            الاشتراك
-          </Link>
-          .
-        </Alert>
       ) : null}
     </div>
   );

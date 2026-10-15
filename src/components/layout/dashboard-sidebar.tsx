@@ -7,7 +7,6 @@ import { Avatar } from "@/components/ui/avatar";
 import {
   ChartIcon,
   ChevronDownIcon,
-  CreditCardIcon,
   HomeIcon,
   LayoutIcon,
   PaletteIcon,
@@ -28,7 +27,6 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   qr: QrIcon,
   analytics: ChartIcon,
   staff: UsersIcon,
-  billing: CreditCardIcon,
   restaurant: BuildingIcon,
   settings: SettingsIcon,
 };
@@ -50,7 +48,6 @@ export const DEFAULT_DASHBOARD_NAV: NavItem[] = [
   { href: "/dashboard/analytics", label: "الإحصائيات", icon: "analytics", permission: "analytics.view" },
   { href: "/dashboard/restaurant", label: "النشاط", icon: "restaurant", permission: "restaurant.update" },
   { href: "/dashboard/staff", label: "الموظفون", icon: "staff", permission: "staff.manage" },
-  { href: "/dashboard/subscription", label: "الاشتراك", icon: "billing", permission: "subscription.manage" },
   { href: "/dashboard/settings", label: "الإعدادات", icon: "settings" },
 ];
 

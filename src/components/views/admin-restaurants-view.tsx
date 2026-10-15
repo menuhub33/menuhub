@@ -3,11 +3,10 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  adminChangeRestaurantPlan,
   adminCreateRestaurant,
   adminDeleteRestaurant,
-  adminSetRestaurantBusinessType,
   adminSetRestaurantStatus,
+  adminUpdateRestaurant,
 } from "@/actions/admin/admin";
 import { seedDemoCarsMenu, seedDemoMenu } from "@/actions/admin/seedDemoMenu";
 import { PageHeader } from "@/components/layout/page-header";
@@ -20,26 +19,28 @@ import { Dialog } from "@/components/ui/dialog";
 import { Pagination } from "@/components/ui/pagination";
 import { FormField } from "@/components/forms/form-field";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { formatDate } from "@/components/lib/format";
 import { PasswordInput } from "@/components/auth/password-input";
 import { BusinessTypePicker } from "@/components/restaurants/business-type-picker";
 import { isRestaurantActivated } from "@/lib/restaurant-status";
-import {
-  BUSINESS_TYPE_OPTIONS,
-  normalizeBusinessType,
-} from "@/lib/business-type";
-import type { BusinessType, Plan, Restaurant, RestaurantStatus } from "@/lib/types";
+import { BUSINESS_TYPE_OPTIONS, normalizeBusinessType } from "@/lib/business-type";
+import type { BusinessType, Restaurant, RestaurantStatus } from "@/lib/types";
 
 const PAGE_SIZE = 10;
 
-export function AdminRestaurantsView({
-  restaurants = [],
-  plans = [],
-}: {
-  restaurants?: (Restaurant & { owner_name?: string | null; plan_name?: string | null })[];
-  plans?: Plan[];
-}) {
+type RestaurantRow = Restaurant & { owner_name?: string | null };
+
+const STATUS_OPTIONS: { value: RestaurantStatus; label: string }[] = [
+  { value: "TRIAL", label: "تجريبي" },
+  { value: "ACTIVE", label: "نشط" },
+  { value: "SUSPENDED", label: "معلّق" },
+  { value: "EXPIRED", label: "منتهي" },
+  { value: "CANCELLED", label: "ملغى" },
+];
+
+export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: RestaurantRow[] }) {
   const router = useRouter();
   const { toast } = useToast();
   const [query, setQuery] = useState("");
@@ -54,8 +55,13 @@ export function AdminRestaurantsView({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [businessType, setBusinessType] = useState<BusinessType>("RESTAURANT");
-
-  const planRows = plans ?? [];
+  const [editing, setEditing] = useState<RestaurantRow | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editSlug, setEditSlug] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editStatus, setEditStatus] = useState<RestaurantStatus>("SUSPENDED");
+  const [editBusinessType, setEditBusinessType] = useState<BusinessType>("RESTAURANT");
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -72,6 +78,17 @@ export function AdminRestaurantsView({
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const canCreate = Boolean(name.trim() && email.trim() && password.length >= 8);
+  const canSave = Boolean(editName.trim() && editSlug.trim());
+
+  function openEdit(restaurant: RestaurantRow) {
+    setEditing(restaurant);
+    setEditName(restaurant.name);
+    setEditSlug(restaurant.slug);
+    setEditPhone(restaurant.phone ?? "");
+    setEditDescription(restaurant.description ?? "");
+    setEditStatus(restaurant.status);
+    setEditBusinessType(normalizeBusinessType(restaurant.business_type));
+  }
 
   async function createRestaurant() {
     setSaving(true);
@@ -103,6 +120,28 @@ export function AdminRestaurantsView({
     }
   }
 
+  async function saveRestaurant() {
+    if (!editing) return;
+    setSaving(true);
+    const result = await adminUpdateRestaurant({
+      id: editing.id,
+      name: editName,
+      slug: editSlug,
+      phone: editPhone,
+      description: editDescription,
+      status: editStatus,
+      business_type: editBusinessType,
+    });
+    setSaving(false);
+    if (result.error) {
+      toast({ title: result.error, variant: "error" });
+      return;
+    }
+    toast({ title: "تم حفظ المطعم", variant: "success" });
+    setEditing(null);
+    router.refresh();
+  }
+
   async function createDemoMenu() {
     setSeeding("restaurant");
     const result = await seedDemoMenu();
@@ -131,7 +170,7 @@ export function AdminRestaurantsView({
     <div className="grid gap-4">
       <PageHeader
         title="المطاعم"
-        description="إنشاء المواقع وتفعيلها وتحديد نوع النشاط يتم من هنا فقط. صاحب المنيو لا يستطيع تغيير نوع النشاط."
+        description="إنشاء المواقع وتعديلها وتفعيلها وتحديد نوع النشاط يتم من هنا."
         actions={
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" loading={seeding === "restaurant"} onClick={() => void createDemoMenu()}>
@@ -149,14 +188,7 @@ export function AdminRestaurantsView({
         <Select
           value={status}
           onChange={(value) => setStatus(value as typeof status)}
-          options={[
-            { value: "ALL", label: "كل الحالات" },
-            { value: "TRIAL", label: "تجريبي" },
-            { value: "ACTIVE", label: "نشط" },
-            { value: "SUSPENDED", label: "معلّق" },
-            { value: "EXPIRED", label: "منتهي" },
-            { value: "CANCELLED", label: "ملغى" },
-          ]}
+          options={[{ value: "ALL", label: "كل الحالات" }, ...STATUS_OPTIONS]}
         />
         <Select
           value={sort}
@@ -171,87 +203,74 @@ export function AdminRestaurantsView({
         <table className="w-full min-w-[48rem] text-start text-sm">
           <thead className="bg-zinc-50 text-zinc-500">
             <tr>
-              <th className="p-3">المطعم</th>
-              <th className="p-3">نوع النشاط</th>
-              <th className="p-3">المالك</th>
-              <th className="p-3">الخطة</th>
-              <th className="p-3">الحالة</th>
-              <th className="p-3">تاريخ الإنشاء</th>
-              <th className="p-3">إجراءات</th>
+              <th className="p-3 text-start">المطعم</th>
+              <th className="p-3 text-start">نوع النشاط</th>
+              <th className="p-3 text-start">المالك</th>
+              <th className="p-3 text-start">الحالة</th>
+              <th className="p-3 text-start">تاريخ الإنشاء</th>
+              <th className="p-3 text-start">إجراءات</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((restaurant) => (
-              <tr key={restaurant.id} className="border-t border-zinc-100">
-                <td className="p-3">
-                  <p className="font-medium">{restaurant.name}</p>
-                  <p className="text-xs text-zinc-400" dir="ltr">{restaurant.slug}</p>
-                </td>
-                <td className="p-3">
-                  <Select
-                    value={normalizeBusinessType(restaurant.business_type)}
-                    onChange={async (value) => {
-                      const result = await adminSetRestaurantBusinessType(
-                        restaurant.id,
-                        value as BusinessType
-                      );
-                      if (result.error) toast({ title: result.error, variant: "error" });
-                      else {
-                        toast({ title: "تم حفظ نوع النشاط", variant: "success" });
-                        router.refresh();
-                      }
-                    }}
-                    options={BUSINESS_TYPE_OPTIONS.map((option) => ({
-                      value: option.value,
-                      label: option.label,
-                    }))}
-                  />
-                </td>
-                <td className="p-3">{restaurant.owner_name ?? "—"}</td>
-                <td className="p-3">{restaurant.plan_name ?? "—"}</td>
-                <td className="p-3"><StatusBadge kind="restaurant" value={restaurant.status} /></td>
-                <td className="p-3">{formatDate(restaurant.created_at)}</td>
-                <td className="p-3">
-                  <div className="flex flex-wrap gap-1">
-                    <Button size="sm" variant="outline" onClick={() => window.open(`/m/${restaurant.slug}`, "_blank")}>
-                      عرض
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={isRestaurantActivated(restaurant.status) ? "outline" : "primary"}
-                      onClick={async () => {
-                        const nextStatus = isRestaurantActivated(restaurant.status)
-                          ? "SUSPENDED"
-                          : "ACTIVE";
-                        const result = await adminSetRestaurantStatus(restaurant.id, nextStatus);
-                        if (result.error) toast({ title: result.error, variant: "error" });
-                        else {
-                          toast({
-                            title: nextStatus === "ACTIVE" ? "تم تفعيل المطعم" : "تم تعليق المطعم",
-                            variant: "success",
-                          });
-                          router.refresh();
-                        }
-                      }}
-                    >
-                      {isRestaurantActivated(restaurant.status) ? "تعليق" : "تفعيل"}
-                    </Button>
-                    <Select
-                      value={planRows.find((plan) => plan.name === restaurant.plan_name)?.id ?? ""}
-                      onChange={async (planId) => {
-                        const result = await adminChangeRestaurantPlan(restaurant.id, planId);
-                        if (result.error) toast({ title: result.error, variant: "error" });
-                        else router.refresh();
-                      }}
-                      options={planRows.map((plan) => ({ value: plan.id, label: plan.name }))}
-                    />
-                    <Button size="sm" variant="danger" onClick={() => setDeleting(restaurant)}>
-                      حذف
-                    </Button>
-                  </div>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="p-8 text-center text-zinc-500">
+                  لا توجد مطاعم مطابقة.
                 </td>
               </tr>
-            ))}
+            ) : (
+              rows.map((restaurant) => (
+                <tr key={restaurant.id} className="border-t border-zinc-100">
+                  <td className="p-3">
+                    <p className="font-medium">{restaurant.name}</p>
+                    <p className="text-xs text-zinc-400" dir="ltr">
+                      {restaurant.slug}
+                    </p>
+                  </td>
+                  <td className="p-3">
+                    {BUSINESS_TYPE_OPTIONS.find(
+                      (option) => option.value === normalizeBusinessType(restaurant.business_type)
+                    )?.label ?? "—"}
+                  </td>
+                  <td className="p-3">{restaurant.owner_name ?? "—"}</td>
+                  <td className="p-3">
+                    <StatusBadge kind="restaurant" value={restaurant.status} />
+                  </td>
+                  <td className="p-3">{formatDate(restaurant.created_at)}</td>
+                  <td className="p-3">
+                    <div className="flex flex-wrap gap-1">
+                      <Button size="sm" variant="outline" onClick={() => window.open(`/m/${restaurant.slug}`, "_blank")}>
+                        عرض
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => openEdit(restaurant)}>
+                        تعديل
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={isRestaurantActivated(restaurant.status) ? "outline" : "primary"}
+                        onClick={async () => {
+                          const nextStatus = isRestaurantActivated(restaurant.status) ? "SUSPENDED" : "ACTIVE";
+                          const result = await adminSetRestaurantStatus(restaurant.id, nextStatus);
+                          if (result.error) toast({ title: result.error, variant: "error" });
+                          else {
+                            toast({
+                              title: nextStatus === "ACTIVE" ? "تم تفعيل المطعم" : "تم تعليق المطعم",
+                              variant: "success",
+                            });
+                            router.refresh();
+                          }
+                        }}
+                      >
+                        {isRestaurantActivated(restaurant.status) ? "تعليق" : "تفعيل"}
+                      </Button>
+                      <Button size="sm" variant="danger" onClick={() => setDeleting(restaurant)}>
+                        حذف
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -270,6 +289,7 @@ export function AdminRestaurantsView({
           if (result.error) toast({ title: result.error, variant: "error" });
           else {
             setDeleting(null);
+            toast({ title: "تم حذف المطعم", variant: "success" });
             router.refresh();
           }
         }}
@@ -292,11 +312,7 @@ export function AdminRestaurantsView({
       >
         <div className="grid gap-4">
           <FormField label="اسم المطعم" htmlFor="admin-restaurant-name" required>
-            <Input
-              id="admin-restaurant-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
+            <Input id="admin-restaurant-name" value={name} onChange={(event) => setName(event.target.value)} />
           </FormField>
           <BusinessTypePicker value={businessType} onChange={setBusinessType} disabled={saving} />
           <FormField label="البريد الإلكتروني" htmlFor="admin-restaurant-email" required>
@@ -309,17 +325,57 @@ export function AdminRestaurantsView({
               onChange={(event) => setEmail(event.target.value)}
             />
           </FormField>
-          <FormField
-            label="كلمة المرور"
-            htmlFor="admin-restaurant-password"
-            required
-            hint="8 أحرف على الأقل"
-          >
+          <FormField label="كلمة المرور" htmlFor="admin-restaurant-password" required hint="8 أحرف على الأقل">
             <PasswordInput
               id="admin-restaurant-password"
               autoComplete="new-password"
               value={password}
               onChange={setPassword}
+            />
+          </FormField>
+        </div>
+      </Dialog>
+      <Dialog
+        open={Boolean(editing)}
+        onOpenChange={(open) => {
+          if (!open) setEditing(null);
+        }}
+        title="تعديل المطعم"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setEditing(null)}>
+              إلغاء
+            </Button>
+            <Button loading={saving} disabled={!canSave} onClick={() => void saveRestaurant()}>
+              حفظ
+            </Button>
+          </>
+        }
+      >
+        <div className="grid gap-4">
+          <FormField label="اسم المطعم" htmlFor="edit-restaurant-name" required>
+            <Input id="edit-restaurant-name" value={editName} onChange={(event) => setEditName(event.target.value)} />
+          </FormField>
+          <FormField label="الرابط" htmlFor="edit-restaurant-slug" required>
+            <Input id="edit-restaurant-slug" dir="ltr" value={editSlug} onChange={(event) => setEditSlug(event.target.value)} />
+          </FormField>
+          <FormField label="الهاتف" htmlFor="edit-restaurant-phone">
+            <Input id="edit-restaurant-phone" dir="ltr" value={editPhone} onChange={(event) => setEditPhone(event.target.value)} />
+          </FormField>
+          <FormField label="الوصف" htmlFor="edit-restaurant-description">
+            <Textarea
+              id="edit-restaurant-description"
+              value={editDescription}
+              onChange={(event) => setEditDescription(event.target.value)}
+            />
+          </FormField>
+          <BusinessTypePicker value={editBusinessType} onChange={setEditBusinessType} disabled={saving} />
+          <FormField label="الحالة" htmlFor="edit-restaurant-status">
+            <Select
+              id="edit-restaurant-status"
+              value={editStatus}
+              onChange={(value) => setEditStatus(value as RestaurantStatus)}
+              options={STATUS_OPTIONS}
             />
           </FormField>
         </div>

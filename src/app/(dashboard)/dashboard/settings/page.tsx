@@ -11,7 +11,6 @@ export default async function SettingsPage(props: PageProps<"/dashboard/settings
       profile={tenant.profile}
       restaurant={tenant.restaurant}
       canManageRestaurant={hasPermission(tenant.role, "restaurant.update")}
-      canManageSubscription={hasPermission(tenant.role, "subscription.manage")}
       initialTab={tab}
     />
   );

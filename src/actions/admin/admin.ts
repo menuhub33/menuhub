@@ -2,17 +2,31 @@
 
 import { revalidatePath } from "next/cache";
 import { fail, ok, requirePlatformAdmin, type ActionResult } from "@/lib/action";
+import { isValidSlug, RESERVED_SUBDOMAINS } from "@/lib/config";
 import { createAdminClient, hasServiceRole } from "@/lib/supabase/admin";
 import { bootstrapRestaurant } from "@/actions/restaurants/bootstrapRestaurant";
 import type {
   Invoice,
   Payment,
   Plan,
+  PlatformRole,
   Profile,
   Restaurant,
   Subscription,
 } from "@/lib/types";
 import { normalizeBusinessType } from "@/lib/business-type";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PLATFORM_ROLES: PlatformRole[] = ["USER", "ADMIN", "SUPER_ADMIN"];
+
+function mapUserError(message: string) {
+  const value = message.toLowerCase();
+  if (value.includes("already") || value.includes("registered") || value.includes("email_taken")) {
+    return "هذا البريد الإلكتروني مسجّل مسبقاً";
+  }
+  if (value.includes("password")) return "كلمة المرور يجب أن تكون 8 أحرف على الأقل";
+  return message || "تعذر حفظ المستخدم";
+}
 
 async function adminOrUser() {
   const auth = await requirePlatformAdmin();
@@ -22,7 +36,7 @@ async function adminOrUser() {
 }
 
 export async function getAdminRestaurants(): Promise<
-  ActionResult<(Restaurant & { owner_name?: string | null; plan_name?: string | null })[]>
+  ActionResult<(Restaurant & { owner_name?: string | null })[]>
 > {
   const auth = await adminOrUser();
   if (auth.error || !auth.user) return fail(auth.error ?? "غير مصرح");
@@ -37,20 +51,11 @@ export async function getAdminRestaurants(): Promise<
   if (restaurants.length === 0) return ok([]);
 
   const ids = restaurants.map((restaurant) => restaurant.id);
-
-  // Two batched lookups for the whole list instead of two queries per row.
-  const [{ data: owners }, { data: subs }] = await Promise.all([
-    auth.db
-      .from("restaurant_users")
-      .select("restaurant_id, profiles(full_name)")
-      .in("restaurant_id", ids)
-      .eq("role", "OWNER"),
-    auth.db
-      .from("subscriptions")
-      .select("restaurant_id, plans(name)")
-      .in("restaurant_id", ids)
-      .order("created_at", { ascending: false }),
-  ]);
+  const { data: owners } = await auth.db
+    .from("restaurant_users")
+    .select("restaurant_id, profiles(full_name)")
+    .in("restaurant_id", ids)
+    .eq("role", "OWNER");
 
   const first = <T>(value: T | T[] | null | undefined): T | null =>
     Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
@@ -63,19 +68,10 @@ export async function getAdminRestaurants(): Promise<
     ownerByRestaurant.set(key, profile?.full_name ?? null);
   }
 
-  const planByRestaurant = new Map<string, string | null>();
-  for (const row of subs ?? []) {
-    const key = row.restaurant_id as string;
-    if (planByRestaurant.has(key)) continue;
-    const plan = first(row.plans as { name?: string } | { name?: string }[] | null);
-    planByRestaurant.set(key, plan?.name ?? null);
-  }
-
   return ok(
     restaurants.map((restaurant) => ({
       ...restaurant,
       owner_name: ownerByRestaurant.get(restaurant.id) ?? null,
-      plan_name: planByRestaurant.get(restaurant.id) ?? null,
     }))
   );
 }
@@ -282,6 +278,7 @@ export async function adminSetUserActive(
 ): Promise<ActionResult<Profile>> {
   const auth = await adminOrUser();
   if (auth.error || !auth.user) return fail(auth.error ?? "غير مصرح");
+  if (id === auth.user.id && !isActive) return fail("لا يمكنك تعليق حسابك الحالي");
   const { data, error } = await auth.db
     .from("profiles")
     .update({ is_active: isActive })
@@ -308,4 +305,185 @@ export async function adminCreateRestaurant(input: {
     phone: input.phone,
     business_type: input.business_type,
   });
+}
+
+export async function adminUpdateRestaurant(input: {
+  id: string;
+  name: string;
+  slug: string;
+  phone?: string | null;
+  description?: string | null;
+  status: Restaurant["status"];
+  business_type: Restaurant["business_type"];
+}): Promise<ActionResult<Restaurant>> {
+  const auth = await adminOrUser();
+  if (auth.error || !auth.user) return fail(auth.error ?? "غير مصرح");
+
+  const name = input.name.trim();
+  const slug = input.slug.trim().toLowerCase();
+  if (!input.id) return fail("معرّف المطعم مطلوب");
+  if (!name) return fail("اسم المطعم مطلوب");
+  if (!isValidSlug(slug)) {
+    return fail("صيغة الرابط غير صحيحة. استخدم أحرفاً إنجليزية صغيرة وأرقاماً وشرطات");
+  }
+  if (RESERVED_SUBDOMAINS.has(slug)) return fail("هذا الرابط محجوز ولا يمكن استخدامه");
+
+  const { data: reserved } = await auth.db
+    .from("reserved_subdomains")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (reserved) return fail("هذا الرابط محجوز ولا يمكن استخدامه");
+
+  const { data: taken } = await auth.db
+    .from("restaurants")
+    .select("id")
+    .eq("slug", slug)
+    .neq("id", input.id)
+    .maybeSingle();
+  if (taken) return fail("هذا الرابط مستخدم لمطعم آخر");
+
+  const payload: Record<string, unknown> = {
+    name,
+    slug,
+    phone: input.phone?.trim() || null,
+    description: input.description?.trim() || null,
+    status: input.status,
+    business_type: normalizeBusinessType(input.business_type),
+  };
+  if (input.status === "ACTIVE" || input.status === "TRIAL") {
+    payload.menu_status = "PUBLISHED";
+  }
+
+  let result = await auth.db.from("restaurants").update(payload).eq("id", input.id).select().single();
+  if (result.error && /business_type|schema cache/i.test(result.error.message)) {
+    delete payload.business_type;
+    result = await auth.db.from("restaurants").update(payload).eq("id", input.id).select().single();
+  }
+  if (result.error) return fail(result.error.message);
+
+  if (input.status === "ACTIVE" || input.status === "TRIAL") {
+    await auth.db
+      .from("menus")
+      .update({ status: "PUBLISHED", published_at: new Date().toISOString() })
+      .eq("restaurant_id", input.id)
+      .eq("is_default", true);
+  }
+
+  const restaurant = result.data as Restaurant;
+  revalidatePath("/admin");
+  revalidatePath("/admin/restaurants");
+  if (restaurant.slug) revalidatePath(`/m/${restaurant.slug}`);
+  return ok(restaurant);
+}
+
+export async function adminCreateUser(input: {
+  fullName: string;
+  email: string;
+  password: string;
+  phone?: string | null;
+  platformRole: PlatformRole;
+}): Promise<ActionResult<Profile>> {
+  const auth = await adminOrUser();
+  if (auth.error || !auth.user) return fail(auth.error ?? "غير مصرح");
+
+  const fullName = input.fullName.trim();
+  const email = input.email.trim().toLowerCase();
+  const phone = input.phone?.trim() || null;
+  if (!fullName) return fail("الاسم مطلوب");
+  if (!email || !EMAIL_PATTERN.test(email)) return fail("البريد الإلكتروني غير صالح");
+  if ((input.password ?? "").length < 8) return fail("كلمة المرور يجب أن تكون 8 أحرف على الأقل");
+  if (!PLATFORM_ROLES.includes(input.platformRole)) return fail("الدور غير صالح");
+
+  let userId = "";
+  if (hasServiceRole()) {
+    const admin = createAdminClient();
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      password: input.password,
+      email_confirm: true,
+      user_metadata: { full_name: fullName, phone },
+    });
+    if (error) return fail(mapUserError(error.message));
+    if (!data.user) return fail("تعذر إنشاء المستخدم");
+    userId = data.user.id;
+  } else {
+    const { data, error } = await auth.supabase.rpc("admin_create_owner_account", {
+      p_email: email,
+      p_password: input.password,
+      p_full_name: fullName,
+    });
+    if (error) return fail(mapUserError(error.message));
+    if (!data) return fail("تعذر إنشاء المستخدم");
+    userId = String(data);
+  }
+
+  const { data: profile, error: profileError } = await auth.db
+    .from("profiles")
+    .update({
+      full_name: fullName,
+      phone,
+      platform_role: input.platformRole,
+      is_active: true,
+    })
+    .eq("id", userId)
+    .select()
+    .single();
+  if (profileError) return fail(profileError.message);
+
+  revalidatePath("/admin/users");
+  revalidatePath("/admin");
+  return ok(profile as Profile);
+}
+
+export async function adminUpdateUser(input: {
+  id: string;
+  fullName: string;
+  phone?: string | null;
+  platformRole: PlatformRole;
+}): Promise<ActionResult<Profile>> {
+  const auth = await adminOrUser();
+  if (auth.error || !auth.user) return fail(auth.error ?? "غير مصرح");
+
+  const fullName = input.fullName.trim();
+  if (!input.id) return fail("معرّف المستخدم مطلوب");
+  if (!fullName) return fail("الاسم مطلوب");
+  if (!PLATFORM_ROLES.includes(input.platformRole)) return fail("الدور غير صالح");
+  if (input.id === auth.user.id && input.platformRole === "USER") {
+    return fail("لا يمكنك إزالة صلاحياتك");
+  }
+
+  const { data, error } = await auth.db
+    .from("profiles")
+    .update({
+      full_name: fullName,
+      phone: input.phone?.trim() || null,
+      platform_role: input.platformRole,
+    })
+    .eq("id", input.id)
+    .select()
+    .single();
+  if (error) return fail(error.message);
+
+  revalidatePath("/admin/users");
+  return ok(data as Profile);
+}
+
+export async function adminDeleteUser(id: string): Promise<ActionResult<{ success: true }>> {
+  const auth = await adminOrUser();
+  if (auth.error || !auth.user) return fail(auth.error ?? "غير مصرح");
+  if (!id) return fail("معرّف المستخدم مطلوب");
+  if (id === auth.user.id) return fail("لا يمكنك حذف حسابك الحالي");
+
+  if (hasServiceRole()) {
+    const { error } = await createAdminClient().auth.admin.deleteUser(id);
+    if (error) return fail(error.message);
+  } else {
+    const { error } = await auth.supabase.rpc("admin_delete_auth_user", { p_user_id: id });
+    if (error) return fail(error.message);
+  }
+
+  revalidatePath("/admin/users");
+  revalidatePath("/admin");
+  return ok({ success: true });
 }

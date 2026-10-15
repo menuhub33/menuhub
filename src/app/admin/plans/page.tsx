@@ -1,9 +1,5 @@
-import { getAdminPlans } from "@/actions/admin/admin";
-import { AdminPlansView } from "@/components/views/admin-plans-view";
-import { ErrorState } from "@/components/common/error-state";
+import { redirect } from "next/navigation";
 
-export default async function AdminPlansPage() {
-  const plans = await getAdminPlans();
-  if (plans.error) return <ErrorState description={plans.error} />;
-  return <AdminPlansView plans={plans.data ?? []} />;
+export default function AdminPlansPage() {
+  redirect("/admin");
 }
