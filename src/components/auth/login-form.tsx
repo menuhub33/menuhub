@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { login } from "@/actions/auth/login";
@@ -62,15 +61,6 @@ export function LoginForm() {
       <Button type="submit" size="lg" loading={loading} className="w-full">
         تسجيل الدخول
       </Button>
-      <Link href="/forgot-password" className="text-center text-sm text-teal-700 hover:underline">
-        نسيت كلمة المرور؟
-      </Link>
-      <p className="text-center text-sm text-zinc-500">
-        ليس لديك حساب؟{" "}
-        <Link href="/register" className="font-medium text-teal-700 hover:underline">
-          إنشاء حساب
-        </Link>
-      </p>
     </form>
   );
 }
