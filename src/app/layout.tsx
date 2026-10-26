@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Providers } from "@/components/providers";
+import { requestOrigin } from "@/lib/request-origin";
 import "./globals.css";
 
 const expoArabic = localFont({
@@ -17,7 +18,8 @@ export const metadata: Metadata = {
   description: "أنشئ منيو مطعمك الإلكترونية خلال دقائق مع رابط خاص ورمز QR ولوحة تحكم سهلة.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const origin = await requestOrigin();
   return (
     <html
       lang="ar"
@@ -25,7 +27,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${expoArabic.variable} ${expoArabic.className} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900">
-        <Providers>{children}</Providers>
+        <Providers host={origin.host} protocol={origin.protocol}>
+          {children}
+        </Providers>
       </body>
     </html>
   );

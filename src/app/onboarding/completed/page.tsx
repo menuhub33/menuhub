@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { requireRestaurantAccess } from "@/lib/auth/authorization";
-import { publicMenuUrl } from "@/lib/config";
+import { currentPublicMenuUrl } from "@/lib/request-origin";
 import { Button } from "@/components/ui/button";
 
 export default async function OnboardingCompletedPage() {
   const tenant = await requireRestaurantAccess("/onboarding/completed");
-  const url = publicMenuUrl(tenant.restaurant.slug);
+  const url = await currentPublicMenuUrl(tenant.restaurant.slug);
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 text-center">
       <p className="text-4xl">🎉</p>

@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { StatusBadge } from "@/components/common/status-badge";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { useToast } from "@/components/ui/toast";
-import { publicMenuUrl } from "@/lib/config";
+import { usePublicMenuUrl } from "@/components/providers";
 import type { ActivityItem, AnalyticsSummary } from "@/components/lib/types";
 import type { Menu, Restaurant } from "@/lib/types";
 
@@ -35,7 +35,7 @@ export function DashboardHomeView({
 }) {
   const router = useRouter();
   const { toast } = useToast();
-  const url = publicMenuUrl(restaurant.slug);
+  const url = usePublicMenuUrl(restaurant.slug);
 
   async function publish() {
     if (!menu) return;

@@ -11,7 +11,7 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { PublishMenuDialog } from "@/components/menu/publish-menu-dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import { publicMenuUrl } from "@/lib/config";
+import { usePublicMenuUrl } from "@/components/providers";
 import type { Menu, Restaurant } from "@/lib/types";
 
 export function MenuOverviewView({
@@ -30,7 +30,7 @@ export function MenuOverviewView({
   const router = useRouter();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const url = publicMenuUrl(restaurant.slug);
+  const url = usePublicMenuUrl(restaurant.slug);
 
   async function setStatus(status: "PUBLISHED" | "UNPUBLISHED") {
     if (!menu) return;

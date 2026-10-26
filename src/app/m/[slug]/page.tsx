@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getPublicMenu } from "@/actions/public/getPublicMenu";
 import { PublicMenuView } from "@/components/views/public-menu-view";
-import { publicMenuUrl } from "@/lib/config";
+import { currentPublicMenuUrl } from "@/lib/request-origin";
 import { MenuNotFound } from "@/components/public-menu/menu-not-found";
 
 export const dynamic = "force-dynamic";
@@ -32,15 +32,16 @@ export default async function PublicMenuPage({ params }: PageProps<"/m/[slug]">)
   if (result.error || !result.data) {
     return <MenuNotFound />;
   }
+  const shareUrl = await currentPublicMenuUrl(slug);
   if (result.data.kind !== "live") {
     return (
       <PublicMenuView
         reason={result.data.reason}
-        shareUrl={publicMenuUrl(slug)}
+        shareUrl={shareUrl}
       />
     );
   }
   return (
-    <PublicMenuView data={result.data.data} shareUrl={publicMenuUrl(slug)} />
+    <PublicMenuView data={result.data.data} shareUrl={shareUrl} />
   );
 }

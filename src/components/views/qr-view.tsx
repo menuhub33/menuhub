@@ -7,7 +7,7 @@ import { QrCodeCard } from "@/components/qr/qr-code-card";
 import { QrCodeGenerator, type QrGenerateValues } from "@/components/qr/qr-code-generator";
 import { useToast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
-import { publicMenuUrl } from "@/lib/config";
+import { usePublicMenuUrl } from "@/components/providers";
 import type { Menu, QrCode, Restaurant } from "@/lib/types";
 
 export function QrView({
@@ -22,7 +22,7 @@ export function QrView({
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const url = publicMenuUrl(restaurant.slug);
+  const url = usePublicMenuUrl(restaurant.slug);
 
   async function generate(values: QrGenerateValues) {
     setLoading(true);

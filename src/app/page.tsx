@@ -28,7 +28,7 @@ export default function HomePage() {
         </h1>
         <p className="max-w-2xl text-lg text-zinc-600">
           سجّل حسابك، ثم تتولى الإدارة إنشاء موقع مطعمك وتفعيله. بعد التفعيل تحصل على رابط خاص
-          مثل burgerhouse.menuhub.com ولوحة تحكم لإدارة المنيو ورمز QR.
+          على نطاقك ولوحة تحكم لإدارة المنيو ورمز QR.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link

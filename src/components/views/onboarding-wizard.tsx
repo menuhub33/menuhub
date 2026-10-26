@@ -11,7 +11,8 @@ import { createCategory } from "@/actions/categories/createCategory";
 import { createProduct } from "@/actions/products/createProduct";
 import { updateMenuStatus } from "@/actions/menus/updateMenuStatus";
 import { uploadImageFile } from "@/lib/upload-client";
-import { isValidSlug, publicMenuHost, slugifyName } from "@/lib/config";
+import { usePublicMenuHost } from "@/components/providers";
+import { isValidSlug, slugifyName } from "@/lib/config";
 import { FormField } from "@/components/forms/form-field";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ export function OnboardingWizard({
   const [name, setName] = useState(restaurant.name);
   const [description, setDescription] = useState(restaurant.description ?? "");
   const [slug, setSlug] = useState(restaurant.slug || slugifyName(restaurant.name));
+  const menuHost = usePublicMenuHost(slug || "your-restaurant");
   const [slugState, setSlugState] = useState<"idle" | "checking" | "ok" | "taken" | "invalid">("idle");
   const [themeId, setThemeId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState("البرغر");
@@ -177,7 +179,7 @@ export function OnboardingWizard({
               />
             </FormField>
             <p className="text-sm text-zinc-500" dir="ltr">
-              {publicMenuHost(slug || "your-restaurant")}
+              {menuHost}
             </p>
             {slugState === "ok" ? <Alert variant="success">الرابط متاح</Alert> : null}
           </div>
