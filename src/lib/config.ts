@@ -54,8 +54,25 @@ export function registrableDomain(host: string | null | undefined) {
   return labels.slice(-rootLength).join(".");
 }
 
+const SHARED_APP_SUFFIXES = [
+  "vercel.app",
+  "netlify.app",
+  "onrender.com",
+  "railway.app",
+  "fly.dev",
+  "pages.dev",
+];
+
 export function menuRootDomain(host?: string | null) {
   return configuredRootDomain() ?? registrableDomain(host);
+}
+
+export function isSharedAppHost(host: string | null | undefined) {
+  const hostname = hostnameOnly(host).split(":")[0] ?? "";
+  if (!hostname) return false;
+  return SHARED_APP_SUFFIXES.some(
+    (suffix) => hostname === suffix || hostname.endsWith(`.${suffix}`)
+  );
 }
 
 export const RESTAURANT_COOKIE = "mh-restaurant-id";
@@ -86,8 +103,7 @@ export const RESERVED_SUBDOMAINS = new Set([
 ]);
 
 export function publicMenuHost(slug: string, host?: string | null) {
-  const root = menuRootDomain(host);
-  return root ? `${slug}.${root}` : slug;
+  return publicMenuUrl(slug, host).replace(/^https?:\/\//, "");
 }
 
 export function publicMenuUrl(
@@ -113,9 +129,13 @@ export function publicMenuUrl(
     return `http://localhost:${localPort}/m/${slug}`;
   }
 
+  const scheme = protocol?.split(",")[0]?.trim() === "http" ? "http" : "https";
+  if (isSharedAppHost(hostname) && !configuredRootDomain()) {
+    return `${scheme}://${hostname}/m/${slug}`;
+  }
+
   const root = menuRootDomain(hostname);
   if (!root) return `/m/${slug}`;
-  const scheme = protocol?.split(",")[0]?.trim() === "http" ? "http" : "https";
   return `${scheme}://${slug}.${root}`;
 }
 
@@ -127,6 +147,7 @@ export function extractSubdomain(hostname: string): string | null {
     if (!label || label.includes(".")) return null;
     return label;
   }
+  if (isSharedAppHost(host)) return null;
 
   const root = menuRootDomain(host);
   if (!root || host === root || host === `www.${root}`) return null;
