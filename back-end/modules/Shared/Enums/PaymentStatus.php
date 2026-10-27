@@ -1,0 +1,11 @@
+<?php
+
+namespace Modules\Shared\Enums;
+
+enum PaymentStatus: string
+{
+    case Pending = 'PENDING';
+    case Paid = 'PAID';
+    case Failed = 'FAILED';
+    case Refunded = 'REFUNDED';
+}
