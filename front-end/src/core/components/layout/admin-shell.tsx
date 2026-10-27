@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { logout } from "@/modules/auth/actions/auth";
+import { BrandMark } from "@/core/components/layout/brand-mark";
 import { PLATFORM_ROLE_LABELS } from "@/core/lib/labels";
 import { cn } from "@/core/lib/cn";
 import { Button } from "@/core/ui/button";
@@ -110,10 +111,10 @@ export function AdminShell({
   return (
     <div className="flex min-h-dvh bg-zinc-50">
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-e border-zinc-200 bg-white lg:flex">
-        <Link href="/admin" className="block px-5 py-5 text-lg font-bold text-teal-800">
-          MenuHub
-          <span className="mt-0.5 block text-xs font-medium text-zinc-400">لوحة الإدارة</span>
-        </Link>
+        <div className="px-4 py-4">
+          <BrandMark href="/admin" />
+          <p className="mt-1 text-center text-xs font-medium text-zinc-400">لوحة الإدارة</p>
+        </div>
         <div className="flex-1 overflow-y-auto px-3">
           <AdminNav pathname={pathname} />
         </div>
@@ -124,9 +125,7 @@ export function AdminShell({
           <Button variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="فتح القائمة">
             <MenuIcon />
           </Button>
-          <Link href="/admin" className="font-semibold text-teal-800">
-            MenuHub
-          </Link>
+          <BrandMark href="/admin" compact className="w-28" />
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8">{children}</main>
       </div>

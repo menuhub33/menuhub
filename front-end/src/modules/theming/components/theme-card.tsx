@@ -53,11 +53,8 @@ export function ThemeCard({
           </span>
         ) : null}
       </div>
-      <div className="grid gap-1 px-4 py-3">
+      <div className="px-4 py-3">
         <p className="font-semibold text-zinc-900">{theme.name}</p>
-        {theme.description ? (
-          <p className="line-clamp-2 text-sm text-zinc-500">{theme.description}</p>
-        ) : null}
       </div>
     </button>
   );

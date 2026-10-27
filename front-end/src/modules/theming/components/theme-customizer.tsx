@@ -73,11 +73,12 @@ export function ThemeCustomizer({
             value={value.secondary_color}
             onChange={(secondary_color) => patch({ secondary_color })}
           />
-          <ColorPicker
-            label="لون الخلفية"
-            value={value.background_color}
-            onChange={(background_color) => patch({ background_color })}
-          />
+          <FormField label="لون الخلفية">
+            <p className="flex h-10 items-center gap-2 rounded-xl border border-zinc-200 bg-white/80 px-3 text-sm text-zinc-600">
+              <span className="size-5 rounded-md border border-zinc-200 bg-white/90" />
+              أبيض شفاف
+            </p>
+          </FormField>
           <ColorPicker
             label="لون النص"
             value={value.text_color}
@@ -88,11 +89,7 @@ export function ThemeCustomizer({
           value={value.font_family}
           onChange={(font_family) => patch({ font_family })}
         />
-        <FormField
-          label="CSS مخصص"
-          htmlFor="theme-custom-css"
-          hint="يُطبَّق على معاينة المنيو فقط ضمن هذه البطاقة."
-        >
+        <FormField label="CSS مخصص" htmlFor="theme-custom-css">
           <Textarea
             id="theme-custom-css"
             dir="ltr"

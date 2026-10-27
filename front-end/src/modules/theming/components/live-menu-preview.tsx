@@ -3,6 +3,7 @@ import { formatPrice } from "@/core/lib/format";
 import type { CategoryWithProducts } from "@/modules/catalog/types";
 import type { RestaurantTheme } from "@/modules/theming/types";
 import type { CSSProperties } from "react";
+import { MENU_BACKGROUND } from "@/modules/theming/lib/menu-background";
 
 export type LiveMenuPreviewTheme = Pick<
   RestaurantTheme,
@@ -73,7 +74,7 @@ export function LiveMenuPreview({
   const cssVars = {
     "--mh-primary": theme.primary_color,
     "--mh-secondary": theme.secondary_color,
-    "--mh-background": theme.background_color,
+    "--mh-background": MENU_BACKGROUND,
     "--mh-text": theme.text_color,
   } as CSSProperties;
 

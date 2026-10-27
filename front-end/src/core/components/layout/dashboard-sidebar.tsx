@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { BrandMark } from "@/core/components/layout/brand-mark";
 import { cn } from "@/core/lib/cn";
 import { Avatar } from "@/core/ui/avatar";
 import {
@@ -75,6 +76,9 @@ export function DashboardSidebar({
         className
       )}
     >
+      <div className="border-b border-zinc-100 px-4 pt-4">
+        <BrandMark href="/dashboard" />
+      </div>
       <div className="flex items-center gap-3 border-b border-zinc-100 px-4 py-4">
         <Avatar src={restaurant?.logo_url} alt={restaurant?.name ?? "MenuHub"} fallback="MH" />
         <div className="min-w-0">

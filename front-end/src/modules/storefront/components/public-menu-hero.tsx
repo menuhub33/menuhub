@@ -47,7 +47,6 @@ export function PublicMenuHero({
     for (const product of featuredProducts) {
       push(productPrimaryImageUrl(product), product.name_ar);
     }
-    push(restaurant.logo_url, restaurant.name);
     return items.slice(0, 5);
   }, [featuredProducts, restaurant.cover_image_url, restaurant.logo_url, restaurant.name]);
 
@@ -94,8 +93,16 @@ export function PublicMenuHero({
             ))}
           </div>
         ) : (
-          <div className="flex h-48 items-center justify-center bg-[var(--mh-primary)]/20 sm:h-56">
-            <ImageIcon className="size-12 opacity-40" />
+          <div className="flex h-48 items-center justify-center bg-[var(--mh-primary)] sm:h-56">
+            {restaurant.logo_url ? (
+              <img
+                src={restaurant.logo_url}
+                alt=""
+                className="max-h-24 max-w-[70%] object-contain"
+              />
+            ) : (
+              <ImageIcon className="size-12 text-white/70" />
+            )}
           </div>
         )}
 
@@ -115,6 +122,14 @@ export function PublicMenuHero({
             onShare={onShare}
           />
         </div>
+
+        {restaurant.logo_url && slides.length > 0 ? (
+          <img
+            src={restaurant.logo_url}
+            alt=""
+            className="absolute bottom-3 start-3 size-14 rounded-2xl border border-white/70 bg-white object-contain p-1"
+          />
+        ) : null}
 
         {showName || slides.length > 1 ? (
           <div className="absolute inset-x-0 bottom-3 px-4">

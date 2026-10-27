@@ -53,6 +53,8 @@ export type ActivityItem = Pick<
   AuditLog,
   "id" | "action" | "entity_type" | "entity_id" | "created_at"
 > & {
+  label?: string | null;
+  subject?: string | null;
   actor_name?: string | null;
 };
 

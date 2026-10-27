@@ -26,6 +26,7 @@ import {
 } from "@/modules/chatbot/lib/menu-chat";
 import type { RestaurantTheme } from "@/modules/theming/types";
 import type { CSSProperties } from "react";
+import { MENU_BACKGROUND } from "@/modules/theming/lib/menu-background";
 
 const FALLBACK_THEME: Pick<
   RestaurantTheme,
@@ -215,14 +216,15 @@ export function PublicMenu({
       dir="rtl"
       lang="ar"
       className={cn(
-        "min-h-dvh bg-[var(--mh-bg)] text-[var(--mh-text)] [font-feature-settings:'locl'_0] [font-variant-numeric:lining-nums_tabular-nums]",
+        "min-h-dvh text-[var(--mh-text)] backdrop-blur-md [font-feature-settings:'locl'_0] [font-variant-numeric:lining-nums_tabular-nums]",
         className
       )}
       style={
         {
           ["--mh-primary"]: theme.primary_color,
           ["--mh-secondary"]: theme.secondary_color,
-          ["--mh-bg"]: theme.background_color,
+          ["--mh-bg"]: MENU_BACKGROUND,
+          backgroundColor: MENU_BACKGROUND,
           ["--mh-text"]: theme.text_color,
           fontFamily: theme.font_family ?? undefined,
         } as CSSProperties

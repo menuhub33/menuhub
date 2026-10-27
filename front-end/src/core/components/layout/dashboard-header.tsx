@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { Avatar } from "@/core/ui/avatar";
 import { Button } from "@/core/ui/button";
 import { DropdownMenu } from "@/core/ui/dropdown-menu";
 import { LogOutIcon, MenuIcon } from "@/core/ui/icons";
+import { BrandMark } from "@/core/components/layout/brand-mark";
 import { NotificationBell } from "@/modules/notifications/components/notification-bell";
 import type { Notification } from "@/modules/notifications/types";
 import type { Profile } from "@/modules/auth/types";
@@ -46,9 +46,7 @@ export function DashboardHeader({
       <Button variant="ghost" size="icon" className="lg:hidden" onClick={onOpenNav} aria-label="فتح القائمة">
         <MenuIcon />
       </Button>
-      <Link href="/dashboard" className="font-semibold text-teal-800 lg:hidden">
-        MenuHub
-      </Link>
+      <BrandMark href="/dashboard" compact className="w-28 lg:hidden" />
       <div className="ms-auto flex items-center gap-2">
         <NotificationBell
           unreadCount={unreadCount}

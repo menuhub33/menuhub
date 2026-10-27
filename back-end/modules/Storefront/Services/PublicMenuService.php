@@ -97,7 +97,9 @@ class PublicMenuService
         $theme = RestaurantTheme::query()->with('theme')->where('restaurant_id', $restaurant->id)->first();
         $features = $this->limits->summary($restaurant->id)['features'];
 
-        return [
+        // The database cache unserializes objects as __PHP_Incomplete_Class, which
+        // the menu page then renders as an empty product list. Store plain arrays.
+        return $this->plain([
             'kind' => 'live',
             'data' => [
                 'restaurant' => RestaurantResource::make($restaurant)->resolve(),
@@ -120,7 +122,13 @@ class PublicMenuService
                     ->orderBy('day_of_week')->get()->toArray(),
                 'branding' => ['remove_branding' => (bool) $features['remove_branding']],
             ],
-        ];
+        ]);
+    }
+
+    /** @param  array<string, mixed>  $payload */
+    private function plain(array $payload): array
+    {
+        return json_decode(json_encode($payload, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
     }
 
     private function key(string $restaurantId): string

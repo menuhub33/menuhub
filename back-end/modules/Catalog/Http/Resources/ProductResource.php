@@ -34,10 +34,10 @@ class ProductResource extends JsonResource
                 'image_url' => $image->image_url,
                 'sort_order' => $image->sort_order,
                 'is_primary' => $image->is_primary,
-            ])->values()),
+            ])->values()->all()),
             'option_groups' => $this->whenLoaded('optionGroups', fn () => $this->optionGroups->map(
                 fn ($group) => OptionGroupResource::make($group)->resolve()
-            )->values()),
+            )->values()->all()),
             'category' => $this->whenLoaded('category', fn () => [
                 'id' => $this->category->id,
                 'name_ar' => $this->category->name_ar,

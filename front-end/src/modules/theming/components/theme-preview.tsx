@@ -1,4 +1,5 @@
 import { cn } from "@/core/lib/cn";
+import { MENU_BACKGROUND } from "@/modules/theming/lib/menu-background";
 import type { RestaurantTheme } from "@/modules/theming/types";
 
 export function ThemePreview({
@@ -31,7 +32,7 @@ export function ThemePreview({
       <div
         className="overflow-hidden rounded-[1.35rem]"
         style={{
-          backgroundColor: theme.background_color,
+          backgroundColor: MENU_BACKGROUND,
           color: theme.text_color,
           fontFamily: theme.font_family ?? "inherit",
         }}

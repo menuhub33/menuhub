@@ -29,7 +29,7 @@ class OptionGroupResource extends JsonResource
                 'price_delta' => (float) $option->price_delta,
                 'sort_order' => $option->sort_order,
                 'is_active' => $option->is_active,
-            ])->values()),
+            ])->values()->all()),
         ];
     }
 }

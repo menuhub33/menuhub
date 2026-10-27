@@ -65,9 +65,7 @@ class MediaStorage
 
     public function url(string $key): string
     {
-        $base = config('menuhub.media.public_url');
-
-        return $base ? rtrim($base, '/').'/'.$key : $this->disk()->url($key);
+        return rtrim($this->browserBase(), '/').'/'.$key;
     }
 
     /**
@@ -75,16 +73,58 @@ class MediaStorage
      */
     public function keyFromUrl(string $url): ?string
     {
-        $prefix = rtrim((string) (config('menuhub.media.public_url') ?: $this->disk()->url('')), '/').'/';
+        foreach ($this->urlPrefixes() as $prefix) {
+            if (! str_starts_with($url, $prefix)) {
+                continue;
+            }
 
-        if (! str_starts_with($url, $prefix)) {
-            return null;
+            $key = $this->validKey(ltrim(substr($url, strlen($prefix)), '/'));
+            if ($key) {
+                return $key;
+            }
         }
 
-        $key = ltrim(substr($url, strlen($prefix)), '/');
+        return null;
+    }
+
+    public function validKey(string $key): ?string
+    {
         $pattern = '#^('.implode('|', config('menuhub.media.folders')).')/[0-9a-f-]{36}/[0-9a-f-]{36}(@\d+)?\.(jpg|png|gif|webp)$#i';
 
         return preg_match($pattern, $key) ? $key : null;
+    }
+
+    /**
+     * The S3 API host is not anonymously readable. Until a real public domain
+     * (r2.dev or a custom domain) is configured, browsers load files via the API.
+     */
+    private function browserBase(): string
+    {
+        $configured = rtrim((string) config('menuhub.media.public_url'), '/');
+        $host = strtolower((string) parse_url($configured, PHP_URL_HOST));
+
+        if ($configured !== '' && ! str_ends_with($host, 'r2.cloudflarestorage.com')) {
+            return $configured;
+        }
+
+        return rtrim((string) config('app.url'), '/').'/api/v1/media';
+    }
+
+    /** @return list<string> */
+    private function urlPrefixes(): array
+    {
+        $diskBase = '';
+        try {
+            $diskBase = rtrim((string) $this->disk()->url(''), '/').'/';
+        } catch (\Throwable) {
+            $diskBase = '';
+        }
+
+        return array_values(array_unique(array_filter([
+            rtrim($this->browserBase(), '/').'/',
+            rtrim((string) config('menuhub.media.public_url'), '/').'/',
+            $diskBase,
+        ])));
     }
 
     public function delete(string $key): void

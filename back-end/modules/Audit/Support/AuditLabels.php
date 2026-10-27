@@ -8,8 +8,8 @@ namespace Modules\Audit\Support;
 final class AuditLabels
 {
     private const ENTITIES = [
-        'restaurant' => 'بيانات النشاط',
-        'menu' => 'القائمة',
+        'restaurant' => 'بيانات المطعم',
+        'menu' => 'المنيو',
         'category' => 'قسم',
         'product' => 'منتج',
         'product_image' => 'صورة منتج',
@@ -25,9 +25,9 @@ final class AuditLabels
     ];
 
     private const EVENTS = [
-        'created' => 'إضافة',
-        'updated' => 'تعديل',
-        'deleted' => 'حذف',
+        'created' => 'تمت إضافة',
+        'updated' => 'تم تعديل',
+        'deleted' => 'تم حذف',
     ];
 
     public static function describe(string $action): string

@@ -71,13 +71,23 @@ class StorefrontTest extends ApiTestCase
 
     public function test_demo_catalogs_are_served_from_the_database(): void
     {
+        // Production uses the database cache, which PHP-serializes the payload.
+        config(['cache.default' => 'database']);
         $this->artisan('menuhub:seed-demo')->assertSuccessful();
 
         $this->getJson($this->api('public/menus/demo'))
             ->assertOk()->assertJsonPath('data.kind', 'live')
             ->assertJsonCount(5, 'data.data.categories')
+            ->assertJsonPath('data.data.categories.0.products.0.name_ar', 'حمص بالطحينة')
+            ->assertJsonPath('data.data.categories.0.products.0.images.0.image_url', '/demo/hummus.jpg')
             ->assertJsonPath('data.data.businessHours.0.day_of_week', 0);
 
-        $this->getJson($this->api('public/menus/demo-cars'))->assertJsonPath('data.kind', 'live');
+        // The second read comes from the cache and must still be a product list.
+        $this->getJson($this->api('public/menus/demo'))
+            ->assertJsonPath('data.data.categories.0.products.0.name_ar', 'حمص بالطحينة');
+
+        $this->getJson($this->api('public/menus/demo-cars'))
+            ->assertJsonPath('data.kind', 'live')
+            ->assertJsonPath('data.data.categories.0.products.0.name_ar', 'كيا ريو 2011');
     }
 }

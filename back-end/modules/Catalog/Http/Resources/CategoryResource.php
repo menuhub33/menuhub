@@ -24,7 +24,7 @@ class CategoryResource extends JsonResource
             'products_count' => $this->whenCounted('products'),
             'products' => $this->whenLoaded('products', fn () => $this->products->map(
                 fn ($product) => ProductResource::make($product)->resolve()
-            )->values()),
+            )->values()->all()),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
