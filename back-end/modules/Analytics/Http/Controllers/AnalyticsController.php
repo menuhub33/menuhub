@@ -43,8 +43,20 @@ class AnalyticsController extends ApiController
     {
         $this->limits->assertFeature($restaurant->id, 'analytics');
 
+        $request->validate([
+            'event_type' => ['nullable', 'string', 'max:30'],
+            'menu_id' => ['nullable', 'uuid'],
+            'product_id' => ['nullable', 'uuid'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date'],
+        ]);
+
         return AnalyticsEvent::query()
             ->forRestaurant($restaurant->id)
+            ->when($request->filled('menu_id'), fn ($q) => $q->where('menu_id', $request->query('menu_id')))
+            ->when($request->filled('product_id'), fn ($q) => $q->where('product_id', $request->query('product_id')))
+            ->when($request->filled('from'), fn ($q) => $q->where('created_at', '>=', $request->date('from')->startOfDay()))
+            ->when($request->filled('to'), fn ($q) => $q->where('created_at', '<=', $request->date('to')->endOfDay()))
             ->when($request->filled('event_type'), fn ($q) => $q->where('event_type', $request->query('event_type')))
             ->latest('created_at')
             ->paginate($this->perPage(50, 200));

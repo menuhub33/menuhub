@@ -1,0 +1,66 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { login } from "@/modules/auth/actions/auth";
+import { PasswordInput } from "@/modules/auth/components/password-input";
+import { FormField } from "@/core/components/forms/form-field";
+import { Alert } from "@/core/ui/alert";
+import { Button } from "@/core/ui/button";
+import { Input } from "@/core/ui/input";
+
+const QUERY_ERRORS: Record<string, string> = {
+  suspended: "تم تعليق الحساب. تواصل مع الدعم لإعادة التفعيل",
+  callback: "تعذر إكمال التحقق. حاول تسجيل الدخول مرة أخرى",
+};
+
+export function LoginForm() {
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(QUERY_ERRORS[searchParams.get("error") ?? ""] ?? "");
+  const [loading, setLoading] = useState(false);
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+    const result = await login({ email, password });
+    setLoading(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    const next = searchParams.get("next");
+    window.location.assign(
+      result.data?.platformRole === "ADMIN" || result.data?.platformRole === "SUPER_ADMIN"
+        ? "/admin"
+        : next?.startsWith("/")
+          ? next
+          : "/dashboard"
+    );
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="grid gap-4">
+      {error ? <Alert variant="error">{error}</Alert> : null}
+      <FormField label="البريد الإلكتروني" htmlFor="email" required>
+        <Input
+          id="email"
+          type="email"
+          dir="ltr"
+          autoComplete="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          required
+        />
+      </FormField>
+      <FormField label="كلمة المرور" htmlFor="password" required>
+        <PasswordInput id="password" value={password} onChange={setPassword} />
+      </FormField>
+      <Button type="submit" size="lg" loading={loading} className="w-full">
+        تسجيل الدخول
+      </Button>
+    </form>
+  );
+}

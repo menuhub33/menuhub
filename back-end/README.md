@@ -1,13 +1,15 @@
 # MenuHub API (Laravel, modular)
 
 REST API for the MenuHub Next.js app, built from the reverse-engineering notes in `../ENG.MD`.
-Laravel 13 · PHP 8.3+ · Sanctum bearer tokens · SQLite by default (MySQL/Postgres via `.env`).
+Laravel 13 · PHP 8.3+ · Sanctum bearer tokens · **MySQL** database (tests run on in-memory SQLite).
 
 ```bash
 cp .env.example .env && php artisan key:generate
+# create the database once:  CREATE DATABASE menuhub CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+# then set DB_HOST / DB_PORT / DB_DATABASE / DB_USERNAME / DB_PASSWORD in .env
 php artisan migrate --seed          # plans, themes, reserved slugs, demo menus, super admin (from .env)
 php artisan serve                   # http://localhost:8000/api/v1
-php artisan test                    # 49 feature tests
+php artisan test                    # 52 feature tests (SQLite in memory)
 ```
 
 Set `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` before seeding to get the first platform admin.
@@ -58,7 +60,7 @@ Authenticate with `Authorization: Bearer <token>` from `POST /auth/login`.
 - **Public**: `GET /public/menus/{slug}`, `POST /public/menus/{slug}/events`, `POST /public/menus/{slug}/chat`, `GET /public/resolve-host?host=`, `GET /plans`, `GET /themes`, `GET /slugs/check`
 - **Auth**: `/auth/register|login|logout|me|password|forgot-password|reset-password|email/*`
 - **Tenant** (`/restaurants/{id}/...`): `dashboard`, `catalog`, `menus`, `categories`, `products`, `product-images`, `option-groups`, `options`, `theme`, `social-links`, `branches`, `business-hours`, `qr-codes`, `custom-domains`, `staff`, `analytics/*`, `audit-logs`, `subscription`, `invoices`, `payments`; plus `POST /uploads`, `/notifications`, `/me/restaurants`
-- **Platform admin** (`/admin/...`): `restaurants`, `users`, `plans`, `subscriptions`, `invoices`, `payments`, `themes`, `finance`, `installments`, `stats`, `settings`, `demo/{slug}`
+- **Platform admin** (`/admin/...`): `restaurants`, `users`, `plans`, `subscriptions`, `invoices`, `payments`, `themes`, `reserved-subdomains`, `finance`, `installments`, `stats`, `settings`, `demo/{slug}`
 
 Run `php artisan route:list` for the full list.
 
@@ -76,4 +78,4 @@ Run `php artisan route:list` for the full list.
 
 - Plan limits are enforced when `ENFORCE_PLAN_LIMITS=true`; restaurants without a live subscription fall back to the `free` plan.
 - Image optimisation (WebP, resizing) needs the PHP GD extension; without it the validated original is stored as-is.
-- For R2 storage install `league/flysystem-aws-s3-v3` and set `MEDIA_DISK=r2` plus the `R2_*` variables.
+- Uploaded images go to Cloudflare R2 (`MEDIA_DISK=r2`). Fill the `R2_*` variables in `.env`; the front-end needs the same public base in `MEDIA_PUBLIC_URL`.

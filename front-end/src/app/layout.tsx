@@ -1,0 +1,36 @@
+import type { Metadata } from "next";
+import localFont from "next/font/local";
+import { Providers } from "@/core/providers";
+import { requestOrigin } from "@/core/lib/request-origin";
+import "./globals.css";
+
+const expoArabic = localFont({
+  src: "../../public/alfont_com_AlFont_com_ExpoArabic-Book-1.ttf",
+  variable: "--font-expo-arabic",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: {
+    default: "MenuHub — منيو إلكترونية للمطاعم",
+    template: "%s | MenuHub",
+  },
+  description: "أنشئ منيو مطعمك الإلكترونية خلال دقائق مع رابط خاص ورمز QR ولوحة تحكم سهلة.",
+};
+
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const origin = await requestOrigin();
+  return (
+    <html
+      lang="ar"
+      dir="rtl"
+      className={`${expoArabic.variable} ${expoArabic.className} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900">
+        <Providers host={origin.host} protocol={origin.protocol}>
+          {children}
+        </Providers>
+      </body>
+    </html>
+  );
+}

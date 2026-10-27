@@ -1,10 +1,18 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Tenancy\Http\Controllers\ReservedSubdomainController;
 use Modules\Tenancy\Http\Controllers\RestaurantController;
 use Modules\Tenancy\Http\Controllers\StaffController;
 
 Route::get('slugs/check', [RestaurantController::class, 'checkSlug'])->middleware('throttle:public');
+
+Route::middleware(['auth:sanctum', 'active', 'admin'])->prefix('admin')->group(function () {
+    Route::get('reserved-subdomains', [ReservedSubdomainController::class, 'index']);
+    Route::post('reserved-subdomains', [ReservedSubdomainController::class, 'store']);
+    Route::patch('reserved-subdomains/{reserved}', [ReservedSubdomainController::class, 'update']);
+    Route::delete('reserved-subdomains/{reserved}', [ReservedSubdomainController::class, 'destroy']);
+});
 
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('me/restaurants', [RestaurantController::class, 'mine']);
