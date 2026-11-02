@@ -18,20 +18,24 @@ type HeroSlide = {
 export function PublicMenuHero({
   restaurant,
   featuredProducts,
+  extraSlides = [],
   hasOffers = false,
+  showTitle,
   onShare,
   shareUrl,
 }: {
-  restaurant: Restaurant;
+  restaurant: Pick<Restaurant, "name" | "description" | "logo_url" | "cover_image_url" | "business_type">;
   featuredProducts: ProductWithRelations[];
+  extraSlides?: HeroSlide[];
   hasOffers?: boolean;
+  showTitle?: boolean;
   onShare?: () => void;
   shareUrl?: string;
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
 
-  const showName = normalizeBusinessType(restaurant.business_type) !== "SHOP";
+  const showName = showTitle ?? normalizeBusinessType(restaurant.business_type) !== "SHOP";
 
   const slides = useMemo<HeroSlide[]>(() => {
     const items: HeroSlide[] = [];
@@ -44,11 +48,12 @@ export function PublicMenuHero({
     }
 
     push(restaurant.cover_image_url, restaurant.name);
+    for (const slide of extraSlides) push(slide.src, slide.label);
     for (const product of featuredProducts) {
       push(productPrimaryImageUrl(product), product.name_ar);
     }
     return items.slice(0, 5);
-  }, [featuredProducts, restaurant.cover_image_url, restaurant.logo_url, restaurant.name]);
+  }, [extraSlides, featuredProducts, restaurant.cover_image_url, restaurant.logo_url, restaurant.name]);
 
   useEffect(() => {
     const root = scrollerRef.current;
@@ -132,11 +137,11 @@ export function PublicMenuHero({
         ) : null}
 
         {showName || slides.length > 1 ? (
-          <div className="absolute inset-x-0 bottom-3 px-4">
+          <div className="absolute inset-x-0 bottom-3 px-16">
             {showName ? (
-              <p className="truncate text-center text-sm font-semibold text-white drop-shadow">
+              <h1 className="line-clamp-2 text-center text-2xl font-bold leading-tight text-white drop-shadow">
                 {restaurant.name}
-              </p>
+              </h1>
             ) : null}
             {slides.length > 1 ? (
               <div className={cn("flex items-center justify-center gap-1.5", showName && "mt-2")}>

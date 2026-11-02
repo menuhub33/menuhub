@@ -56,6 +56,7 @@ class ProvisioningService
                 'status' => RestaurantStatus::Suspended,
                 'menu_status' => MenuStatus::Draft,
                 'business_type' => BusinessType::normalize($input['business_type'] ?? null),
+                'mall_id' => $input['mall_id'] ?? null,
                 'currency' => strtoupper($input['billing']['currency'] ?? 'SYP'),
             ]);
 

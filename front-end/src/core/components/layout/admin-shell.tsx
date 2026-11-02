@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { logout } from "@/modules/auth/actions/auth";
 import { BrandMark } from "@/core/components/layout/brand-mark";
+import { DesignerCredit } from "@/core/components/layout/designer-credit";
+import { isPlatformAdmin } from "@/core/auth/permissions";
 import { PLATFORM_ROLE_LABELS } from "@/core/lib/labels";
 import { cn } from "@/core/lib/cn";
 import { Button } from "@/core/ui/button";
@@ -20,12 +22,21 @@ import {
 } from "@/core/ui/icons";
 import type { Profile } from "@/modules/auth/types";
 
-const NAV = [
+const PLATFORM_NAV = [
   { href: "/admin", label: "الرئيسية", icon: HomeIcon, exact: true },
+  { href: "/admin/malls", label: "المراكز التجارية", icon: BuildingIcon },
   { href: "/admin/restaurants", label: "المطاعم", icon: BuildingIcon },
   { href: "/admin/finance", label: "الإدارة المالية", icon: CreditCardIcon },
   { href: "/admin/users", label: "المستخدمون", icon: UsersIcon },
   { href: "/admin/settings", label: "الإعدادات", icon: SettingsIcon },
+];
+
+const MALL_NAV = [
+  { href: "/admin", label: "الرئيسية", icon: HomeIcon, exact: true },
+  { href: "/admin/restaurants", label: "المحلات", icon: BuildingIcon },
+  { href: "/admin/finance", label: "الحالة المالية", icon: CreditCardIcon },
+  { href: "/admin/mall/design", label: "تصميم الدليل", icon: SettingsIcon },
+  { href: "/admin/mall", label: "بطاقة المول", icon: SettingsIcon, exact: true },
 ];
 
 function isActive(href: string, pathname: string, exact?: boolean) {
@@ -35,14 +46,16 @@ function isActive(href: string, pathname: string, exact?: boolean) {
 
 function AdminNav({
   pathname,
+  items,
   onNavigate,
 }: {
   pathname: string;
+  items: typeof PLATFORM_NAV;
   onNavigate?: () => void;
 }) {
   return (
     <nav className="grid gap-1">
-      {NAV.map((item) => {
+      {items.map((item) => {
         const Icon = item.icon;
         const active = isActive(item.href, pathname, item.exact);
         return (
@@ -80,6 +93,9 @@ export function AdminShell({
   const open = openFor === pathname;
   const setOpen = (value: boolean) => setOpenFor(value ? pathname : null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const mallOnly = Boolean(profile.mall) && !isPlatformAdmin(profile.platform_role);
+  const items = mallOnly ? MALL_NAV : PLATFORM_NAV;
+  const roleLabel = mallOnly ? `مدير ${profile.mall?.name ?? "المول"}` : PLATFORM_ROLE_LABELS[profile.platform_role];
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -94,7 +110,7 @@ export function AdminShell({
         {profile.full_name ?? "مدير المنصة"}
       </p>
       <p className="mb-3 truncate px-2 text-xs text-zinc-500">
-        {PLATFORM_ROLE_LABELS[profile.platform_role]}
+        {roleLabel}
       </p>
       <Button
         variant="outline"
@@ -113,10 +129,12 @@ export function AdminShell({
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-e border-zinc-200 bg-white lg:flex">
         <div className="px-4 py-4">
           <BrandMark href="/admin" />
-          <p className="mt-1 text-center text-xs font-medium text-zinc-400">لوحة الإدارة</p>
+          <p className="mt-1 text-center text-xs font-medium text-zinc-400">
+            {mallOnly ? "لوحة المول" : "لوحة الإدارة"}
+          </p>
         </div>
         <div className="flex-1 overflow-y-auto px-3">
-          <AdminNav pathname={pathname} />
+          <AdminNav pathname={pathname} items={items} />
         </div>
         {footer}
       </aside>
@@ -128,9 +146,10 @@ export function AdminShell({
           <BrandMark href="/admin" compact className="w-28" />
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8">{children}</main>
+        <DesignerCredit className="px-4 py-4" />
       </div>
       <Drawer open={open} onOpenChange={setOpen} title="القائمة" side="start">
-        <AdminNav pathname={pathname} onNavigate={() => setOpen(false)} />
+        <AdminNav pathname={pathname} items={items} onNavigate={() => setOpen(false)} />
         <div className="mt-4">{footer}</div>
       </Drawer>
     </div>

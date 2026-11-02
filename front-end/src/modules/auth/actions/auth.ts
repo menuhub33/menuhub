@@ -14,7 +14,7 @@ export type LoginInput = {
 
 export async function login(
   input: LoginInput
-): Promise<ActionResult<{ userId: string; platformRole: PlatformRole }>> {
+): Promise<ActionResult<{ userId: string; platformRole: PlatformRole; managesMall: boolean }>> {
   const email = input.email?.trim().toLowerCase();
 
   if (!email || !input.password) {
@@ -29,7 +29,11 @@ export async function login(
     });
 
     await setToken(data.token);
-    return { userId: data.user.id, platformRole: data.user.platform_role };
+    return {
+      userId: data.user.id,
+      platformRole: data.user.platform_role,
+      managesMall: Boolean(data.user.mall),
+    };
   });
 }
 

@@ -2,6 +2,7 @@
 
 namespace Modules\Theming\Services;
 
+use Modules\Theming\Models\MallTheme;
 use Modules\Theming\Models\RestaurantTheme;
 use Modules\Theming\Models\Theme;
 
@@ -27,11 +28,39 @@ class ThemeService
         );
     }
 
+    /** Same palette a restaurant menu gets, created on first read. */
+    public function forMall(string $mallId): MallTheme
+    {
+        return MallTheme::query()->firstOrCreate(
+            ['mall_id' => $mallId],
+            [
+                ...self::DEFAULTS,
+                'theme_id' => Theme::query()->where('slug', 'modern')->value('id'),
+            ],
+        );
+    }
+
     /** @param  array<string, mixed>  $data */
     public function update(string $restaurantId, array $data): RestaurantTheme
     {
         $theme = $this->forRestaurant($restaurantId);
+        $this->apply($theme, $data);
 
+        return $theme->refresh()->load('theme');
+    }
+
+    /** @param  array<string, mixed>  $data */
+    public function updateMall(string $mallId, array $data): MallTheme
+    {
+        $theme = $this->forMall($mallId);
+        $this->apply($theme, $data);
+
+        return $theme->refresh()->load('theme');
+    }
+
+    /** @param  array<string, mixed>  $data */
+    private function apply(RestaurantTheme|MallTheme $theme, array $data): void
+    {
         if (array_key_exists('custom_css', $data)) {
             $data['custom_css'] = $this->sanitizeCss($data['custom_css']);
         }
@@ -40,8 +69,6 @@ class ThemeService
             'theme_id', 'primary_color', 'secondary_color', 'background_color',
             'text_color', 'font_family', 'custom_css',
         ])))->save();
-
-        return $theme->refresh()->load('theme');
     }
 
     /**

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Modules\Shared\Enums\RestaurantRole;
 use Modules\Shared\Exceptions\ApiException;
 use Modules\Tenancy\Models\Restaurant;
+use Modules\Tenancy\Services\MallService;
 use Modules\Tenancy\Support\TenantContext;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -33,7 +34,9 @@ class ResolveTenant
             ->where('is_active', true)
             ->first();
 
-        if (! $membership && ! $user->isPlatformAdmin()) {
+        $viaMall = ! $membership && app(MallService::class)->managesRestaurant($user, $restaurant);
+
+        if (! $membership && ! $user->isPlatformAdmin() && ! $viaMall) {
             throw ApiException::forbidden('لا تملك صلاحية الوصول إلى هذا النشاط', 'NOT_A_MEMBER');
         }
 

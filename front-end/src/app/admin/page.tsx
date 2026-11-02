@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { requireConsole } from "@/core/auth/authorization";
+import { isPlatformAdmin } from "@/core/auth/permissions";
 import { getAdminAnalytics, getAdminRestaurants } from "@/modules/platform/actions/admin";
 import { getAdminFinance } from "@/modules/finance/actions/finance";
 import { ErrorState } from "@/core/components/common/error-state";
@@ -25,6 +27,44 @@ function formatProfit(contracts: { price: number; discount_type: "NONE" | "PERCE
 }
 
 export default async function AdminHomePage() {
+  const session = await requireConsole("/admin");
+  if (!isPlatformAdmin(session.profile.platform_role) && session.profile.mall) {
+    const [restaurants, finance] = await Promise.all([getAdminRestaurants(), getAdminFinance()]);
+    const rows = restaurants.data ?? [];
+    const published = rows.filter((row) => row.menu_status === "PUBLISHED").length;
+    return (
+      <div className="grid gap-6">
+        <PageHeader
+          title={session.profile.mall.name}
+          description="إدارة محلات المول ومنيوهاتها. دليل الزوار يُنشر من بطاقة المول."
+        />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Link href="/admin/restaurants" className="block rounded-2xl">
+            <StatCard label="المحلات" value={rows.length} hint="عرض وإدارة" icon={<BuildingIcon />} />
+          </Link>
+          <StatCard label="منيوهات منشورة" value={published} hint="تظهر في الدليل بعد نشر المول" icon={<UtensilsIcon />} />
+          <Link href="/admin/finance" className="block rounded-2xl">
+            <StatCard
+              label="الحالة المالية"
+              value={finance.data ? formatProfit(finance.data.contracts) : "—"}
+              hint="عقود محلات هذا المول"
+              icon={<CreditCardIcon />}
+            />
+          </Link>
+          <Link href="/admin/mall" className="block rounded-2xl">
+            <StatCard
+              label="الدليل"
+              value={session.profile.mall.status === "PUBLISHED" ? "منشور" : "مسودة"}
+              hint="بطاقة المول"
+              icon={<EyeIcon />}
+            />
+          </Link>
+        </div>
+        {restaurants.error ? <p className="text-sm text-red-600">{restaurants.error}</p> : null}
+      </div>
+    );
+  }
+
   const [stats, restaurants, finance] = await Promise.all([
     getAdminAnalytics(),
     getAdminRestaurants(),

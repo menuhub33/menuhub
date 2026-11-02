@@ -13,6 +13,7 @@ use Modules\Tenancy\Models\Restaurant;
 use Modules\Tenancy\Models\RestaurantUser;
 use Modules\Tenancy\Rules\AvailableSlug;
 use Modules\Tenancy\Services\RestaurantService;
+use Modules\Tenancy\Support\MallAccess;
 use Modules\Tenancy\Support\TenantContext;
 
 class RestaurantController extends ApiController
@@ -22,18 +23,38 @@ class RestaurantController extends ApiController
     /** Restaurants the signed-in user belongs to (account switcher). */
     public function mine(Request $request): JsonResponse
     {
+        $user = $request->user();
         $memberships = RestaurantUser::query()
             ->with('restaurant')
-            ->where('user_id', $request->user()->getKey())
+            ->where('user_id', $user->getKey())
             ->where('is_active', true)
-            ->get()
-            ->map(fn (RestaurantUser $membership) => [
-                'id' => $membership->id,
-                'role' => $membership->role->value,
-                'restaurant' => new RestaurantResource($membership->restaurant),
-            ]);
+            ->get();
 
-        return $this->ok($memberships);
+        $rows = $memberships->map(fn (RestaurantUser $membership) => [
+            'id' => $membership->id,
+            'role' => $membership->role->value,
+            'restaurant' => new RestaurantResource($membership->restaurant),
+        ])->values();
+
+        $mall = MallAccess::scopedMall($user);
+        if ($mall) {
+            $known = $memberships->pluck('restaurant_id');
+            $extra = Restaurant::query()
+                ->where('mall_id', $mall->id)
+                ->whereNotIn('id', $known)
+                ->orderBy('name')
+                ->get();
+
+            foreach ($extra as $restaurant) {
+                $rows->push([
+                    'id' => $restaurant->id,
+                    'role' => 'OWNER',
+                    'restaurant' => new RestaurantResource($restaurant),
+                ]);
+            }
+        }
+
+        return $this->ok($rows);
     }
 
     public function show(Restaurant $restaurant): JsonResponse

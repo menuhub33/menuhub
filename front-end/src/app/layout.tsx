@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { SystemDesignerCredit } from "@/core/components/layout/system-designer-credit";
 import { Providers } from "@/core/providers";
 import { requestOrigin } from "@/core/lib/request-origin";
 import "./globals.css";
@@ -28,7 +29,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900">
         <Providers host={origin.host} protocol={origin.protocol}>
-          {children}
+          <div className="flex flex-1 flex-col">{children}</div>
+          <SystemDesignerCredit />
         </Providers>
       </body>
     </html>

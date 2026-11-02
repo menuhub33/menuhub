@@ -8,6 +8,7 @@ use Modules\Finance\Models\MenuInstallment;
 use Modules\Finance\Support\BillingCalculator as Calc;
 use Modules\Shared\Enums\DiscountType;
 use Modules\Shared\Tests\ApiTestCase;
+use Modules\Users\Models\User;
 
 class FinanceTest extends ApiTestCase
 {
@@ -113,6 +114,43 @@ class FinanceTest extends ApiTestCase
         $this->putJson($url, ['discount_type' => 'PERCENT', 'discount_value' => 150] + $this->payload())->assertStatus(422);
         $this->putJson($url, ['discount_type' => 'AMOUNT', 'discount_value' => 5000] + $this->payload())->assertStatus(422);
         $this->putJson($url, ['installments_count' => 30] + $this->payload())->assertStatus(422);
+    }
+
+    public function test_mall_manager_finance_is_limited_to_their_stores(): void
+    {
+        $this->actingAdmin();
+        $this->postJson($this->api('admin/malls'), [
+            'name' => 'City Mall',
+            'slug' => 'city-mall',
+            'manager' => [
+                'full_name' => 'Mall Manager',
+                'email' => 'mall@example.com',
+                'password' => 'password123',
+            ],
+        ])->assertCreated();
+
+        [, $outside] = $this->makeRestaurant('Outside');
+        $this->putJson($this->api("admin/restaurants/{$outside->id}/billing"), $this->payload())->assertOk();
+        $outsideBilling = MenuBilling::query()->where('restaurant_id', $outside->id)->firstOrFail();
+
+        Sanctum::actingAs(User::query()->where('email', 'mall@example.com')->firstOrFail());
+
+        $storeId = $this->postJson($this->api('admin/restaurants'), [
+            'name' => 'Mall Cafe',
+            'email' => 'cafe@example.com',
+            'password' => 'password123',
+        ])->assertCreated()->json('data.id');
+
+        $this->putJson($this->api("admin/restaurants/{$storeId}/billing"), $this->payload())->assertOk();
+        $this->putJson($this->api("admin/restaurants/{$outside->id}/billing"), $this->payload())->assertNotFound();
+        $this->deleteJson($this->api("admin/finance/{$outsideBilling->id}"))->assertNotFound();
+
+        $this->getJson($this->api('admin/finance'))
+            ->assertOk()
+            ->assertJsonCount(1, 'data.contracts')
+            ->assertJsonPath('data.contracts.0.restaurant_id', $storeId)
+            ->assertJsonCount(1, 'data.restaurants')
+            ->assertJsonPath('data.summary.USD.contracts', 1);
     }
 
     /** @return array<string, mixed> */

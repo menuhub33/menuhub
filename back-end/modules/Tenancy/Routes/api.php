@@ -1,11 +1,28 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Tenancy\Http\Controllers\AdminMallController;
+use Modules\Tenancy\Http\Controllers\PublicMallController;
 use Modules\Tenancy\Http\Controllers\ReservedSubdomainController;
 use Modules\Tenancy\Http\Controllers\RestaurantController;
 use Modules\Tenancy\Http\Controllers\StaffController;
 
 Route::get('slugs/check', [RestaurantController::class, 'checkSlug'])->middleware('throttle:public');
+Route::get('public/malls/{slug}', [PublicMallController::class, 'show'])->middleware('throttle:public');
+
+Route::middleware(['auth:sanctum', 'active', 'operator'])->prefix('admin')->group(function () {
+    Route::get('mall', [AdminMallController::class, 'current']);
+    Route::patch('mall', [AdminMallController::class, 'updateCurrent']);
+});
+
+Route::middleware(['auth:sanctum', 'active', 'admin'])->prefix('admin')->group(function () {
+    Route::get('malls', [AdminMallController::class, 'index']);
+    Route::post('malls', [AdminMallController::class, 'store']);
+    Route::get('malls/{mall}', [AdminMallController::class, 'show']);
+    Route::patch('malls/{mall}', [AdminMallController::class, 'update']);
+    Route::delete('malls/{mall}', [AdminMallController::class, 'destroy']);
+    Route::post('malls/{mall}/manager', [AdminMallController::class, 'assignManager']);
+});
 
 Route::middleware(['auth:sanctum', 'active', 'admin'])->prefix('admin')->group(function () {
     Route::get('reserved-subdomains', [ReservedSubdomainController::class, 'index']);

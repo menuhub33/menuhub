@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Modules\Auth\Http\Middleware\EnsureOperator;
 use Modules\Auth\Http\Middleware\EnsurePlatformAdmin;
 use Modules\Auth\Http\Middleware\EnsureUserIsActive;
 use Modules\Shared\Exceptions\ApiException;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'active' => EnsureUserIsActive::class,
             'admin' => EnsurePlatformAdmin::class,
+            'operator' => EnsureOperator::class,
             'tenant' => ResolveTenant::class,
             'tenant.active' => EnsureRestaurantActive::class,
             'permission' => RequirePermission::class,

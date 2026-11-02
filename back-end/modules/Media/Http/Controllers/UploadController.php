@@ -8,6 +8,7 @@ use Modules\Media\Services\MediaStorage;
 use Modules\Shared\Exceptions\ApiException;
 use Modules\Shared\Http\Controllers\ApiController;
 use Modules\Tenancy\Models\RestaurantUser;
+use Modules\Tenancy\Support\MallAccess;
 use Modules\Users\Models\User;
 
 /**
@@ -64,7 +65,7 @@ class UploadController extends ApiController
 
     private function authorizeUpload(User $user, ?string $restaurantId): void
     {
-        if ($user->isPlatformAdmin()) {
+        if ($user->isPlatformAdmin() || MallAccess::membership($user)) {
             return;
         }
 

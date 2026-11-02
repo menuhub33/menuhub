@@ -94,7 +94,6 @@ export function PublicMenu({
   searchQuery = "",
   onShare,
   onProductOpen,
-  removeBranding = false,
   shareUrl,
   className,
 }: {
@@ -105,7 +104,6 @@ export function PublicMenu({
   searchQuery?: string;
   onShare?: () => void;
   onProductOpen?: (product: ProductWithRelations) => void;
-  removeBranding?: boolean;
   shareUrl?: string;
   className?: string;
 }) {
@@ -295,10 +293,7 @@ export function PublicMenu({
           )}
         </section>
 
-        <PublicMenuFooter
-          socialLinks={data.socialLinks}
-          removeBranding={removeBranding}
-        />
+        <PublicMenuFooter socialLinks={data.socialLinks} />
       </div>
 
       <PublicMenuBottomNav

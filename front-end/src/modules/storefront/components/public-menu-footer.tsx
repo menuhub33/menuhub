@@ -1,19 +1,16 @@
 import { cn } from "@/core/lib/cn";
+import { DesignerCredit } from "@/core/components/layout/designer-credit";
 import type { SocialLink } from "@/modules/operations/types";
 import { SocialLinks } from "@/modules/storefront/components/social-links";
 
 export function PublicMenuFooter({
   socialLinks,
-  removeBranding = false,
   className,
 }: {
   socialLinks?: SocialLink[];
-  removeBranding?: boolean;
   className?: string;
 }) {
   const hasSocial = Boolean(socialLinks && socialLinks.some((link) => link.is_active));
-
-  if (!hasSocial && removeBranding) return null;
 
   return (
     <footer
@@ -23,12 +20,7 @@ export function PublicMenuFooter({
       )}
     >
       <div className="grid gap-6">
-        {removeBranding ? null : (
-          <p className="text-center text-xs opacity-50">
-            المنيو بواسطة{" "}
-            <span className="font-semibold">MenuHub</span>
-          </p>
-        )}
+        <DesignerCredit onMenu />
         {hasSocial ? <SocialLinks links={socialLinks ?? []} /> : null}
       </div>
     </footer>

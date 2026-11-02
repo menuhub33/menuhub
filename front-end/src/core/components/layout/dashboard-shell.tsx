@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { logout } from "@/modules/auth/actions/auth";
 import { markAllNotificationsRead } from "@/modules/notifications/actions/notifications";
+import { DesignerCredit } from "@/core/components/layout/designer-credit";
 import { DashboardHeader } from "@/core/components/layout/dashboard-header";
 import { DashboardMobileNav } from "@/core/components/layout/dashboard-mobile-nav";
 import {
@@ -80,6 +81,7 @@ export function DashboardShell({
           <RestaurantSwitcher restaurants={restaurants} currentId={restaurant.id} />
         </div>
         <main className="flex-1 px-4 py-6 pb-24 lg:px-8 lg:pb-8">{children}</main>
+        <DesignerCredit className="px-4 pt-2 pb-24 lg:pb-4" />
       </div>
       <DashboardMobileNav
         open={navOpen}

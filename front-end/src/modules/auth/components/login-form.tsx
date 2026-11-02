@@ -33,7 +33,9 @@ export function LoginForm() {
     }
     const next = searchParams.get("next");
     window.location.assign(
-      result.data?.platformRole === "ADMIN" || result.data?.platformRole === "SUPER_ADMIN"
+      result.data?.platformRole === "ADMIN" ||
+        result.data?.platformRole === "SUPER_ADMIN" ||
+        result.data?.managesMall
         ? "/admin"
         : next?.startsWith("/")
           ? next

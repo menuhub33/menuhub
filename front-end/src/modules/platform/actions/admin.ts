@@ -97,6 +97,8 @@ export async function adminCreateRestaurant(input: {
   slug?: string;
   phone?: string | null;
   business_type?: Restaurant["business_type"];
+  /** Omit to let the server decide. Null is a private store. */
+  mall_id?: string | null;
   billing?: MenuBillingInput;
 }): Promise<ActionResult<Restaurant>> {
   const name = input.name?.trim();
@@ -117,6 +119,7 @@ export async function adminCreateRestaurant(input: {
         slug: input.slug?.trim().toLowerCase() || undefined,
         phone: input.phone || undefined,
         business_type: input.business_type,
+        mall_id: input.mall_id,
         billing: billing
           ? {
               price: billing.price,
@@ -143,6 +146,7 @@ export async function adminUpdateRestaurant(input: {
   description?: string | null;
   status: Restaurant["status"];
   business_type: Restaurant["business_type"];
+  mall_id?: string | null;
 }): Promise<ActionResult<Restaurant>> {
   const { id, ...changes } = input;
   if (!id) return fail("معرّف المطعم مطلوب");

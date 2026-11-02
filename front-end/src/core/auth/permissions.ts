@@ -122,3 +122,11 @@ export function isPlatformAdmin(role: PlatformRole | null | undefined) {
 export function canAccessAdmin(role: PlatformRole | null | undefined) {
   return isPlatformAdmin(role);
 }
+
+/** Platform admins, and mall managers, reach the admin shell. */
+export function canAccessConsole(
+  role: PlatformRole | null | undefined,
+  mall?: { id: string } | null
+) {
+  return isPlatformAdmin(role) || Boolean(mall?.id);
+}

@@ -13,6 +13,7 @@ use Modules\Finance\Services\FinanceReport;
 use Modules\Shared\Enums\DiscountType;
 use Modules\Shared\Http\Controllers\ApiController;
 use Modules\Tenancy\Models\Restaurant;
+use Modules\Tenancy\Support\MallAccess;
 
 class FinanceController extends ApiController
 {
@@ -21,13 +22,14 @@ class FinanceController extends ApiController
         private readonly FinanceReport $report,
     ) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return $this->ok($this->report->build());
+        return $this->ok($this->report->build($request->user()));
     }
 
     public function save(Request $request, Restaurant $restaurant): JsonResponse
     {
+        MallAccess::assertRestaurant($request->user(), $restaurant);
         $data = $request->validate([
             'price' => ['required', 'numeric', 'min:0'],
             'setup_cost' => ['nullable', 'numeric', 'min:0'],
@@ -56,8 +58,12 @@ class FinanceController extends ApiController
         return $this->ok($this->billing->save($restaurant, $data));
     }
 
-    public function destroy(MenuBilling $billing): JsonResponse
+    public function destroy(Request $request, MenuBilling $billing): JsonResponse
     {
+        $billing->loadMissing('restaurant');
+        if ($billing->restaurant) {
+            MallAccess::assertRestaurant($request->user(), $billing->restaurant);
+        }
         $billing->delete();
 
         return $this->noContent();
@@ -65,6 +71,10 @@ class FinanceController extends ApiController
 
     public function setPaid(Request $request, MenuInstallment $installment): JsonResponse
     {
+        $installment->loadMissing('billing.restaurant');
+        if ($installment->billing?->restaurant) {
+            MallAccess::assertRestaurant($request->user(), $installment->billing->restaurant);
+        }
         $data = $request->validate(['paid' => ['required', 'boolean']]);
 
         return $this->ok($this->billing->setPaid($installment, (bool) $data['paid']));

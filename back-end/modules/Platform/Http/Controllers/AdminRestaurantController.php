@@ -18,6 +18,7 @@ use Modules\Tenancy\Http\Resources\RestaurantResource;
 use Modules\Tenancy\Models\Restaurant;
 use Modules\Tenancy\Models\RestaurantUser;
 use Modules\Tenancy\Rules\AvailableSlug;
+use Modules\Tenancy\Support\MallAccess;
 
 class AdminRestaurantController extends ApiController
 {
@@ -29,7 +30,8 @@ class AdminRestaurantController extends ApiController
 
     public function index(Request $request)
     {
-        $restaurants = Restaurant::query()
+        $restaurants = MallAccess::scopeRestaurants(Restaurant::query(), $request->user())
+            ->with('mall:id,name,slug')
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->query('status')))
             ->when($request->filled('search'), function ($q) use ($request) {
                 $term = '%'.str_replace(['%', '_'], ['\%', '\_'], (string) $request->query('search')).'%';
@@ -67,6 +69,7 @@ class AdminRestaurantController extends ApiController
             'phone' => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string', 'max:2000'],
             'business_type' => ['nullable', Rule::enum(BusinessType::class)],
+            'mall_id' => ['nullable', 'uuid', Rule::exists('malls', 'id')],
             'billing' => ['nullable', 'array'],
             'billing.price' => ['required_with:billing', 'numeric', 'min:0'],
             'billing.setup_cost' => ['nullable', 'numeric', 'min:0'],
@@ -79,6 +82,11 @@ class AdminRestaurantController extends ApiController
             'billing.notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
+        $scoped = MallAccess::scopedMall($request->user());
+        if ($scoped) {
+            $data['mall_id'] = $scoped->id;
+        }
+
         if (isset($data['billing'])) {
             $type = $data['billing']['discount_type'];
             $value = (float) ($data['billing']['discount_value'] ?? 0);
@@ -87,12 +95,15 @@ class AdminRestaurantController extends ApiController
             }
         }
 
-        return $this->created(RestaurantResource::make($this->provisioning->create($data))->resolve());
+        $restaurant = $this->provisioning->create($data)->load('mall:id,name,slug');
+
+        return $this->created(RestaurantResource::make($restaurant)->resolve());
     }
 
-    public function show(Restaurant $restaurant): JsonResponse
+    public function show(Request $request, Restaurant $restaurant): JsonResponse
     {
-        $restaurant->load('memberships.user:id,full_name,email');
+        MallAccess::assertRestaurant($request->user(), $restaurant);
+        $restaurant->load(['memberships.user:id,full_name,email', 'mall:id,name,slug']);
         $billing = MenuBilling::query()->with('installments')->where('restaurant_id', $restaurant->id)->first();
 
         return $this->ok([
@@ -107,14 +118,22 @@ class AdminRestaurantController extends ApiController
 
     public function update(Request $request, Restaurant $restaurant): JsonResponse
     {
-        $data = $request->validate([
+        MallAccess::assertRestaurant($request->user(), $restaurant);
+
+        $rules = [
             'name' => ['sometimes', 'required', 'string', 'max:150'],
             'slug' => ['sometimes', 'required', 'string', 'max:100', new AvailableSlug($restaurant->id)],
             'phone' => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string', 'max:2000'],
             'status' => ['sometimes', Rule::enum(RestaurantStatus::class)],
             'business_type' => ['sometimes', Rule::enum(BusinessType::class)],
-        ]);
+        ];
+
+        if (! MallAccess::limitsRestaurants($request->user())) {
+            $rules['mall_id'] = ['sometimes', 'nullable', 'uuid', Rule::exists('malls', 'id')];
+        }
+
+        $data = $request->validate($rules);
 
         if (isset($data['slug'])) {
             $data['slug'] = strtolower(trim($data['slug']));
@@ -123,11 +142,14 @@ class AdminRestaurantController extends ApiController
         $status = isset($data['status']) ? RestaurantStatus::from($data['status']) : $restaurant->status;
         $attributes = array_diff_key($data, ['status' => 1]);
 
-        return $this->ok(RestaurantResource::make($this->admin->setStatus($restaurant, $status, $attributes))->resolve());
+        return $this->ok(RestaurantResource::make(
+            $this->admin->setStatus($restaurant, $status, $attributes)->load('mall:id,name,slug')
+        )->resolve());
     }
 
     public function setStatus(Request $request, Restaurant $restaurant): JsonResponse
     {
+        MallAccess::assertRestaurant($request->user(), $restaurant);
         $data = $request->validate(['status' => ['required', Rule::enum(RestaurantStatus::class)]]);
 
         return $this->ok(RestaurantResource::make(
@@ -137,6 +159,7 @@ class AdminRestaurantController extends ApiController
 
     public function setBusinessType(Request $request, Restaurant $restaurant): JsonResponse
     {
+        MallAccess::assertRestaurant($request->user(), $restaurant);
         $data = $request->validate(['business_type' => ['required', Rule::enum(BusinessType::class)]]);
 
         return $this->ok(RestaurantResource::make(
@@ -144,8 +167,9 @@ class AdminRestaurantController extends ApiController
         )->resolve());
     }
 
-    public function destroy(Restaurant $restaurant): JsonResponse
+    public function destroy(Request $request, Restaurant $restaurant): JsonResponse
     {
+        MallAccess::assertRestaurant($request->user(), $restaurant);
         $restaurant->delete();
 
         return $this->noContent();

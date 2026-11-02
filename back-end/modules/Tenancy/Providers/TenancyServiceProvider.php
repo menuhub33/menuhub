@@ -4,6 +4,7 @@ namespace Modules\Tenancy\Providers;
 
 use Illuminate\Support\Facades\Route;
 use Modules\Shared\Support\ModuleServiceProvider;
+use Modules\Tenancy\Models\Mall;
 use Modules\Tenancy\Models\Restaurant;
 use Modules\Tenancy\Models\RestaurantUser;
 use Modules\Users\Models\User;
@@ -14,6 +15,7 @@ class TenancyServiceProvider extends ModuleServiceProvider
     {
         // {restaurant} is always a restaurant id (UUID).
         Route::model('restaurant', Restaurant::class);
+        Route::model('mall', Mall::class);
 
         // {membership} is scoped to the restaurant in the URL.
         Route::bind('membership', function (string $value, $route) {

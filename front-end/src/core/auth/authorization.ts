@@ -3,7 +3,7 @@ import { forbidden, redirect } from "next/navigation";
 import { cache } from "react";
 import { ApiError, apiData } from "@/core/api/client";
 import { RESTAURANT_COOKIE } from "@/core/config";
-import { canAccessAdmin, hasPermission, type Permission } from "@/core/auth/permissions";
+import { canAccessAdmin, canAccessConsole, hasPermission, type Permission } from "@/core/auth/permissions";
 import { getSession, type AuthSession } from "@/core/auth/session";
 import { getToken } from "@/core/auth/token";
 import { isRestaurantActivated } from "@/modules/tenancy/lib/restaurant-status";
@@ -44,6 +44,15 @@ export async function requireAuth(nextPath = "/dashboard"): Promise<AuthSession>
 export async function requirePlatformAdmin(nextPath = "/admin"): Promise<AuthSession> {
   const session = await requireAuth(nextPath);
   if (!canAccessAdmin(session.profile.platform_role)) {
+    forbidden();
+  }
+  return session;
+}
+
+/** Platform admin or a mall manager. Mall-only pages still use requirePlatformAdmin. */
+export async function requireConsole(nextPath = "/admin"): Promise<AuthSession> {
+  const session = await requireAuth(nextPath);
+  if (!canAccessConsole(session.profile.platform_role, session.profile.mall)) {
     forbidden();
   }
   return session;

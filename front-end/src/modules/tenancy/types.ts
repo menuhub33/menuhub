@@ -32,6 +32,9 @@ export type Restaurant = {
   menu_status: MenuStatus;
   delivery_enabled: boolean;
   business_type: BusinessType;
+  /** Null when the menu belongs to a private store, not a mall. */
+  mall_id: string | null;
+  mall?: { id: string; name: string; slug: string } | null;
   chatbot_enabled: boolean;
   chatbot_name: string | null;
   chatbot_welcome: string | null;

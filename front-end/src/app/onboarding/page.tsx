@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 
 export default async function OnboardingPage() {
   const session = await requireAuth("/onboarding");
-  if (canAccessAdmin(session.profile.platform_role)) {
+  if (canAccessAdmin(session.profile.platform_role) || session.profile.mall) {
     redirect("/admin");
   }
 

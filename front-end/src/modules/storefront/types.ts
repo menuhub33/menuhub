@@ -10,7 +10,6 @@ export type PublicMenuData = {
   categories: CategoryWithProducts[];
   socialLinks?: SocialLink[];
   businessHours?: BusinessHours[];
-  /** Plan features that affect the public page (e.g. hide the MenuHub footer). */
   branding?: { remove_branding: boolean };
   branches?: Array<Pick<Branch, "id" | "name" | "address" | "phone">>;
 };

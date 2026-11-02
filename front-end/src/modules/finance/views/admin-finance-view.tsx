@@ -52,9 +52,11 @@ function discountLabel(contract: FinanceContract) {
 export function AdminFinanceView({
   contracts,
   restaurants,
+  mallName = null,
 }: {
   contracts: FinanceContract[];
   restaurants: { id: string; name: string }[];
+  mallName?: string | null;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -132,8 +134,12 @@ export function AdminFinanceView({
   return (
     <div className="grid gap-4">
       <PageHeader
-        title="الإدارة المالية"
-        description="سعر كل منيو، الحسم، التقسيط، والتجديد السنوي."
+        title={mallName ? "الحالة المالية" : "الإدارة المالية"}
+        description={
+          mallName
+            ? `عقود محلات ${mallName} فقط: السعر، الحسم، التقسيط، والتجديد.`
+            : "سعر كل منيو، الحسم، التقسيط، والتجديد السنوي."
+        }
         actions={
           <Button
             onClick={() => {
@@ -177,7 +183,7 @@ export function AdminFinanceView({
         <table className="w-full min-w-[56rem] text-sm">
           <thead className="bg-zinc-50 text-zinc-500">
             <tr>
-              <th className="p-3 text-start">المطعم</th>
+              <th className="p-3 text-start">{mallName ? "المحل" : "المطعم"}</th>
               <th className="p-3 text-start">سعر المنيو</th>
               <th className="p-3 text-start">التكلفة</th>
               <th className="p-3 text-start">الحسم</th>
@@ -265,13 +271,13 @@ export function AdminFinanceView({
         }
       >
         <div className="grid gap-4">
-          <FormField label="المطعم" htmlFor="finance-restaurant" required>
+          <FormField label={mallName ? "المحل" : "المطعم"} htmlFor="finance-restaurant" required>
             <Select
               id="finance-restaurant"
               value={restaurantId}
               onChange={setRestaurantId}
               options={available.map((restaurant) => ({ value: restaurant.id, label: restaurant.name }))}
-              placeholder="اختر مطعماً"
+              placeholder={mallName ? "اختر محلاً" : "اختر مطعماً"}
             />
           </FormField>
           <MenuBillingFields value={form} onChange={setForm} disabled={saving} />

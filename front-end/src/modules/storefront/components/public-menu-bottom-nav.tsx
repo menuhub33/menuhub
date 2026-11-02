@@ -12,27 +12,29 @@ export function PublicMenuBottomNav({
   onCart,
   onCategories,
   onBack,
+  hideCart = false,
 }: {
   active: PublicMenuTab;
   cartCount: number;
   onHome: () => void;
-  onCart: () => void;
+  onCart?: () => void;
   onCategories: () => void;
   onBack: () => void;
+  hideCart?: boolean;
 }) {
   const items = [
     { id: "home" as const, label: "الرئيسية", icon: HomeIcon, onClick: onHome },
     { id: "cart" as const, label: "السلة", icon: CartIcon, onClick: onCart, badge: cartCount },
     { id: "categories" as const, label: "التصنيفات", icon: GridFourIcon, onClick: onCategories },
     { id: "back" as const, label: "رجوع", icon: UndoIcon, onClick: onBack },
-  ];
+  ].filter((item) => !(hideCart && item.id === "cart"));
 
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--mh-text)]/8 bg-[var(--mh-bg)]/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] backdrop-blur-md"
       aria-label="التنقل"
     >
-      <ul className="mx-auto grid max-w-2xl grid-cols-4 px-2 pt-2 pb-2">
+      <ul className={cn("mx-auto grid max-w-2xl px-2 pt-2 pb-2", hideCart ? "grid-cols-3" : "grid-cols-4")}>
         {items.map((item) => {
           const Icon = item.icon;
           const current = item.id !== "back" && item.id === active;

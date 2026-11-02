@@ -14,6 +14,7 @@ use Modules\Auth\Services\AuthService;
 use Modules\Shared\Exceptions\ApiException;
 use Modules\Shared\Http\Controllers\ApiController;
 use Modules\Shared\Rules\ImageUrl;
+use Modules\Tenancy\Support\MallAccess;
 use Modules\Users\Http\Resources\UserResource;
 use Modules\Users\Models\User;
 
@@ -35,7 +36,7 @@ class AuthController extends ApiController
 
         return response()->json([
             'data' => [
-                'user' => new UserResource($result['user']),
+                'user' => $this->userPayload($result['user']),
                 'token' => $result['token'],
                 'email_verification_required' => $result['token'] === null,
             ],
@@ -53,7 +54,7 @@ class AuthController extends ApiController
         $result = $this->auth->login($data['email'], $data['password'], $data['device_name'] ?? 'web');
 
         return $this->ok([
-            'user' => new UserResource($result['user']),
+            'user' => $this->userPayload($result['user']),
             'token' => $result['token'],
             'token_type' => 'Bearer',
         ]);
@@ -68,7 +69,7 @@ class AuthController extends ApiController
 
     public function me(Request $request): JsonResponse
     {
-        return $this->ok(new UserResource($request->user()));
+        return $this->ok($this->userPayload($request->user()));
     }
 
     public function updateProfile(Request $request): JsonResponse
@@ -82,7 +83,7 @@ class AuthController extends ApiController
         $user = $request->user();
         $user->fill($data)->save();
 
-        return $this->ok(new UserResource($user->refresh()));
+        return $this->ok($this->userPayload($user->refresh()));
     }
 
     public function changePassword(Request $request): JsonResponse
@@ -162,5 +163,13 @@ class AuthController extends ApiController
         }
 
         return $this->message('تم إرسال رابط التأكيد');
+    }
+
+    /** @return array<string, mixed> */
+    private function userPayload(User $user): array
+    {
+        return array_merge((new UserResource($user))->resolve(), [
+            'mall' => MallAccess::summaryFor($user),
+        ]);
     }
 }

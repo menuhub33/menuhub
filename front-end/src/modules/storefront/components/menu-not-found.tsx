@@ -1,3 +1,4 @@
+import { DesignerCredit } from "@/core/components/layout/designer-credit";
 import { UtensilsIcon } from "@/core/ui/icons";
 
 export function MenuNotFound({
@@ -20,6 +21,7 @@ export function MenuNotFound({
         <h1 className="text-xl font-bold text-zinc-900">{title}</h1>
         <p className="mt-2 max-w-sm text-sm text-zinc-500">{description}</p>
       </div>
+      <DesignerCredit className="mt-6" />
     </div>
   );
 }

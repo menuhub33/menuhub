@@ -2,6 +2,7 @@
 
 namespace Modules\Tenancy\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Shared\Concerns\Auditable;
@@ -23,6 +24,7 @@ use Modules\Users\Models\User;
  * @property RestaurantStatus $status
  * @property MenuStatus $menu_status
  * @property BusinessType $business_type
+ * @property string|null $mall_id
  */
 class Restaurant extends BaseModel
 {
@@ -49,6 +51,11 @@ class Restaurant extends BaseModel
             'latitude' => 'float',
             'longitude' => 'float',
         ];
+    }
+
+    public function mall(): BelongsTo
+    {
+        return $this->belongsTo(Mall::class);
     }
 
     public function memberships(): HasMany

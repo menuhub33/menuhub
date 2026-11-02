@@ -3,6 +3,7 @@
 namespace Modules\Tenancy\Services;
 
 use Modules\Shared\Support\Slug;
+use Modules\Tenancy\Models\Mall;
 use Modules\Tenancy\Models\ReservedSubdomain;
 use Modules\Tenancy\Models\Restaurant;
 
@@ -28,7 +29,11 @@ class RestaurantService
             ->when($ignoreRestaurantId, fn ($q) => $q->where('id', '!=', $ignoreRestaurantId))
             ->exists();
 
-        return $taken ? 'هذا الرابط مستخدم لنشاط آخر' : null;
+        if ($taken || Mall::query()->where('slug', $slug)->exists()) {
+            return 'هذا الرابط مستخدم لنشاط آخر';
+        }
+
+        return null;
     }
 
     public function isReserved(string $slug): bool

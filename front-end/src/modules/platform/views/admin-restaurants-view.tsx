@@ -30,6 +30,7 @@ import {
 } from "@/modules/finance/components/menu-billing-fields";
 import { parseBillingInput } from "@/modules/finance/lib/menu-billing";
 import { BusinessTypePicker } from "@/modules/tenancy/components/restaurants/business-type-picker";
+import { setCurrentRestaurant } from "@/modules/tenancy/actions/restaurants";
 import { isRestaurantActivated } from "@/modules/tenancy/lib/restaurant-status";
 import { BUSINESS_TYPE_OPTIONS, normalizeBusinessType } from "@/modules/tenancy/lib/business-type";
 import type { BusinessType, Restaurant, RestaurantStatus } from "@/modules/tenancy/types";
@@ -46,7 +47,16 @@ const STATUS_OPTIONS: { value: RestaurantStatus; label: string }[] = [
   { value: "CANCELLED", label: "ملغى" },
 ];
 
-export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: RestaurantRow[] }) {
+export function AdminRestaurantsView({
+  restaurants = [],
+  malls = [],
+  lockedMall = null,
+}: {
+  restaurants?: RestaurantRow[];
+  malls?: { id: string; name: string }[];
+  /** Set for a mall manager: every new menu is forced into this mall. */
+  lockedMall?: { id: string; name: string } | null;
+}) {
   const router = useRouter();
   const { toast } = useToast();
   const [query, setQuery] = useState("");
@@ -61,6 +71,7 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [businessType, setBusinessType] = useState<BusinessType>("RESTAURANT");
+  const [affiliation, setAffiliation] = useState("private");
   const [billing, setBilling] = useState<BillingFormState>(emptyBillingForm());
   const [editing, setEditing] = useState<RestaurantRow | null>(null);
   const [editName, setEditName] = useState("");
@@ -69,6 +80,7 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
   const [editDescription, setEditDescription] = useState("");
   const [editStatus, setEditStatus] = useState<RestaurantStatus>("SUSPENDED");
   const [editBusinessType, setEditBusinessType] = useState<BusinessType>("RESTAURANT");
+  const [editMallId, setEditMallId] = useState("private");
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -96,6 +108,7 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
     setEditDescription(restaurant.description ?? "");
     setEditStatus(restaurant.status);
     setEditBusinessType(normalizeBusinessType(restaurant.business_type));
+    setEditMallId(restaurant.mall_id ?? "private");
   }
 
   async function createRestaurant() {
@@ -106,6 +119,7 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
         email: email.trim(),
         password,
         business_type: businessType,
+        mall_id: lockedMall ? undefined : affiliation === "private" ? null : affiliation,
         billing: "value" in billingInput ? billingInput.value : undefined,
       });
       if (result.error) {
@@ -118,6 +132,7 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
       setEmail("");
       setPassword("");
       setBusinessType("RESTAURANT");
+      setAffiliation("private");
       setBilling(emptyBillingForm());
       router.refresh();
     } catch (error) {
@@ -141,6 +156,7 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
       description: editDescription,
       status: editStatus,
       business_type: editBusinessType,
+      mall_id: lockedMall ? undefined : editMallId === "private" ? null : editMallId,
     });
     setSaving(false);
     if (result.error) {
@@ -179,17 +195,25 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
   return (
     <div className="grid gap-4">
       <PageHeader
-        title="المطاعم"
-        description="إنشاء المواقع وتعديلها وتفعيلها وتحديد نوع النشاط يتم من هنا."
+        title={lockedMall ? "المحلات" : "المطاعم"}
+        description={
+          lockedMall
+            ? `منيوهات ${lockedMall.name} فقط. كل محل جديد يُربط بهذا المول.`
+            : "أنشئ منيو تابع لمول أو منيو محل خاص، ثم فعّله ليظهر للزوار."
+        }
         actions={
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" loading={seeding === "restaurant"} onClick={() => void createDemoMenu()}>
-              تجهيز منيو المطعم
-            </Button>
-            <Button variant="outline" loading={seeding === "cars"} onClick={() => void createDemoCarsMenu()}>
-              تجهيز منيو السيارات
-            </Button>
-            <Button onClick={() => setCreating(true)}>إنشاء مطعم</Button>
+            {lockedMall ? null : (
+              <>
+                <Button variant="outline" loading={seeding === "restaurant"} onClick={() => void createDemoMenu()}>
+                  تجهيز منيو المطعم
+                </Button>
+                <Button variant="outline" loading={seeding === "cars"} onClick={() => void createDemoCarsMenu()}>
+                  تجهيز منيو السيارات
+                </Button>
+              </>
+            )}
+            <Button onClick={() => setCreating(true)}>{lockedMall ? "إنشاء محل" : "إنشاء مطعم"}</Button>
           </div>
         }
       />
@@ -215,6 +239,7 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
             <tr>
               <th className="p-3 text-start">المطعم</th>
               <th className="p-3 text-start">نوع النشاط</th>
+              {lockedMall ? null : <th className="p-3 text-start">الانتماء</th>}
               <th className="p-3 text-start">المالك</th>
               <th className="p-3 text-start">الحالة</th>
               <th className="p-3 text-start">تاريخ الإنشاء</th>
@@ -224,7 +249,7 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-zinc-500">
+                <td colSpan={lockedMall ? 6 : 7} className="p-8 text-center text-zinc-500">
                   لا توجد مطاعم مطابقة.
                 </td>
               </tr>
@@ -242,6 +267,9 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
                       (option) => option.value === normalizeBusinessType(restaurant.business_type)
                     )?.label ?? "—"}
                   </td>
+                  {lockedMall ? null : (
+                    <td className="p-3">{restaurant.mall?.name ?? "محل خاص"}</td>
+                  )}
                   <td className="p-3">{restaurant.owner_name ?? "—"}</td>
                   <td className="p-3">
                     <StatusBadge kind="restaurant" value={restaurant.status} />
@@ -252,6 +280,19 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
                       <Button size="sm" variant="outline" onClick={() => window.open(`/m/${restaurant.slug}`, "_blank")}>
                         عرض
                       </Button>
+                      {lockedMall && isRestaurantActivated(restaurant.status) ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={async () => {
+                            const result = await setCurrentRestaurant(restaurant.id);
+                            if (result.error) toast({ title: result.error, variant: "error" });
+                            else router.push("/dashboard");
+                          }}
+                        >
+                          إدارة المنيو
+                        </Button>
+                      ) : null}
                       <Button size="sm" variant="outline" onClick={() => openEdit(restaurant)}>
                         تعديل
                       </Button>
@@ -326,6 +367,23 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
             <Input id="admin-restaurant-name" value={name} onChange={(event) => setName(event.target.value)} />
           </FormField>
           <BusinessTypePicker value={businessType} onChange={setBusinessType} disabled={saving} />
+          {lockedMall ? (
+            <p className="rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-800">
+              هذا المنيو سيظهر في دليل {lockedMall.name}.
+            </p>
+          ) : (
+            <FormField label="الانتماء" htmlFor="admin-restaurant-mall" required>
+              <Select
+                id="admin-restaurant-mall"
+                value={affiliation}
+                onChange={setAffiliation}
+                options={[
+                  { value: "private", label: "محل خاص" },
+                  ...malls.map((mall) => ({ value: mall.id, label: mall.name })),
+                ]}
+              />
+            </FormField>
+          )}
           <FormField label="البريد الإلكتروني" htmlFor="admin-restaurant-email" required>
             <Input
               id="admin-restaurant-email"
@@ -382,6 +440,19 @@ export function AdminRestaurantsView({ restaurants = [] }: { restaurants?: Resta
             />
           </FormField>
           <BusinessTypePicker value={editBusinessType} onChange={setEditBusinessType} disabled={saving} />
+          {lockedMall ? null : (
+            <FormField label="الانتماء" htmlFor="edit-restaurant-mall">
+              <Select
+                id="edit-restaurant-mall"
+                value={editMallId}
+                onChange={setEditMallId}
+                options={[
+                  { value: "private", label: "محل خاص" },
+                  ...malls.map((mall) => ({ value: mall.id, label: mall.name })),
+                ]}
+              />
+            </FormField>
+          )}
           <FormField label="الحالة" htmlFor="edit-restaurant-status">
             <Select
               id="edit-restaurant-status"

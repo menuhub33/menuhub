@@ -7,15 +7,25 @@ use Modules\Finance\Support\BillingCalculator as Calc;
 use Modules\Shared\Enums\InstallmentKind;
 use Modules\Shared\Enums\InstallmentStatus;
 use Modules\Tenancy\Models\Restaurant;
+use Modules\Tenancy\Support\MallAccess;
+use Modules\Users\Models\User;
 
 class FinanceReport
 {
     /**
      * @return array{contracts: list<array<string, mixed>>, restaurants: mixed, summary: array<string, array<string, float>>}
      */
-    public function build(): array
+    public function build(User $user): array
     {
-        $billings = MenuBilling::query()->with(['installments', 'restaurant:id,name'])->latest('created_at')->get();
+        $mall = MallAccess::scopedMall($user);
+        $billings = MenuBilling::query()
+            ->with(['installments', 'restaurant:id,name,mall_id'])
+            ->when($mall, fn ($query) => $query->whereHas(
+                'restaurant',
+                fn ($restaurant) => $restaurant->where('mall_id', $mall->id)
+            ))
+            ->latest('created_at')
+            ->get();
 
         $summary = [];
         $contracts = [];
@@ -56,7 +66,9 @@ class FinanceReport
 
         return [
             'contracts' => $contracts,
-            'restaurants' => Restaurant::query()->orderBy('name')->get(['id', 'name']),
+            'restaurants' => MallAccess::scopeRestaurants(Restaurant::query(), $user)
+                ->orderBy('name')
+                ->get(['id', 'name']),
             'summary' => $summary,
         ];
     }
