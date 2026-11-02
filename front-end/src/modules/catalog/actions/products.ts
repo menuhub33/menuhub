@@ -3,7 +3,7 @@
 import { apiData, run } from "@/core/api/client";
 import { requireTenantId } from "@/core/auth/authorization";
 import { fail, type ActionResult } from "@/core/api/result";
-import type { Product, ProductStatus } from "@/modules/catalog/types";
+import type { Product, ProductSeason, ProductStatus } from "@/modules/catalog/types";
 
 export type CreateProductInput = {
   category_id: string;
@@ -16,6 +16,7 @@ export type CreateProductInput = {
   currency?: string;
   sort_order?: number;
   is_featured?: boolean;
+  season?: ProductSeason | null;
 };
 
 export async function createProduct(
@@ -24,7 +25,9 @@ export async function createProduct(
   const nameAr = input.name_ar?.trim();
   if (!input.category_id || !nameAr) return fail("التصنيف والاسم العربي مطلوبان");
   if (input.price == null || input.price < 0) return fail("السعر يجب أن يكون صفراً أو أكبر");
-  if (input.old_price != null && input.old_price < 0) return fail("السعر السابق غير صالح");
+  if (input.old_price != null && input.old_price <= input.price) {
+    return fail("السعر قبل الحسم يجب أن يكون أكبر من السعر الحالي");
+  }
 
   return run(async () => {
     const restaurantId = await requireTenantId();
@@ -47,6 +50,7 @@ export type UpdateProductInput = {
   currency?: string;
   sort_order?: number;
   is_featured?: boolean;
+  season?: ProductSeason | null;
   status?: Product["status"];
 };
 

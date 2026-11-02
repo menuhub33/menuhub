@@ -114,8 +114,8 @@ export function PublicMenuHero({
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10" />
 
         {hasOffers ? (
-          <span className="absolute top-3 start-3 rounded-md bg-fuchsia-500 px-2.5 py-1 text-[10px] font-bold tracking-wide text-white">
-            OFFERS
+          <span className="absolute top-3 start-3 rounded-md bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white">
+            حسومات
           </span>
         ) : null}
 

@@ -19,7 +19,7 @@ class ProductService
 {
     private const FILLABLE = [
         'category_id', 'name_ar', 'name_en', 'description_ar', 'description_en',
-        'price', 'old_price', 'currency', 'sort_order', 'status', 'is_featured',
+        'price', 'old_price', 'currency', 'sort_order', 'status', 'is_featured', 'season',
     ];
 
     public function __construct(private readonly PlanGuard $limits) {}
@@ -28,6 +28,7 @@ class ProductService
     public function create(Restaurant $restaurant, array $data): Product
     {
         $category = $this->categoryOf($restaurant, $data['category_id']);
+        $this->guardDiscount($data);
         $this->limits->creating($restaurant->id, EnforcesPlanLimits::PRODUCTS);
 
         return DB::transaction(function () use ($restaurant, $category, $data) {
@@ -59,6 +60,7 @@ class ProductService
             $data['category_id'] = $this->categoryOf($restaurant, $data['category_id'])->id;
         }
 
+        $this->guardDiscount($data, $product);
         $product->fill(array_intersect_key($data, array_flip(self::FILLABLE)))->save();
 
         return $product->refresh();
@@ -216,6 +218,25 @@ class ProductService
         ])->save();
 
         return $option->refresh();
+    }
+
+    /** @param  array<string, mixed>  $data */
+    private function guardDiscount(array $data, ?Product $existing = null): void
+    {
+        if (! array_key_exists('old_price', $data) && ! array_key_exists('price', $data)) {
+            return;
+        }
+
+        $price = array_key_exists('price', $data) ? $data['price'] : $existing?->price;
+        $old = array_key_exists('old_price', $data) ? $data['old_price'] : $existing?->old_price;
+
+        if ($old === null || $old === '' || $price === null || $price === '') {
+            return;
+        }
+
+        if ((float) $old <= (float) $price) {
+            throw ApiException::invalid('السعر قبل الحسم يجب أن يكون أكبر من السعر الحالي', 'INVALID_DISCOUNT');
+        }
     }
 
     private function categoryOf(Restaurant $restaurant, string $categoryId): Category

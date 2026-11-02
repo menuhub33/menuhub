@@ -73,6 +73,45 @@ class CatalogTest extends ApiTestCase
         $this->postJson($path, $payload)->assertForbidden()->assertJsonPath('code', 'PLAN_LIMIT_REACHED');
     }
 
+    public function test_product_can_be_featured_discounted_and_seasonal(): void
+    {
+        [$owner, $restaurant] = $this->makeRestaurant();
+        $category = $this->makeCategory($restaurant);
+        Sanctum::actingAs($owner);
+        $path = $this->api("restaurants/{$restaurant->id}/products");
+
+        $id = $this->postJson($path, [
+            'category_id' => $category->id,
+            'name_ar' => 'فتوش',
+            'price' => 16000,
+            'old_price' => 20000,
+            'is_featured' => true,
+            'season' => 'AUTUMN',
+        ])->assertCreated()
+            ->assertJsonPath('data.is_featured', true)
+            ->assertJsonPath('data.season', 'AUTUMN')
+            ->assertJsonPath('data.old_price', 20000)
+            ->json('data.id');
+
+        $this->getJson($path.'?featured=1&discounted=1&season=AUTUMN')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $id);
+
+        $this->postJson($path, [
+            'category_id' => $category->id,
+            'name_ar' => 'حسم غير صالح',
+            'price' => 100,
+            'old_price' => 80,
+        ])->assertStatus(422);
+
+        $this->postJson($path, [
+            'category_id' => $category->id,
+            'name_ar' => 'موسم غير صالح',
+            'price' => 100,
+            'season' => 'MONSOON',
+        ])->assertStatus(422);
+    }
+
     public function test_publish_and_unpublish_default_menu_syncs_restaurant_state(): void
     {
         [$owner, $restaurant] = $this->makeRestaurant();

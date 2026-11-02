@@ -12,8 +12,11 @@ import { DuplicateProductDialog } from "@/modules/catalog/components/products/du
 import { Button } from "@/core/ui/button";
 import { Select } from "@/core/ui/select";
 import { useToast } from "@/core/ui/toast";
+import { hasDiscount, PRODUCT_SEASON_LABELS, PRODUCT_SEASONS } from "@/modules/catalog/lib/merchandising";
 import type { ProductWithImages } from "@/modules/catalog/types";
-import type { Category, ProductStatus } from "@/modules/catalog/types";
+import type { Category, ProductSeason, ProductStatus } from "@/modules/catalog/types";
+
+type HighlightFilter = "ALL" | "FEATURED" | "DISCOUNT" | ProductSeason;
 
 export function ProductsView({
   products,
@@ -31,6 +34,7 @@ export function ProductsView({
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<ProductStatus | "ALL">("ALL");
   const [categoryId, setCategoryId] = useState("ALL");
+  const [highlight, setHighlight] = useState<HighlightFilter>("ALL");
   const [sort, setSort] = useState("order");
   const [deleting, setDeleting] = useState<ProductWithImages | null>(null);
   const [duplicating, setDuplicating] = useState<ProductWithImages | null>(null);
@@ -40,6 +44,12 @@ export function ProductsView({
     return products
       .filter((product) => (status === "ALL" ? true : product.status === status))
       .filter((product) => (categoryId === "ALL" ? true : product.category_id === categoryId))
+      .filter((product) => {
+        if (highlight === "ALL") return true;
+        if (highlight === "FEATURED") return product.is_featured;
+        if (highlight === "DISCOUNT") return hasDiscount(product);
+        return product.season === highlight;
+      })
       .filter((product) =>
         !query
           ? true
@@ -52,7 +62,7 @@ export function ProductsView({
         if (sort === "name") return a.name_ar.localeCompare(b.name_ar, "ar");
         return a.sort_order - b.sort_order;
       });
-  }, [products, search, status, categoryId, sort]);
+  }, [products, search, status, categoryId, highlight, sort]);
 
   return (
     <div className="grid gap-6">
@@ -79,6 +89,19 @@ export function ProductsView({
           options={[
             { value: "ALL", label: "كل الأقسام" },
             ...categories.map((category) => ({ value: category.id, label: category.name_ar })),
+          ]}
+        />
+        <Select
+          value={highlight}
+          onChange={(value) => setHighlight(value as HighlightFilter)}
+          options={[
+            { value: "ALL", label: "كل المنتجات" },
+            { value: "FEATURED", label: "منتجات مميزة" },
+            { value: "DISCOUNT", label: "حسومات" },
+            ...PRODUCT_SEASONS.map((season) => ({
+              value: season,
+              label: `موسم ${PRODUCT_SEASON_LABELS[season]}`,
+            })),
           ]}
         />
         <Select

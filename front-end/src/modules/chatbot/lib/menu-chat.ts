@@ -16,6 +16,7 @@ export type MenuChatProduct = {
   status: ProductStatus;
   is_featured: boolean;
   old_price: number | null;
+  season: "WINTER" | "SPRING" | "SUMMER" | "AUTUMN" | null;
   image_url: string | null;
   category: string;
   extras: string[];

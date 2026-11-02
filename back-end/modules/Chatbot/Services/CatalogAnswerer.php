@@ -3,6 +3,7 @@
 namespace Modules\Chatbot\Services;
 
 use Modules\Chatbot\Support\ArabicText as T;
+use Modules\Shared\Enums\ProductSeason;
 use Modules\Shared\Support\PhoneNumber;
 
 /**
@@ -155,13 +156,45 @@ class CatalogAnswerer
             return ['reply' => "من الأعلى سعراً:\n".$this->lines($products), 'products' => $products];
         }
 
-        if (T::looksLike($effective, '/(عرض|عروض|خصم|تخفيض|featured|شائع|مميز)/')) {
-            $products = $this->featured($catalog);
-            if ($products === []) {
-                return $this->unknown($catalog, 'العروض');
+        if (T::looksLike($effective, '/(موسم|موسمي|شتوي|صيفي|ربيعي|خريفي|الشتاء|الصيف|الربيع|الخريف)/')) {
+            $season = ProductSeason::current();
+            if (T::looksLike($effective, '/(شتاء|شتوي)/')) {
+                $season = ProductSeason::Winter;
+            } elseif (T::looksLike($effective, '/(ربيع|ربيعي)/')) {
+                $season = ProductSeason::Spring;
+            } elseif (T::looksLike($effective, '/(صيف|صيفي)/')) {
+                $season = ProductSeason::Summer;
+            } elseif (T::looksLike($effective, '/(خريف|خريفي)/')) {
+                $season = ProductSeason::Autumn;
             }
 
-            return ['reply' => "العروض والأصناف المميزة:\n".$this->lines($products), 'products' => $products];
+            $products = $this->seasonal($catalog, $season);
+            if ($products === []) {
+                return $this->unknown($catalog, 'أصناف '.$season->label());
+            }
+
+            return ['reply' => "أصناف موسم {$season->label()}:\n".$this->lines($products), 'products' => $products];
+        }
+
+        if (T::looksLike($effective, '/(حسم|خصم|تخفيض|عروض|عرض)/')) {
+            $products = $this->discounted($catalog);
+            if ($products === []) {
+                return $this->unknown($catalog, 'الحسومات');
+            }
+
+            return ['reply' => "الحسومات:\n".$this->lines($products), 'products' => $products];
+        }
+
+        if (T::looksLike($effective, '/(مميز|شائع|featured)/')) {
+            $products = array_slice(array_values(array_filter(
+                $this->visible($catalog),
+                fn ($p) => $p['is_featured'] && $p['status'] === 'AVAILABLE',
+            )), 0, 5);
+            if ($products === []) {
+                return $this->unknown($catalog, 'المنتجات المميزة');
+            }
+
+            return ['reply' => "المنتجات المميزة:\n".$this->lines($products), 'products' => $products];
         }
 
         if (T::looksLike($effective, '/(اقترح|نصح|توصي|شو اطلب|ماذا تنصح)/')) {
@@ -301,7 +334,7 @@ class CatalogAnswerer
         foreach ($this->visible($catalog) as $product) {
             $hay = T::normalize(implode(' ', array_filter([
                 $product['name_ar'], $product['name_en'], $product['description_ar'],
-                $product['description_en'], $product['category'], ...$product['extras'],
+                $product['description_en'], $product['category'], $this->seasonLabel($product['season'] ?? null), ...$product['extras'],
             ])));
             $name = T::normalize($product['name_ar']);
             $score = 0;
@@ -356,12 +389,43 @@ class CatalogAnswerer
 
     private function featured(array $catalog, int $limit = 5): array
     {
-        $offers = array_values(array_filter(
+        $picked = array_values(array_filter(
             $this->visible($catalog),
-            fn ($p) => $p['is_featured'] || ($p['old_price'] !== null && $p['old_price'] > $p['price']),
+            fn ($p) => $p['is_featured'] && $p['status'] === 'AVAILABLE',
         ));
 
-        return array_slice($offers !== [] ? $offers : $this->cheapest($catalog, $limit), 0, $limit);
+        if ($picked === []) {
+            $picked = $this->discounted($catalog, $limit);
+        }
+
+        return array_slice($picked !== [] ? $picked : $this->cheapest($catalog, $limit), 0, $limit);
+    }
+
+    private function discounted(array $catalog, int $limit = 5): array
+    {
+        $picked = array_values(array_filter(
+            $this->visible($catalog),
+            fn ($p) => $p['status'] === 'AVAILABLE' && $p['old_price'] !== null && $p['old_price'] > $p['price'],
+        ));
+
+        return array_slice($picked, 0, $limit);
+    }
+
+    private function seasonal(array $catalog, ProductSeason $season, int $limit = 8): array
+    {
+        $picked = array_values(array_filter(
+            $this->visible($catalog),
+            fn ($p) => $p['status'] === 'AVAILABLE' && ($p['season'] ?? null) === $season->value,
+        ));
+
+        return array_slice($picked, 0, $limit);
+    }
+
+    private function seasonLabel(mixed $season): ?string
+    {
+        $value = $season instanceof ProductSeason ? $season->value : $season;
+
+        return is_string($value) ? ProductSeason::tryFrom($value)?->label() : null;
     }
 
     private function priceCap(string $query): ?float
@@ -387,11 +451,21 @@ class CatalogAnswerer
     {
         return implode("\n", array_map(function ($p) {
             $status = $p['status'] === 'UNAVAILABLE' ? ' — غير متوفر حالياً' : '';
-            $offer = $p['old_price'] !== null && $p['old_price'] > $p['price']
-                ? ' (بدلاً من '.$this->price($p['old_price'], $p['currency']).')'
-                : '';
+            $notes = [];
+            if ($p['old_price'] !== null && $p['old_price'] > $p['price']) {
+                $percent = (int) round((($p['old_price'] - $p['price']) / $p['old_price']) * 100);
+                $notes[] = "حسم {$percent}% بدلاً من ".$this->price($p['old_price'], $p['currency']);
+            }
+            $season = $this->seasonLabel($p['season'] ?? null);
+            if ($season) {
+                $notes[] = "موسم {$season}";
+            }
+            if ($p['is_featured']) {
+                $notes[] = 'مميز';
+            }
+            $extra = $notes === [] ? '' : ' ('.implode('، ', $notes).')';
 
-            return "• {$p['name_ar']} — ".$this->price($p['price'], $p['currency']).$offer.$status;
+            return "• {$p['name_ar']} — ".$this->price($p['price'], $p['currency']).$extra.$status;
         }, $products));
     }
 

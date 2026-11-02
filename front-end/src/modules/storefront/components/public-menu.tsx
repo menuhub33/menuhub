@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { cn } from "@/core/lib/cn";
+import { hasDiscount } from "@/modules/catalog/lib/merchandising";
 import type { CategoryWithProducts, ProductWithRelations } from "@/modules/catalog/types";
 import type { PublicMenuData } from "@/modules/storefront/types";
 import { PublicMenuBottomNav, type PublicMenuTab } from "@/modules/storefront/components/public-menu-bottom-nav";
@@ -12,6 +13,7 @@ import {
   PublicMenuNavigation,
 } from "@/modules/storefront/components/public-menu-navigation";
 import { PublicMenuSearch } from "@/modules/storefront/components/public-menu-search";
+import { PublicMenuHighlights } from "@/modules/storefront/components/public-menu-highlights";
 import { PublicProductGrid } from "@/modules/storefront/components/public-product-grid";
 import { PublicCartSheet } from "@/modules/storefront/components/public-cart-sheet";
 import { PublicOrderSheet } from "@/modules/storefront/components/public-order-sheet";
@@ -125,13 +127,19 @@ export function PublicMenu({
     [categories, selectedCategoryId, searchQuery]
   );
 
-  const featuredProducts = useMemo(
-    () =>
-      categories
-        .flatMap((category) => category.products ?? [])
-        .filter((product) => product.is_featured || (product.old_price != null && product.old_price > product.price)),
+  const visibleProducts = useMemo(
+    () => categories.flatMap((category) => category.products ?? []),
     [categories]
   );
+  const featuredProducts = useMemo(
+    () => visibleProducts.filter((product) => product.is_featured),
+    [visibleProducts]
+  );
+  const hasOffers = useMemo(
+    () => visibleProducts.some((product) => hasDiscount(product)),
+    [visibleProducts]
+  );
+  const showHighlights = selectedCategoryId === ALL_CATEGORIES_ID && !searchQuery.trim();
 
   const selectedCategory =
     selectedCategoryId === ALL_CATEGORIES_ID
@@ -232,7 +240,7 @@ export function PublicMenu({
         <PublicMenuHero
           restaurant={data.restaurant}
           featuredProducts={featuredProducts}
-          hasOffers={featuredProducts.length > 0}
+          hasOffers={hasOffers}
           onShare={onShare}
           shareUrl={shareUrl}
         />
@@ -269,6 +277,18 @@ export function PublicMenu({
             }}
           />
         </div>
+
+        {showHighlights ? (
+          <PublicMenuHighlights
+            products={visibleProducts}
+            quantities={quantities}
+            onQuantityChange={setQuantity}
+            onProductOpen={(product) => {
+              setOpenProduct(product);
+              onProductOpen?.(product);
+            }}
+          />
+        ) : null}
 
         <section id="menu-products" className="mt-6 scroll-mt-4">
           <h2 className="mb-4 text-lg font-bold">{sectionTitle}</h2>

@@ -9,6 +9,8 @@ import { formatPrice } from "@/core/lib/format";
 import { PRODUCT_STATUS_LABELS } from "@/core/lib/labels";
 import type { ProductWithRelations } from "@/modules/catalog/types";
 import { PublicOptionSelector } from "@/modules/storefront/components/public-option-selector";
+import { PublicProductBadges } from "@/modules/storefront/components/public-product-badges";
+import { discountPercent } from "@/modules/catalog/lib/merchandising";
 import { PublicQtyStepper } from "@/modules/storefront/components/public-qty-stepper";
 import { PublicSheet } from "@/modules/storefront/components/public-sheet";
 
@@ -96,6 +98,7 @@ export function PublicProductModal({
           >
             <XIcon className="size-4" />
           </button>
+          <PublicProductBadges product={product} className="absolute bottom-3 start-3 z-10" />
           {activeImage ? (
             <ContentImage
               src={activeImage.image_url}
@@ -154,6 +157,11 @@ export function PublicProductModal({
             {showOldPrice && oldPrice != null ? (
               <span className="text-sm line-through opacity-50">
                 {formatPrice(oldPrice, product.currency)}
+              </span>
+            ) : null}
+            {discountPercent(product.price, oldPrice) != null ? (
+              <span className="rounded-md bg-rose-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
+                حسم {discountPercent(product.price, oldPrice)}%
               </span>
             ) : null}
           </div>

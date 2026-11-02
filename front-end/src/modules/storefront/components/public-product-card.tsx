@@ -3,6 +3,7 @@ import { formatPrice } from "@/core/lib/format";
 import { PRODUCT_STATUS_LABELS } from "@/core/lib/labels";
 import type { ProductWithRelations } from "@/modules/catalog/types";
 import { productPrimaryImageUrl } from "@/modules/storefront/components/product-image";
+import { PublicProductBadges } from "@/modules/storefront/components/public-product-badges";
 import { PublicQtyStepper } from "@/modules/storefront/components/public-qty-stepper";
 import { ContentImage } from "@/core/ui/content-image";
 import { ImageIcon } from "@/core/ui/icons";
@@ -53,6 +54,7 @@ export function PublicProductCard({
               <ImageIcon className="size-8 opacity-35" />
             </span>
           )}
+          <PublicProductBadges product={product} className="absolute top-2 start-2" />
           {unavailable ? (
             <span className="absolute inset-0 flex items-center justify-center bg-[var(--mh-bg)]/60 text-[11px] font-medium">
               {PRODUCT_STATUS_LABELS.UNAVAILABLE}
