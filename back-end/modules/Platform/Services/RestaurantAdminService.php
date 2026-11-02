@@ -3,6 +3,8 @@
 namespace Modules\Platform\Services;
 
 use Modules\Catalog\Models\Menu;
+use Modules\Finance\Models\MenuBilling;
+use Modules\Shared\Exceptions\ApiException;
 use Modules\Shared\Enums\BusinessType;
 use Modules\Shared\Enums\MenuStatus;
 use Modules\Shared\Enums\RestaurantStatus;
@@ -28,6 +30,13 @@ class RestaurantAdminService
         $restaurant->status = $status;
 
         if ($status->isOperational()) {
+            $billing = MenuBilling::query()->where('restaurant_id', $restaurant->id)->first();
+            if ($billing?->next_renewal_on && $billing->next_renewal_on->toDateString() <= now()->toDateString()) {
+                throw ApiException::invalid(
+                    'انتهى الاشتراك السنوي. حدّد سعراً جديداً وتاريخ بداية جديد لتفعيل المنيو.',
+                    'SUBSCRIPTION_EXPIRED'
+                );
+            }
             $restaurant->menu_status = MenuStatus::Published;
         }
 

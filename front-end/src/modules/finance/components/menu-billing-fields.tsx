@@ -96,18 +96,6 @@ export function MenuBillingFields({
             onChange={(event) => update({ setupCost: event.target.value })}
           />
         </FormField>
-        <FormField label="التجديد السنوي" htmlFor="billing-renewal" hint="0 إذا لم يكن هناك تجديد">
-          <Input
-            id="billing-renewal"
-            type="number"
-            min="0"
-            step="0.01"
-            dir="ltr"
-            disabled={disabled}
-            value={value.annualRenewal}
-            onChange={(event) => update({ annualRenewal: event.target.value })}
-          />
-        </FormField>
         <FormField label="الحسم" htmlFor="billing-discount-type">
           <Select
             id="billing-discount-type"
@@ -146,7 +134,11 @@ export function MenuBillingFields({
             onChange={(event) => update({ installmentsCount: event.target.value })}
           />
         </FormField>
-        <FormField label="تاريخ البداية" htmlFor="billing-start">
+        <FormField
+          label="تاريخ البداية"
+          htmlFor="billing-start"
+          hint="الاشتراك لسنة واحدة من هذا التاريخ. بعده يتوقف المنيو حتى يُحدد سعر جديد."
+        >
           <Input
             id="billing-start"
             type="date"
@@ -164,10 +156,7 @@ export function MenuBillingFields({
           {parts.length > 1
             ? `، ويُقسّط على ${parts.length} دفعات بقيمة ${formatPrice(parts[0], preview.currency)}`
             : "، دفعة واحدة"}
-          {preview.annualRenewal > 0
-            ? `، والتجديد السنوي ${formatPrice(preview.annualRenewal, preview.currency)}`
-            : ""}
-          .
+          . ينتهي الاشتراك بعد سنة من تاريخ البداية.
         </p>
       ) : value.price.trim() ? (
         <p className="text-sm text-red-600">{"error" in parsed ? parsed.error : ""}</p>

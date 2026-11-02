@@ -3,6 +3,7 @@
 namespace Modules\Storefront\Services;
 
 use Illuminate\Support\Facades\Cache;
+use Modules\Finance\Services\YearlyMenuSubscription;
 use Modules\Catalog\Http\Resources\CategoryResource;
 use Modules\Catalog\Models\Category;
 use Modules\Catalog\Models\Menu;
@@ -37,6 +38,10 @@ class PublicMenuService
 
         if (! $restaurant) {
             return ['kind' => 'unavailable', 'reason' => 'NOT_FOUND'];
+        }
+
+        if (app(YearlyMenuSubscription::class)->closeIfDue($restaurant)) {
+            $restaurant->refresh();
         }
 
         return Cache::remember(

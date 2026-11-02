@@ -4,6 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { logout } from "@/modules/auth/actions/auth";
+import { markAllNotificationsRead } from "@/modules/notifications/actions/notifications";
+import { NotificationBell } from "@/modules/notifications/components/notification-bell";
+import type { Notification } from "@/modules/notifications/types";
 import { BrandMark } from "@/core/components/layout/brand-mark";
 import { DesignerCredit } from "@/core/components/layout/designer-credit";
 import { isPlatformAdmin } from "@/core/auth/permissions";
@@ -81,9 +84,11 @@ function AdminNav({
 
 export function AdminShell({
   profile,
+  notifications = [],
   children,
 }: {
   profile: Profile;
+  notifications?: Notification[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -96,6 +101,7 @@ export function AdminShell({
   const mallOnly = Boolean(profile.mall) && !isPlatformAdmin(profile.platform_role);
   const items = mallOnly ? MALL_NAV : PLATFORM_NAV;
   const roleLabel = mallOnly ? `مدير ${profile.mall?.name ?? "المول"}` : PLATFORM_ROLE_LABELS[profile.platform_role];
+  const unreadCount = notifications.filter((item) => !item.is_read).length;
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -139,11 +145,21 @@ export function AdminShell({
         {footer}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-zinc-200 bg-white/90 px-4 backdrop-blur lg:hidden">
-          <Button variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="فتح القائمة">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-zinc-200 bg-white/90 px-4 backdrop-blur">
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)} aria-label="فتح القائمة">
             <MenuIcon />
           </Button>
-          <BrandMark href="/admin" compact className="w-28" />
+          <BrandMark href="/admin" compact className="w-28 lg:hidden" />
+          <div className="ms-auto">
+            <NotificationBell
+              unreadCount={unreadCount}
+              notifications={notifications}
+              onMarkAllRead={async () => {
+                await markAllNotificationsRead();
+                router.refresh();
+              }}
+            />
+          </div>
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8">{children}</main>
         <DesignerCredit className="px-4 py-4" />

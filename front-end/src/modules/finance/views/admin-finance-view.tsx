@@ -137,8 +137,8 @@ export function AdminFinanceView({
         title={mallName ? "الحالة المالية" : "الإدارة المالية"}
         description={
           mallName
-            ? `عقود محلات ${mallName} فقط: السعر، الحسم، التقسيط، والتجديد.`
-            : "سعر كل منيو، الحسم، التقسيط، والتجديد السنوي."
+            ? `عقود محلات ${mallName} فقط. الاشتراك لسنة واحدة ثم يتوقف المنيو حتى يُحدد سعر جديد.`
+            : "سعر كل منيو لسنة واحدة. بعد انتهائها يتوقف المنيو حتى يُحدد سعر جديد."
         }
         actions={
           <Button
@@ -188,7 +188,7 @@ export function AdminFinanceView({
               <th className="p-3 text-start">التكلفة</th>
               <th className="p-3 text-start">الحسم</th>
               <th className="p-3 text-start">الربح</th>
-              <th className="p-3 text-start">التجديد السنوي</th>
+              <th className="p-3 text-start">نهاية الاشتراك</th>
               <th className="p-3 text-start">التقسيط</th>
               <th className="p-3 text-start">إجراءات</th>
             </tr>
@@ -218,12 +218,16 @@ export function AdminFinanceView({
                     <td className="p-3">{discountLabel(contract)}</td>
                     <td className="p-3">{formatPrice(profit, contract.currency)}</td>
                     <td className="p-3">
-                      {contract.annual_renewal > 0
-                        ? formatPrice(contract.annual_renewal, contract.currency)
-                        : "—"}
                       {contract.next_renewal_on ? (
-                        <p className="text-xs text-zinc-400">{formatDate(contract.next_renewal_on)}</p>
-                      ) : null}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span>{formatDate(contract.next_renewal_on)}</span>
+                          {contract.next_renewal_on <= todayIso() ? (
+                            <Badge variant="outline">منتهٍ</Badge>
+                          ) : null}
+                        </div>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className="p-3">
                       <Badge variant={paid === dues.length && dues.length > 0 ? "success" : "outline"}>

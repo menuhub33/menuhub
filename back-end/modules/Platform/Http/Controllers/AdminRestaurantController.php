@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Modules\Finance\Models\MenuBilling;
+use Modules\Finance\Services\YearlyMenuSubscription;
 use Modules\Platform\Services\DemoCatalogService;
 use Modules\Platform\Services\ProvisioningService;
 use Modules\Platform\Services\RestaurantAdminService;
@@ -40,6 +41,9 @@ class AdminRestaurantController extends ApiController
             })
             ->latest('created_at')
             ->paginate($this->perPage());
+
+        app(YearlyMenuSubscription::class)->closeDue($restaurants->getCollection()->pluck('id')->all());
+        $restaurants->getCollection()->each(fn (Restaurant $restaurant) => $restaurant->refresh());
 
         $owners = RestaurantUser::query()
             ->with('user:id,full_name,email,password_visible')

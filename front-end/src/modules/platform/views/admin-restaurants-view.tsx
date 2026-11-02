@@ -360,7 +360,7 @@ export function AdminRestaurantsView({
         onOpenChange={setCreating}
         title="إنشاء مطعم"
         size="lg"
-        description="أدخل بيانات النشاط والحساب، ثم سعر المنيو والحسم والتقسيط والتجديد السنوي."
+        description="أدخل بيانات النشاط والحساب، ثم سعر سنة الاشتراك. بعد السنة يتوقف المنيو حتى يُحدد سعر جديد."
         footer={
           <>
             <Button variant="outline" onClick={() => setCreating(false)}>

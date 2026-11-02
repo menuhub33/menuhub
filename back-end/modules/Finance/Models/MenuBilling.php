@@ -26,6 +26,7 @@ class MenuBilling extends BaseModel
             'discount_type' => DiscountType::class,
             'starts_on' => 'date:Y-m-d',
             'next_renewal_on' => 'date:Y-m-d',
+            'expired_notified_at' => 'datetime',
         ];
     }
 

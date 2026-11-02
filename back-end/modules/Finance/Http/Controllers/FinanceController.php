@@ -10,6 +10,7 @@ use Modules\Finance\Models\MenuBilling;
 use Modules\Finance\Models\MenuInstallment;
 use Modules\Finance\Services\BillingService;
 use Modules\Finance\Services\FinanceReport;
+use Modules\Finance\Services\YearlyMenuSubscription;
 use Modules\Shared\Enums\DiscountType;
 use Modules\Shared\Http\Controllers\ApiController;
 use Modules\Tenancy\Models\Restaurant;
@@ -24,6 +25,8 @@ class FinanceController extends ApiController
 
     public function index(Request $request): JsonResponse
     {
+        app(YearlyMenuSubscription::class)->closeDue();
+
         return $this->ok($this->report->build($request->user()));
     }
 

@@ -6,8 +6,10 @@ use Laravel\Sanctum\Sanctum;
 use Modules\Finance\Models\MenuBilling;
 use Modules\Finance\Models\MenuInstallment;
 use Modules\Finance\Support\BillingCalculator as Calc;
+use Modules\Notifications\Models\Notification;
 use Modules\Shared\Enums\DiscountType;
 use Modules\Shared\Tests\ApiTestCase;
+use Modules\Tenancy\Models\Mall;
 use Modules\Users\Models\User;
 
 class FinanceTest extends ApiTestCase
@@ -63,10 +65,7 @@ class FinanceTest extends ApiTestCase
         $this->assertEqualsWithDelta(900.0, $regular->sum('amount'), 0.001);
         $this->assertSame('2026-01-01', $regular->first()->due_on->toDateString());
         $this->assertSame('2026-03-01', $regular->last()->due_on->toDateString());
-
-        $renewal = $rows->firstWhere('kind.value', 'RENEWAL');
-        $this->assertSame(120.0, $renewal->amount);
-        $this->assertSame('2027-01-01', $renewal->due_on->toDateString());
+        $this->assertNull($rows->firstWhere('kind.value', 'RENEWAL'));
         $this->assertSame('2027-01-01', $billing->next_renewal_on->toDateString());
 
         $this->getJson($this->api('admin/finance'))->assertOk()
@@ -89,20 +88,72 @@ class FinanceTest extends ApiTestCase
         $this->putJson($url, ['price' => 2000] + $this->payload())->assertStatus(422);
     }
 
-    public function test_paying_a_renewal_rolls_the_next_one_forward(): void
+    public function test_a_finished_year_stops_the_menu_until_a_new_price(): void
     {
-        $this->actingAdmin();
+        $admin = $this->actingAdmin();
         [, $restaurant] = $this->makeRestaurant();
-        $this->putJson($this->api("admin/restaurants/{$restaurant->id}/billing"), $this->payload())->assertOk();
 
-        $renewal = MenuInstallment::query()->where('kind', 'RENEWAL')->firstOrFail();
-        $this->patchJson($this->api("admin/installments/{$renewal->id}"), ['paid' => true])->assertOk();
+        $this->putJson($this->api("admin/restaurants/{$restaurant->id}/billing"), [
+            'starts_on' => '2025-01-01',
+            'installments_count' => 1,
+            'annual_renewal' => 0,
+        ] + $this->payload())->assertOk();
 
-        $pending = MenuInstallment::query()->where('kind', 'RENEWAL')->where('status', 'PENDING')->get();
-        $this->assertCount(1, $pending);
-        $this->assertSame('2028-01-01', $pending->first()->due_on->toDateString());
-        $this->assertSame(2, $pending->first()->sequence);
-        $this->assertSame('2028-01-01', MenuBilling::query()->first()->next_renewal_on->toDateString());
+        $this->artisan('menus:close-expired')->assertSuccessful();
+
+        $restaurant->refresh();
+        $this->assertSame('EXPIRED', $restaurant->status->value);
+        $this->assertSame('UNPUBLISHED', $restaurant->menu_status->value);
+        $this->assertSame(1, Notification::query()->where('user_id', $admin->id)->where('type', 'MENU_YEAR_ENDED')->count());
+
+        $this->artisan('menus:close-expired')->assertSuccessful();
+        $this->assertSame(1, Notification::query()->where('type', 'MENU_YEAR_ENDED')->count());
+
+        $this->putJson($this->api("admin/restaurants/{$restaurant->id}/status"), ['status' => 'ACTIVE'])->assertStatus(422);
+
+        $this->getJson($this->api("public/menus/{$restaurant->slug}"))
+            ->assertOk()
+            ->assertJsonPath('data.kind', 'unavailable')
+            ->assertJsonPath('data.reason', 'EXPIRED');
+
+        $this->putJson($this->api("admin/restaurants/{$restaurant->id}/billing"), [
+            'price' => 1500,
+            'starts_on' => now()->toDateString(),
+            'installments_count' => 1,
+        ] + $this->payload())->assertOk();
+
+        $restaurant->refresh();
+        $this->assertSame('ACTIVE', $restaurant->status->value);
+        $this->assertSame('PUBLISHED', $restaurant->menu_status->value);
+    }
+
+    public function test_a_mall_store_notifies_only_the_mall_manager(): void
+    {
+        $admin = $this->actingAdmin();
+        $this->postJson($this->api('admin/malls'), [
+            'name' => 'City Mall',
+            'slug' => 'city-mall-year',
+            'manager' => [
+                'full_name' => 'Mall Manager',
+                'email' => 'mall-year@example.com',
+                'password' => 'password123',
+            ],
+        ])->assertCreated();
+
+        $mallId = Mall::query()->where('slug', 'city-mall-year')->value('id');
+        [, $restaurant] = $this->makeRestaurant();
+        $restaurant->forceFill(['mall_id' => $mallId])->save();
+
+        $this->putJson($this->api("admin/restaurants/{$restaurant->id}/billing"), [
+            'starts_on' => '2025-01-01',
+            'installments_count' => 1,
+        ] + $this->payload())->assertOk();
+
+        $this->artisan('menus:close-expired')->assertSuccessful();
+
+        $managerId = User::query()->where('email', 'mall-year@example.com')->value('id');
+        $this->assertSame(1, Notification::query()->where('user_id', $managerId)->where('type', 'MENU_YEAR_ENDED')->count());
+        $this->assertSame(0, Notification::query()->where('user_id', $admin->id)->where('type', 'MENU_YEAR_ENDED')->count());
     }
 
     public function test_invalid_discounts_are_rejected(): void

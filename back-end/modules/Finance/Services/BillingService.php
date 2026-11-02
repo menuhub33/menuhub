@@ -24,23 +24,24 @@ class BillingService
     {
         return DB::transaction(function () use ($restaurant, $input) {
             $existing = MenuBilling::query()->where('restaurant_id', $restaurant->id)->first();
+            $expired = $existing?->next_renewal_on !== null
+                && $existing->next_renewal_on->toDateString() <= now()->toDateString();
 
-            if ($existing && $this->hasPaidInstallment($existing)) {
+            if ($existing && ! $expired && $this->hasPaidInstallment($existing)) {
                 throw new ApiException('لا يمكن تعديل السعر أو الأقساط بعد تسجيل دفعة.', 422);
             }
 
             $type = DiscountType::from($input['discount_type']);
             $price = Calc::round((float) $input['price']);
-            $annualRenewal = Calc::round((float) ($input['annual_renewal'] ?? 0));
             $startsOn = (string) $input['starts_on'];
             $count = (int) ($input['installments_count'] ?? 1);
-            $nextRenewal = $annualRenewal > 0 ? Calc::addMonths($startsOn, 12) : null;
+            $nextRenewal = Calc::addMonths($startsOn, 12);
 
             $billing = $existing ?? new MenuBilling(['restaurant_id' => $restaurant->id]);
             $billing->fill([
                 'price' => $price,
                 'setup_cost' => Calc::round((float) ($input['setup_cost'] ?? 0)),
-                'annual_renewal' => $annualRenewal,
+                'annual_renewal' => Calc::round((float) ($input['annual_renewal'] ?? 0)),
                 'discount_type' => $type,
                 'discount_value' => $type === DiscountType::None ? 0 : Calc::round((float) ($input['discount_value'] ?? 0)),
                 'installments_count' => $count,
@@ -52,10 +53,17 @@ class BillingService
 
             $restaurant->forceFill(['currency' => $billing->currency])->save();
 
-            // Regenerate the pending regular installments.
             MenuInstallment::query()->where('billing_id', $billing->id)
                 ->where('kind', InstallmentKind::Installment->value)
                 ->where('status', InstallmentStatus::Pending->value)->delete();
+            MenuInstallment::query()->where('billing_id', $billing->id)
+                ->where('kind', InstallmentKind::Renewal->value)
+                ->where('status', InstallmentStatus::Pending->value)->delete();
+
+            $sequence = (int) MenuInstallment::query()
+                ->where('billing_id', $billing->id)
+                ->where('kind', InstallmentKind::Installment->value)
+                ->max('sequence');
 
             $net = Calc::net($price, $type, (float) $billing->discount_value);
             foreach (Calc::installmentAmounts($net, $count) as $i => $amount) {
@@ -63,20 +71,24 @@ class BillingService
                     'billing_id' => $billing->id,
                     'restaurant_id' => $restaurant->id,
                     'kind' => InstallmentKind::Installment,
-                    'sequence' => $i + 1,
+                    'sequence' => $sequence + $i + 1,
                     'amount' => $amount,
                     'due_on' => Calc::addMonths($startsOn, $i),
                     'status' => InstallmentStatus::Pending,
                 ]);
             }
 
-            $this->syncRenewal($billing, $annualRenewal, $nextRenewal);
+            $billing->forceFill(['expired_notified_at' => null])->save();
+
+            if ($nextRenewal > now()->toDateString()) {
+                app(YearlyMenuSubscription::class)->reopen($restaurant);
+            }
 
             return $billing->refresh()->load('installments');
         });
     }
 
-    /** Marks an installment paid/unpaid; paying a renewal rolls the next one forward. */
+    /** Marks an installment paid or unpaid. A paid year does not renew itself. */
     public function setPaid(MenuInstallment $installment, bool $paid): MenuInstallment
     {
         return DB::transaction(function () use ($installment, $paid) {
@@ -84,30 +96,6 @@ class BillingService
                 'status' => $paid ? InstallmentStatus::Paid : InstallmentStatus::Pending,
                 'paid_at' => $paid ? now() : null,
             ])->save();
-
-            if ($paid && $installment->kind === InstallmentKind::Renewal) {
-                $nextDue = Calc::addMonths($installment->due_on->toDateString(), 12);
-
-                MenuBilling::query()->whereKey($installment->billing_id)->update(['next_renewal_on' => $nextDue]);
-
-                $hasPending = MenuInstallment::query()
-                    ->where('billing_id', $installment->billing_id)
-                    ->where('kind', InstallmentKind::Renewal->value)
-                    ->where('status', InstallmentStatus::Pending->value)
-                    ->exists();
-
-                if (! $hasPending) {
-                    MenuInstallment::query()->create([
-                        'billing_id' => $installment->billing_id,
-                        'restaurant_id' => $installment->restaurant_id,
-                        'kind' => InstallmentKind::Renewal,
-                        'sequence' => $installment->sequence + 1,
-                        'amount' => $installment->amount,
-                        'due_on' => $nextDue,
-                        'status' => InstallmentStatus::Pending,
-                    ]);
-                }
-            }
 
             return $installment->refresh();
         });
@@ -119,36 +107,5 @@ class BillingService
             ->where('kind', InstallmentKind::Installment->value)
             ->where('status', InstallmentStatus::Paid->value)
             ->exists();
-    }
-
-    private function syncRenewal(MenuBilling $billing, float $annualRenewal, ?string $nextRenewal): void
-    {
-        $renewals = MenuInstallment::query()
-            ->where('billing_id', $billing->id)
-            ->where('kind', InstallmentKind::Renewal->value);
-
-        if ($annualRenewal <= 0 || ! $nextRenewal) {
-            (clone $renewals)->where('status', InstallmentStatus::Pending->value)->delete();
-
-            return;
-        }
-
-        $pending = (clone $renewals)->where('status', InstallmentStatus::Pending->value)->first();
-
-        if ($pending) {
-            $pending->update(['amount' => $annualRenewal, 'due_on' => $nextRenewal]);
-
-            return;
-        }
-
-        MenuInstallment::query()->create([
-            'billing_id' => $billing->id,
-            'restaurant_id' => $billing->restaurant_id,
-            'kind' => InstallmentKind::Renewal,
-            'sequence' => (clone $renewals)->count() + 1,
-            'amount' => $annualRenewal,
-            'due_on' => $nextRenewal,
-            'status' => InstallmentStatus::Pending,
-        ]);
     }
 }
