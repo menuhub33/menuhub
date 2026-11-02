@@ -23,6 +23,7 @@ export function PublicMenuHero({
   showTitle,
   onShare,
   shareUrl,
+  onOffers,
 }: {
   restaurant: Pick<Restaurant, "name" | "description" | "logo_url" | "cover_image_url" | "business_type">;
   featuredProducts: ProductWithRelations[];
@@ -31,6 +32,7 @@ export function PublicMenuHero({
   showTitle?: boolean;
   onShare?: () => void;
   shareUrl?: string;
+  onOffers?: () => void;
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
@@ -114,9 +116,13 @@ export function PublicMenuHero({
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10" />
 
         {hasOffers ? (
-          <span className="absolute top-3 start-3 rounded-md bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white">
+          <button
+            type="button"
+            onClick={onOffers}
+            className="absolute top-3 start-3 rounded-md bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white"
+          >
             حسومات
-          </span>
+          </button>
         ) : null}
 
         <div className="absolute top-3 end-3">

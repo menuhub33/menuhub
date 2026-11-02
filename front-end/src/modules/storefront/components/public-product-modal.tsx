@@ -72,7 +72,7 @@ export function PublicProductModal({
       open={open}
       onOpenChange={handleOpenChange}
       hideHeader
-      size="lg"
+      layout="page"
       footer={
         <button
           type="button"

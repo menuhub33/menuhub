@@ -14,6 +14,7 @@ export function PublicSheet({
   footer,
   size = "md",
   hideHeader = false,
+  layout = "dialog",
   className,
 }: {
   open: boolean;
@@ -24,6 +25,7 @@ export function PublicSheet({
   footer?: ReactNode;
   size?: "sm" | "md" | "lg";
   hideHeader?: boolean;
+  layout?: "dialog" | "page";
   className?: string;
 }) {
   useEffect(() => {
@@ -41,6 +43,46 @@ export function PublicSheet({
   }, [open, onOpenChange]);
 
   if (!open) return null;
+
+  if (layout === "page") {
+    return (
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? "public-sheet-title" : undefined}
+        className={cn(
+          "fixed inset-0 z-50 flex h-dvh w-full flex-col bg-white text-[var(--mh-text)]",
+          className
+        )}
+        dir="rtl"
+      >
+        {hideHeader ? null : (
+          <div className="flex shrink-0 items-center justify-between bg-[var(--mh-primary)] px-4 py-3 text-white">
+            <div className="flex items-center gap-2">
+              {Icon ? <Icon className="size-5" /> : null}
+              <h2 id="public-sheet-title" className="text-base font-bold">
+                {title}
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="rounded-lg p-1 text-white/90 hover:bg-white/15"
+              aria-label="إغلاق"
+            >
+              <XIcon className="size-5" />
+            </button>
+          </div>
+        )}
+        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        {footer ? (
+          <div className="shrink-0 border-t border-zinc-100 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="mx-auto w-full max-w-2xl">{footer}</div>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   const widths = {
     sm: "max-w-sm",

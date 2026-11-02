@@ -2,8 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { cn } from "@/core/lib/cn";
-import { hasDiscount } from "@/modules/catalog/lib/merchandising";
-import type { CategoryWithProducts, ProductWithRelations } from "@/modules/catalog/types";
+import {
+  currentSeason,
+  hasDiscount,
+  PRODUCT_SEASON_LABELS,
+  PRODUCT_SEASONS,
+} from "@/modules/catalog/lib/merchandising";
+import type { CategoryWithProducts, ProductSeason, ProductWithRelations } from "@/modules/catalog/types";
 import type { PublicMenuData } from "@/modules/storefront/types";
 import { PublicMenuBottomNav, type PublicMenuTab } from "@/modules/storefront/components/public-menu-bottom-nav";
 import { PublicMenuFooter } from "@/modules/storefront/components/public-menu-footer";
@@ -13,7 +18,10 @@ import {
   PublicMenuNavigation,
 } from "@/modules/storefront/components/public-menu-navigation";
 import { PublicMenuSearch } from "@/modules/storefront/components/public-menu-search";
-import { PublicMenuHighlights } from "@/modules/storefront/components/public-menu-highlights";
+import {
+  PublicMenuCollections,
+  type MenuCollection,
+} from "@/modules/storefront/components/public-menu-collections";
 import { PublicProductGrid } from "@/modules/storefront/components/public-product-grid";
 import { PublicCartSheet } from "@/modules/storefront/components/public-cart-sheet";
 import { PublicOrderSheet } from "@/modules/storefront/components/public-order-sheet";
@@ -116,6 +124,8 @@ export function PublicMenu({
   const [orderOpen, setOrderOpen] = useState(false);
   const [openProduct, setOpenProduct] = useState<ProductWithRelations | null>(null);
   const [navTab, setNavTab] = useState<PublicMenuTab>("home");
+  const [collection, setCollection] = useState<MenuCollection | null>(null);
+  const [season, setSeason] = useState<ProductSeason>(currentSeason());
 
   const categories = useMemo(
     () => activeCategories(data?.categories ?? []),
@@ -135,18 +145,37 @@ export function PublicMenu({
     () => visibleProducts.filter((product) => product.is_featured),
     [visibleProducts]
   );
-  const hasOffers = useMemo(
-    () => visibleProducts.some((product) => hasDiscount(product)),
+  const discountedProducts = useMemo(
+    () => visibleProducts.filter((product) => hasDiscount(product)),
     [visibleProducts]
   );
-  const showHighlights = selectedCategoryId === ALL_CATEGORIES_ID && !searchQuery.trim();
+  const availableSeasons = useMemo(
+    () => PRODUCT_SEASONS.filter((item) => visibleProducts.some((product) => product.season === item)),
+    [visibleProducts]
+  );
+  const activeSeason = availableSeasons.includes(season) ? season : (availableSeasons[0] ?? null);
 
   const selectedCategory =
-    selectedCategoryId === ALL_CATEGORIES_ID
+    collection || selectedCategoryId === ALL_CATEGORIES_ID
       ? null
       : categories.find((category) => category.id === selectedCategoryId);
 
-  const sectionTitle = selectedCategory?.name_ar ?? "الأصناف الشائعة";
+  const displayedProducts = useMemo(() => {
+    if (collection === "featured") return products.filter((product) => product.is_featured);
+    if (collection === "discount") return products.filter((product) => hasDiscount(product));
+    if (collection === "season" && activeSeason) {
+      return products.filter((product) => product.season === activeSeason);
+    }
+    return products;
+  }, [products, collection, activeSeason]);
+
+  const sectionTitle = collection === "featured"
+    ? "منتجات مميزة"
+    : collection === "discount"
+      ? "حسومات"
+      : collection === "season" && activeSeason
+        ? `موسم ${PRODUCT_SEASON_LABELS[activeSeason]}`
+        : (selectedCategory?.name_ar ?? "الأصناف الشائعة");
   const cartItems = useMemo(
     () =>
       categories
@@ -189,8 +218,23 @@ export function PublicMenu({
     setExtras({});
   }
 
+  function selectCollection(next: MenuCollection) {
+    setCollection((current) => (current === next ? null : next));
+    setSelectedCategoryId(ALL_CATEGORIES_ID);
+    setNavTab("home");
+    setCartOpen(false);
+    onSearch?.("");
+    requestAnimationFrame(() => {
+      document.getElementById("menu-products")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }
+
   function goHome() {
     setSelectedCategoryId(ALL_CATEGORIES_ID);
+    setCollection(null);
     setNavTab("home");
     setCartOpen(false);
     setOrderOpen(false);
@@ -240,7 +284,8 @@ export function PublicMenu({
         <PublicMenuHero
           restaurant={data.restaurant}
           featuredProducts={featuredProducts}
-          hasOffers={hasOffers}
+          hasOffers={discountedProducts.length > 0}
+          onOffers={() => selectCollection("discount")}
           onShare={onShare}
           shareUrl={shareUrl}
         />
@@ -264,6 +309,7 @@ export function PublicMenu({
                 : ALL_CATEGORIES_ID
             }
             onSelect={(id) => {
+              setCollection(null);
               setSelectedCategoryId(id);
               setNavTab(id === ALL_CATEGORIES_ID ? "home" : "categories");
               setCartOpen(false);
@@ -278,31 +324,37 @@ export function PublicMenu({
           />
         </div>
 
-        {showHighlights ? (
-          <PublicMenuHighlights
-            products={visibleProducts}
-            quantities={quantities}
-            onQuantityChange={setQuantity}
-            onProductOpen={(product) => {
-              setOpenProduct(product);
-              onProductOpen?.(product);
-            }}
-          />
-        ) : null}
+        <PublicMenuCollections
+          active={collection}
+          onSelect={selectCollection}
+          showFeatured={featuredProducts.length > 0}
+          showDiscount={discountedProducts.length > 0}
+          showSeason={availableSeasons.length > 0}
+          seasons={availableSeasons}
+          activeSeason={activeSeason}
+          onSeason={(next) => {
+            setSeason(next);
+            setCollection("season");
+            setSelectedCategoryId(ALL_CATEGORIES_ID);
+            onSearch?.("");
+          }}
+        />
 
         <section id="menu-products" className="mt-6 scroll-mt-4">
           <h2 className="mb-4 text-lg font-bold">{sectionTitle}</h2>
-          {products.length === 0 ? (
+          {displayedProducts.length === 0 ? (
             <p className="py-12 text-center text-sm opacity-60">
               {searchQuery.trim()
                 ? "لا توجد نتائج مطابقة"
-                : selectedCategory
-                  ? "لا توجد منتجات في هذا القسم بعد."
-                  : "لا توجد أصناف في هذا المنيو"}
+                : collection
+                  ? "لا توجد أصناف في هذه المجموعة."
+                  : selectedCategory
+                    ? "لا توجد منتجات في هذا القسم بعد."
+                    : "لا توجد أصناف في هذا المنيو"}
             </p>
           ) : (
             <PublicProductGrid
-              products={products}
+              products={displayedProducts}
               onProductOpen={(product) => {
                 setOpenProduct(product);
                 onProductOpen?.(product);
