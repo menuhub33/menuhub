@@ -15,6 +15,7 @@ export function buildWhatsAppInvoice({
   items,
   deliveryType,
   address,
+  location,
   branchName,
   tableNumber,
   invoiceNumber,
@@ -24,6 +25,7 @@ export function buildWhatsAppInvoice({
   items: PublicCartItem[];
   deliveryType: OrderDeliveryType;
   address?: string;
+  location?: { latitude: number; longitude: number } | null;
   branchName?: string;
   tableNumber?: string;
   invoiceNumber: string;
@@ -59,6 +61,11 @@ export function buildWhatsAppInvoice({
   if (branchName) lines.push(`الفرع: ${branchName}`);
   if (deliveryType === "delivery" && address?.trim()) {
     lines.push(`العنوان: ${address.trim()}`);
+  }
+  if (deliveryType === "delivery" && location) {
+    const latitude = location.latitude.toFixed(6);
+    const longitude = location.longitude.toFixed(6);
+    lines.push(`الموقع: https://maps.google.com/?q=${latitude},${longitude}`);
   }
 
   lines.push("", `${copy.itemsLabel}:`, "──────────────");

@@ -7,7 +7,6 @@ import { ProductAvailabilityToggle } from "@/modules/catalog/components/products
 import { ProductPrice } from "@/modules/catalog/components/products/product-price";
 import { ProductStatusBadge } from "@/modules/catalog/components/products/product-status-badge";
 import { ProductVisibilityToggle } from "@/modules/catalog/components/products/product-visibility-toggle";
-import { PRODUCT_SEASON_LABELS } from "@/modules/catalog/lib/merchandising";
 import { Card } from "@/core/ui/card";
 import { ContentImage } from "@/core/ui/content-image";
 import { ImageIcon, StarIcon } from "@/core/ui/icons";
@@ -92,11 +91,6 @@ export function ProductCard({
           <ProductStatusBadge status={product.status} />
         </div>
         <ProductPrice price={product.price} old_price={product.old_price} currency={product.currency} />
-        {product.season ? (
-          <span className="w-fit rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-700">
-            موسم {PRODUCT_SEASON_LABELS[product.season]}
-          </span>
-        ) : null}
         {showToggles ? (
           <div className="flex flex-wrap items-center gap-3 border-t border-zinc-100 pt-3">
             {onToggleAvailability ? (

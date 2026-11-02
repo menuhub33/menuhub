@@ -9,6 +9,7 @@ import { Textarea } from "@/core/ui/textarea";
 import {
   CarIcon,
   ClipboardIcon,
+  MapPinIcon,
   QrIcon,
   TableIcon,
   TruckIcon,
@@ -65,6 +66,8 @@ export function PublicOrderSheet({
 
   const [chosenDeliveryType, setChosenDeliveryType] = useState<DeliveryType | null>(null);
   const [address, setAddress] = useState("");
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locating, setLocating] = useState(false);
   const [tableNumber, setTableNumber] = useState("");
   const [chosenBranchId, setChosenBranchId] = useState("");
   const [showQr, setShowQr] = useState(false);
@@ -98,6 +101,33 @@ export function PublicOrderSheet({
 
   const wa =
     toWhatsAppNumber(restaurant.whatsapp) ?? toWhatsAppNumber(restaurant.phone);
+  function locateCustomer() {
+    if (!navigator.geolocation) {
+      setError("هذا المتصفح لا يدعم تحديد الموقع.");
+      return;
+    }
+    setLocating(true);
+    setError(null);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        setLocating(false);
+      },
+      () => {
+        setLocating(false);
+        setError("تعذر تحديد الموقع. اسمح للمتصفح بالوصول إلى موقعك ثم أعد المحاولة.");
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
+  }
+
+  const mapsUrl = location
+    ? `https://maps.google.com/?q=${location.latitude.toFixed(6)},${location.longitude.toFixed(6)}`
+    : null;
+
   const qrUrl = menuUrl
     ? `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(menuUrl)}`
     : null;
@@ -109,6 +139,10 @@ export function PublicOrderSheet({
     }
     if (deliveryType === "dine_in" && tableNumber.trim().length === 0) {
       setError("أدخل رقم الطاولة.");
+      return;
+    }
+    if (deliveryType === "delivery" && !location) {
+      setError("حدد موقعك قبل إرسال الطلب.");
       return;
     }
     if (deliveryType === "delivery" && address.trim().length === 0) {
@@ -126,6 +160,7 @@ export function PublicOrderSheet({
       items,
       deliveryType,
       address,
+      location,
       branchName: selectedBranch?.name,
       tableNumber,
       invoiceNumber: createInvoiceNumber(),
@@ -144,7 +179,7 @@ export function PublicOrderSheet({
         }
         onOpenChange(next);
       }}
-      title="تفاصيل الطلب"
+      title="متابعة الطلب"
       icon={ClipboardIcon}
       size="md"
       footer={
@@ -222,17 +257,46 @@ export function PublicOrderSheet({
         ) : null}
 
         {deliveryType === "delivery" ? (
-          <section>
-            <h3 className="mb-2 text-sm font-bold">عنوان التوصيل</h3>
-            <Textarea
-              rows={3}
-              value={address}
-              onChange={(event) => {
-                setAddress(event.target.value);
-                setError(null);
-              }}
-              placeholder="أدخل عنوان التوصيل..."
-            />
+          <section className="grid gap-3">
+            <div>
+              <h3 className="mb-2 text-sm font-bold">موقع الزبون *</h3>
+              <button
+                type="button"
+                onClick={locateCustomer}
+                disabled={locating}
+                className={cn(
+                  "flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-bold disabled:opacity-60",
+                  location
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                    : "border-sky-500 text-sky-600"
+                )}
+              >
+                <MapPinIcon className="size-5" />
+                {locating ? "جارٍ تحديد الموقع..." : location ? "تم تحديد الموقع" : "تحديد موقعي"}
+              </button>
+              {mapsUrl ? (
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-block text-xs font-semibold text-sky-600 underline"
+                >
+                  عرض الموقع على الخريطة
+                </a>
+              ) : null}
+            </div>
+            <div>
+              <h3 className="mb-2 text-sm font-bold">عنوان التوصيل</h3>
+              <Textarea
+                rows={3}
+                value={address}
+                onChange={(event) => {
+                  setAddress(event.target.value);
+                  setError(null);
+                }}
+                placeholder="أدخل عنوان التوصيل..."
+              />
+            </div>
           </section>
         ) : null}
 

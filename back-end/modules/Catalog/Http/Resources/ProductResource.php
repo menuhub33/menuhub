@@ -28,7 +28,6 @@ class ProductResource extends JsonResource
             'sort_order' => $this->sort_order,
             'status' => $this->status->value,
             'is_featured' => $this->is_featured,
-            'season' => $this->season?->value,
             'images' => $this->whenLoaded('images', fn () => $this->images->map(fn ($image) => [
                 'id' => $image->id,
                 'product_id' => $image->product_id,

@@ -36,12 +36,12 @@ final class DemoData
     }
 
     /** @param  list<string>  $opts */
-    private static function p(string $ar, string $en, string $desc, int $price, string $file, int $sort, ?int $old = null, bool $featured = false, array $opts = [], ?string $season = null): array
+    private static function p(string $ar, string $en, string $desc, int $price, string $file, int $sort, ?int $old = null, bool $featured = false, array $opts = []): array
     {
         return [
             'name_ar' => $ar, 'name_en' => $en, 'description_ar' => $desc, 'price' => $price,
             'old_price' => $old, 'file' => $file, 'sort_order' => $sort, 'is_featured' => $featured,
-            'season' => $season, 'opts' => $opts,
+            'opts' => $opts,
         ];
     }
 
@@ -88,7 +88,7 @@ final class DemoData
                 ['name_ar' => 'المقبلات', 'name_en' => 'Appetizers', 'image' => 'fattoush.jpg', 'products' => [
                     self::p('حمص بالطحينة', 'Hummus', 'حمص كريمي مع زيت الزيتون والصنوبر.', 15000, 'hummus.jpg', 0),
                     self::p('تبولة', 'Tabbouleh', 'بقدونس، برغل ناعم، بندورة وليمون.', 14000, 'tabbouleh.jpg', 1),
-                    self::p('فتوش', 'Fattoush', 'خضار موسمية مع خبز مقلي وخل الرمان.', 16000, 'fattoush.jpg', 2, featured: true, season: 'AUTUMN'),
+                    self::p('فتوش', 'Fattoush', 'خضار موسمية مع خبز مقلي وخل الرمان.', 16000, 'fattoush.jpg', 2, featured: true),
                     self::p('رقائق جبنة', 'Cheese rolls', 'عجينة مقرمشة محشوة جبنة مع صوص غارلك.', 18000, 'cheese-rolls.jpg', 3),
                 ]],
                 ['name_ar' => 'المشاوي', 'name_en' => 'Grills', 'image' => 'mixed-grill.jpg', 'products' => [
@@ -105,15 +105,15 @@ final class DemoData
                 ]],
                 ['name_ar' => 'المشروبات', 'name_en' => 'Drinks', 'image' => 'orange-juice.jpg', 'products' => [
                     self::p('عصير برتقال طازج', 'Fresh orange', 'برتقال معصور يومياً.', 12000, 'orange-juice.jpg', 0),
-                    self::p('ليموناضة بالنعناع', 'Mint lemonade', 'ليمون، نعناع، وثلج.', 10000, 'lemonade.jpg', 1, season: 'SUMMER'),
-                    self::p('قهوة', 'Coffee', 'قهوة محمّصة تقدم ساخنة.', 8000, 'coffee.jpg', 2, season: 'WINTER'),
-                    self::p('شاي بالنعناع', 'Mint tea', 'شاي أحمر مع نعنع طازج.', 6000, 'mint-tea.jpg', 3, season: 'WINTER'),
+                    self::p('ليموناضة بالنعناع', 'Mint lemonade', 'ليمون، نعناع، وثلج.', 10000, 'lemonade.jpg', 1),
+                    self::p('قهوة', 'Coffee', 'قهوة محمّصة تقدم ساخنة.', 8000, 'coffee.jpg', 2),
+                    self::p('شاي بالنعناع', 'Mint tea', 'شاي أحمر مع نعنع طازج.', 6000, 'mint-tea.jpg', 3),
                 ]],
                 ['name_ar' => 'الحلويات', 'name_en' => 'Desserts', 'image' => 'cheesecake.jpg', 'products' => [
                     self::p('كيك الشوكولا', 'Chocolate cake', 'كيك شوكولا غني مع صوص.', 22000, 'kunafa.jpg', 0, 26000, true),
-                    self::p('بقلاوة', 'Baklava', 'عجين مقرمش، فستق وقطر.', 18000, 'baklava.jpg', 1, season: 'AUTUMN'),
-                    self::p('تشيز كيك', 'Cheesecake', 'تشيز كيك بارد مع توت.', 24000, 'cheesecake.jpg', 2, season: 'SPRING'),
-                    self::p('آيس كريم', 'Ice cream', 'ثلاث كرات حسب الاختيار.', 16000, 'ice-cream.jpg', 3, season: 'SUMMER'),
+                    self::p('بقلاوة', 'Baklava', 'عجين مقرمش، فستق وقطر.', 18000, 'baklava.jpg', 1),
+                    self::p('تشيز كيك', 'Cheesecake', 'تشيز كيك بارد مع توت.', 24000, 'cheesecake.jpg', 2),
+                    self::p('آيس كريم', 'Ice cream', 'ثلاث كرات حسب الاختيار.', 16000, 'ice-cream.jpg', 3),
                 ]],
             ],
         ];

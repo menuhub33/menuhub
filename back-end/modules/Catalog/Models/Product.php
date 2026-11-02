@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Shared\Concerns\Auditable;
 use Modules\Shared\Concerns\PublishesContentChanges;
-use Modules\Shared\Enums\ProductSeason;
 use Modules\Shared\Enums\ProductStatus;
 use Modules\Shared\Models\BaseModel;
 
@@ -30,7 +29,6 @@ class Product extends BaseModel
             'old_price' => 'decimal:2',
             'sort_order' => 'integer',
             'is_featured' => 'boolean',
-            'season' => ProductSeason::class,
             'status' => ProductStatus::class,
         ];
     }

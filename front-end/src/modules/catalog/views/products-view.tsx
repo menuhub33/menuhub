@@ -12,11 +12,11 @@ import { DuplicateProductDialog } from "@/modules/catalog/components/products/du
 import { Button } from "@/core/ui/button";
 import { Select } from "@/core/ui/select";
 import { useToast } from "@/core/ui/toast";
-import { hasDiscount, PRODUCT_SEASON_LABELS, PRODUCT_SEASONS } from "@/modules/catalog/lib/merchandising";
+import { hasDiscount } from "@/modules/catalog/lib/merchandising";
 import type { ProductWithImages } from "@/modules/catalog/types";
-import type { Category, ProductSeason, ProductStatus } from "@/modules/catalog/types";
+import type { Category, ProductStatus } from "@/modules/catalog/types";
 
-type HighlightFilter = "ALL" | "FEATURED" | "DISCOUNT" | ProductSeason;
+type HighlightFilter = "ALL" | "FEATURED" | "DISCOUNT";
 
 export function ProductsView({
   products,
@@ -47,8 +47,7 @@ export function ProductsView({
       .filter((product) => {
         if (highlight === "ALL") return true;
         if (highlight === "FEATURED") return product.is_featured;
-        if (highlight === "DISCOUNT") return hasDiscount(product);
-        return product.season === highlight;
+        return hasDiscount(product);
       })
       .filter((product) =>
         !query
@@ -98,10 +97,6 @@ export function ProductsView({
             { value: "ALL", label: "كل المنتجات" },
             { value: "FEATURED", label: "منتجات مميزة" },
             { value: "DISCOUNT", label: "حسومات" },
-            ...PRODUCT_SEASONS.map((season) => ({
-              value: season,
-              label: `موسم ${PRODUCT_SEASON_LABELS[season]}`,
-            })),
           ]}
         />
         <Select

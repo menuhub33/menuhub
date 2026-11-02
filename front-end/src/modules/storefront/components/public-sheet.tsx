@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/core/lib/cn";
 import { XIcon } from "@/core/ui/icons";
-import type { ComponentType, ReactNode, SVGProps } from "react";
+import type { ComponentType, CSSProperties, ReactNode, SVGProps } from "react";
 
 export function PublicSheet({
   open,
@@ -14,7 +15,6 @@ export function PublicSheet({
   footer,
   size = "md",
   hideHeader = false,
-  layout = "dialog",
   className,
 }: {
   open: boolean;
@@ -25,9 +25,25 @@ export function PublicSheet({
   footer?: ReactNode;
   size?: "sm" | "md" | "lg";
   hideHeader?: boolean;
-  layout?: "dialog" | "page";
   className?: string;
 }) {
+  const anchorRef = useRef<HTMLSpanElement>(null);
+  const [themeStyle, setThemeStyle] = useState<CSSProperties>({});
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const parent = anchorRef.current?.parentElement;
+    if (!parent) return;
+    const computed = getComputedStyle(parent);
+    setThemeStyle({
+      ["--mh-primary" as string]: computed.getPropertyValue("--mh-primary"),
+      ["--mh-secondary" as string]: computed.getPropertyValue("--mh-secondary"),
+      ["--mh-bg" as string]: computed.getPropertyValue("--mh-bg"),
+      ["--mh-text" as string]: computed.getPropertyValue("--mh-text"),
+      fontFamily: computed.fontFamily,
+    });
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const previous = document.body.style.overflow;
@@ -44,54 +60,14 @@ export function PublicSheet({
 
   if (!open) return null;
 
-  if (layout === "page") {
-    return (
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={title ? "public-sheet-title" : undefined}
-        className={cn(
-          "fixed inset-0 z-50 flex h-dvh w-full flex-col bg-white text-[var(--mh-text)]",
-          className
-        )}
-        dir="rtl"
-      >
-        {hideHeader ? null : (
-          <div className="flex shrink-0 items-center justify-between bg-[var(--mh-primary)] px-4 py-3 text-white">
-            <div className="flex items-center gap-2">
-              {Icon ? <Icon className="size-5" /> : null}
-              <h2 id="public-sheet-title" className="text-base font-bold">
-                {title}
-              </h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="rounded-lg p-1 text-white/90 hover:bg-white/15"
-              aria-label="إغلاق"
-            >
-              <XIcon className="size-5" />
-            </button>
-          </div>
-        )}
-        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
-        {footer ? (
-          <div className="shrink-0 border-t border-zinc-100 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-            <div className="mx-auto w-full max-w-2xl">{footer}</div>
-          </div>
-        ) : null}
-      </div>
-    );
-  }
-
   const widths = {
     sm: "max-w-sm",
     md: "max-w-md",
     lg: "max-w-lg",
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
+  const panel = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={themeStyle}>
       <button
         type="button"
         aria-label="إغلاق"
@@ -103,7 +79,7 @@ export function PublicSheet({
         aria-modal="true"
         aria-labelledby={title ? "public-sheet-title" : undefined}
         className={cn(
-          "relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white text-[var(--mh-text)] shadow-2xl sm:rounded-2xl",
+          "relative z-10 flex max-h-[min(92dvh,40rem)] w-full flex-col overflow-hidden rounded-2xl bg-white text-[var(--mh-text)] shadow-2xl",
           widths[size],
           className
         )}
@@ -131,5 +107,12 @@ export function PublicSheet({
         {footer ? <div className="shrink-0 border-t border-zinc-100 px-4 py-3">{footer}</div> : null}
       </div>
     </div>
+  );
+
+  return (
+    <>
+      <span ref={anchorRef} hidden />
+      {createPortal(panel, document.body)}
+    </>
   );
 }

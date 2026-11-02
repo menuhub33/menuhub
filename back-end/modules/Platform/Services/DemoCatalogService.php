@@ -98,7 +98,6 @@ class DemoCatalogService
             'currency' => $currency,
             'sort_order' => $data['sort_order'],
             'is_featured' => $data['is_featured'],
-            'season' => $data['season'] ?? null,
         ]);
 
         ProductImage::query()->create([

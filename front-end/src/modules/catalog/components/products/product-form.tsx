@@ -17,12 +17,8 @@ import { ImageIcon, PencilIcon, PlusIcon, StarIcon } from "@/core/ui/icons";
 import { Input } from "@/core/ui/input";
 import { Select } from "@/core/ui/select";
 import { Textarea } from "@/core/ui/textarea";
-import type { Category, ProductSeason, ProductStatus } from "@/modules/catalog/types";
-import {
-  discountPercent,
-  PRODUCT_SEASON_LABELS,
-  PRODUCT_SEASONS,
-} from "@/modules/catalog/lib/merchandising";
+import type { Category, ProductStatus } from "@/modules/catalog/types";
+import { discountPercent } from "@/modules/catalog/lib/merchandising";
 
 export type ProductFormValues = {
   name_ar: string;
@@ -35,7 +31,6 @@ export type ProductFormValues = {
   category_id: string;
   status: ProductStatus;
   is_featured: boolean;
-  season: ProductSeason | null;
   sort_order: number;
   images: ProductGalleryItem[];
 };
@@ -51,7 +46,6 @@ type Draft = {
   category_id: string;
   status: ProductStatus;
   is_featured: boolean;
-  season: ProductSeason | "";
   sort_order: string;
   images: ProductGalleryItem[];
 };
@@ -76,7 +70,6 @@ function emptyDraft(currency: string, categoryId: string): Draft {
     category_id: categoryId,
     status: "AVAILABLE",
     is_featured: false,
-    season: "",
     sort_order: "0",
     images: [],
   };
@@ -99,7 +92,6 @@ function fromProduct(
     category_id: product.category_id,
     status: product.status,
     is_featured: product.is_featured,
-    season: product.season ?? "",
     sort_order: String(product.sort_order),
     images: (product.images ?? []).map((image) => ({
       id: image.id,
@@ -226,7 +218,6 @@ export function ProductForm({
       category_id: values.category_id,
       status: values.status,
       is_featured: values.is_featured,
-      season: values.season || null,
       sort_order: Number.isFinite(sortOrder) ? sortOrder : 0,
       images: values.images,
     };
@@ -362,8 +353,8 @@ export function ProductForm({
 
         <section className="grid gap-4 rounded-2xl border border-zinc-200 p-4">
           <div>
-            <h3 className="text-sm font-semibold text-zinc-900">التمييز والموسم</h3>
-            <p className="text-xs text-zinc-500">تظهر في أقسام مستقلة داخل المنيو العام</p>
+            <h3 className="text-sm font-semibold text-zinc-900">التمييز</h3>
+            <p className="text-xs text-zinc-500">يظهر في قسم مستقل داخل المنيو العام</p>
           </div>
           <Checkbox
             id="is_featured"
@@ -371,20 +362,6 @@ export function ProductForm({
             label="منتج مميز"
             onChange={(event) => update("is_featured", event.target.checked)}
           />
-          <FormField label="الموسم" htmlFor="season" hint="طوال السنة يعني أن الصنف لا يرتبط بموسم">
-            <Select
-              id="season"
-              value={values.season || "ALL"}
-              onChange={(value) => update("season", value === "ALL" ? "" : (value as ProductSeason))}
-              options={[
-                { value: "ALL", label: "طوال السنة" },
-                ...PRODUCT_SEASONS.map((season) => ({
-                  value: season,
-                  label: PRODUCT_SEASON_LABELS[season],
-                })),
-              ]}
-            />
-          </FormField>
         </section>
 
         <div className="grid gap-2">
@@ -476,11 +453,6 @@ export function ProductForm({
               {values.is_featured ? (
                 <span className="inline-flex size-8 items-center justify-center rounded-full bg-amber-400 text-white">
                   <StarIcon className="size-4 fill-current" />
-                </span>
-              ) : null}
-              {values.season ? (
-                <span className="rounded-full bg-white/95 px-2 py-1 text-[11px] font-bold text-zinc-800">
-                  {PRODUCT_SEASON_LABELS[values.season]}
                 </span>
               ) : null}
             </div>

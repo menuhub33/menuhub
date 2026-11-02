@@ -72,7 +72,7 @@ export function PublicProductModal({
       open={open}
       onOpenChange={handleOpenChange}
       hideHeader
-      layout="page"
+      size="lg"
       footer={
         <button
           type="button"
@@ -89,7 +89,7 @@ export function PublicProductModal({
       }
     >
       <div className="grid gap-4">
-        <div className="relative overflow-hidden rounded-2xl bg-[var(--mh-text)]/8">
+        <div className="relative flex h-56 items-center justify-center overflow-hidden rounded-2xl bg-[var(--mh-text)]/6">
           <button
             type="button"
             onClick={() => handleOpenChange(false)}
@@ -103,45 +103,44 @@ export function PublicProductModal({
             <ContentImage
               src={activeImage.image_url}
               alt={product.name_ar}
-              sizes="(max-width: 768px) 100vw, 480px"
+              sizes="(max-width: 768px) 92vw, 480px"
               priority
-              className="max-h-72 w-full object-cover"
+              className="max-h-full max-w-full object-contain"
             />
           ) : (
-            <div className="flex h-44 items-center justify-center">
-              <ImageIcon className="size-10 opacity-40" />
-            </div>
+            <ImageIcon className="size-10 opacity-40" />
           )}
         </div>
 
-        {images.length > 1 ? (
-          <div className="flex gap-2 overflow-x-auto">
-            {images.map((image, index) => (
-              <button
-                key={image.id}
-                type="button"
-                onClick={() => setActiveIndex(index)}
-                className={cn(
-                  "size-16 shrink-0 overflow-hidden rounded-xl border-2",
-                  index === activeIndex
-                    ? "border-[var(--mh-primary)]"
-                    : "border-transparent opacity-80"
-                )}
-                aria-label={`صورة ${index + 1}`}
-              >
-                <ContentImage
-                  src={image.image_url}
-                  alt=""
-                  sizes="64px"
-                  className="size-full object-cover"
-                />
-              </button>
-            ))}
-          </div>
-        ) : null}
+        <div className="grid gap-4">
+          {images.length > 1 ? (
+            <div className="flex gap-2 overflow-x-auto">
+              {images.map((image, index) => (
+                <button
+                  key={image.id}
+                  type="button"
+                  onClick={() => setActiveIndex(index)}
+                  className={cn(
+                    "size-16 shrink-0 overflow-hidden rounded-xl border-2",
+                    index === activeIndex
+                      ? "border-[var(--mh-primary)]"
+                      : "border-transparent opacity-80"
+                  )}
+                  aria-label={`صورة ${index + 1}`}
+                >
+                  <ContentImage
+                    src={image.image_url}
+                    alt=""
+                    sizes="64px"
+                    className="size-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          ) : null}
 
-        <div>
-          <h2 className="text-lg font-bold">{product.name_ar}</h2>
+          <div>
+            <h2 className="text-xl font-bold">{product.name_ar}</h2>
           {product.description_ar ? (
             <p className="mt-1 text-sm leading-relaxed text-zinc-500">{product.description_ar}</p>
           ) : null}
@@ -200,6 +199,7 @@ export function PublicProductModal({
             </span>
           </div>
         </div>
+      </div>
       </div>
     </PublicSheet>
   );

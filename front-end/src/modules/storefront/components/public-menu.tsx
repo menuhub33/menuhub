@@ -2,26 +2,19 @@
 
 import { useMemo, useState } from "react";
 import { cn } from "@/core/lib/cn";
-import {
-  currentSeason,
-  hasDiscount,
-  PRODUCT_SEASON_LABELS,
-  PRODUCT_SEASONS,
-} from "@/modules/catalog/lib/merchandising";
-import type { CategoryWithProducts, ProductSeason, ProductWithRelations } from "@/modules/catalog/types";
+import { hasDiscount } from "@/modules/catalog/lib/merchandising";
+import type { CategoryWithProducts, ProductWithRelations } from "@/modules/catalog/types";
 import type { PublicMenuData } from "@/modules/storefront/types";
 import { PublicMenuBottomNav, type PublicMenuTab } from "@/modules/storefront/components/public-menu-bottom-nav";
 import { PublicMenuFooter } from "@/modules/storefront/components/public-menu-footer";
 import { PublicMenuHero } from "@/modules/storefront/components/public-menu-hero";
 import {
   ALL_CATEGORIES_ID,
+  FEATURED_SECTION_ID,
+  OFFER_SECTION_ID,
   PublicMenuNavigation,
 } from "@/modules/storefront/components/public-menu-navigation";
 import { PublicMenuSearch } from "@/modules/storefront/components/public-menu-search";
-import {
-  PublicMenuCollections,
-  type MenuCollection,
-} from "@/modules/storefront/components/public-menu-collections";
 import { PublicProductGrid } from "@/modules/storefront/components/public-product-grid";
 import { PublicCartSheet } from "@/modules/storefront/components/public-cart-sheet";
 import { PublicOrderSheet } from "@/modules/storefront/components/public-order-sheet";
@@ -37,6 +30,8 @@ import {
 import type { RestaurantTheme } from "@/modules/theming/types";
 import type { CSSProperties } from "react";
 import { MENU_BACKGROUND } from "@/modules/theming/lib/menu-background";
+
+type MenuCollection = "featured" | "discount";
 
 const FALLBACK_THEME: Pick<
   RestaurantTheme,
@@ -125,7 +120,6 @@ export function PublicMenu({
   const [openProduct, setOpenProduct] = useState<ProductWithRelations | null>(null);
   const [navTab, setNavTab] = useState<PublicMenuTab>("home");
   const [collection, setCollection] = useState<MenuCollection | null>(null);
-  const [season, setSeason] = useState<ProductSeason>(currentSeason());
 
   const categories = useMemo(
     () => activeCategories(data?.categories ?? []),
@@ -149,11 +143,6 @@ export function PublicMenu({
     () => visibleProducts.filter((product) => hasDiscount(product)),
     [visibleProducts]
   );
-  const availableSeasons = useMemo(
-    () => PRODUCT_SEASONS.filter((item) => visibleProducts.some((product) => product.season === item)),
-    [visibleProducts]
-  );
-  const activeSeason = availableSeasons.includes(season) ? season : (availableSeasons[0] ?? null);
 
   const selectedCategory =
     collection || selectedCategoryId === ALL_CATEGORIES_ID
@@ -163,19 +152,14 @@ export function PublicMenu({
   const displayedProducts = useMemo(() => {
     if (collection === "featured") return products.filter((product) => product.is_featured);
     if (collection === "discount") return products.filter((product) => hasDiscount(product));
-    if (collection === "season" && activeSeason) {
-      return products.filter((product) => product.season === activeSeason);
-    }
     return products;
-  }, [products, collection, activeSeason]);
+  }, [products, collection]);
 
   const sectionTitle = collection === "featured"
     ? "منتجات مميزة"
     : collection === "discount"
       ? "حسومات"
-      : collection === "season" && activeSeason
-        ? `موسم ${PRODUCT_SEASON_LABELS[activeSeason]}`
-        : (selectedCategory?.name_ar ?? "الأصناف الشائعة");
+      : (selectedCategory?.name_ar ?? "الأصناف الشائعة");
   const cartItems = useMemo(
     () =>
       categories
@@ -303,12 +287,26 @@ export function PublicMenu({
         <div className="mt-5">
           <PublicMenuNavigation
             categories={categories}
+            sections={[
+              ...(featuredProducts.length > 0
+                ? [{ id: FEATURED_SECTION_ID, label: "مميز" }]
+                : []),
+              ...(discountedProducts.length > 0
+                ? [{ id: OFFER_SECTION_ID, label: "حسومات" }]
+                : []),
+            ]}
             selectedId={
-              categories.some((category) => category.id === selectedCategoryId)
-                ? selectedCategoryId
-                : ALL_CATEGORIES_ID
+              collection === "featured" || collection === "discount"
+                ? collection
+                : categories.some((category) => category.id === selectedCategoryId)
+                  ? selectedCategoryId
+                  : ALL_CATEGORIES_ID
             }
             onSelect={(id) => {
+              if (id === FEATURED_SECTION_ID || id === OFFER_SECTION_ID) {
+                selectCollection(id);
+                return;
+              }
               setCollection(null);
               setSelectedCategoryId(id);
               setNavTab(id === ALL_CATEGORIES_ID ? "home" : "categories");
@@ -323,22 +321,6 @@ export function PublicMenu({
             }}
           />
         </div>
-
-        <PublicMenuCollections
-          active={collection}
-          onSelect={selectCollection}
-          showFeatured={featuredProducts.length > 0}
-          showDiscount={discountedProducts.length > 0}
-          showSeason={availableSeasons.length > 0}
-          seasons={availableSeasons}
-          activeSeason={activeSeason}
-          onSeason={(next) => {
-            setSeason(next);
-            setCollection("season");
-            setSelectedCategoryId(ALL_CATEGORIES_ID);
-            onSearch?.("");
-          }}
-        />
 
         <section id="menu-products" className="mt-6 scroll-mt-4">
           <h2 className="mb-4 text-lg font-bold">{sectionTitle}</h2>

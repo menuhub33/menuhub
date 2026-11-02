@@ -3,7 +3,7 @@
 import { apiData, run } from "@/core/api/client";
 import { requireTenantId } from "@/core/auth/authorization";
 import { fail, type ActionResult } from "@/core/api/result";
-import type { Product, ProductSeason, ProductStatus } from "@/modules/catalog/types";
+import type { Product, ProductStatus } from "@/modules/catalog/types";
 
 export type CreateProductInput = {
   category_id: string;
@@ -16,7 +16,6 @@ export type CreateProductInput = {
   currency?: string;
   sort_order?: number;
   is_featured?: boolean;
-  season?: ProductSeason | null;
 };
 
 export async function createProduct(
@@ -50,7 +49,6 @@ export type UpdateProductInput = {
   currency?: string;
   sort_order?: number;
   is_featured?: boolean;
-  season?: ProductSeason | null;
   status?: Product["status"];
 };
 

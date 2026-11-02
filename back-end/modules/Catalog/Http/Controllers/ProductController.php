@@ -8,7 +8,6 @@ use Illuminate\Validation\Rule;
 use Modules\Catalog\Http\Resources\ProductResource;
 use Modules\Catalog\Models\Product;
 use Modules\Catalog\Services\ProductService;
-use Modules\Shared\Enums\ProductSeason;
 use Modules\Shared\Enums\ProductStatus;
 use Modules\Shared\Http\Controllers\ApiController;
 use Modules\Shared\Rules\ImageUrl;
@@ -27,7 +26,6 @@ class ProductController extends ApiController
             'status' => ['nullable', Rule::enum(ProductStatus::class)],
             'featured' => ['nullable', 'boolean'],
             'discounted' => ['nullable', 'boolean'],
-            'season' => ['nullable', Rule::enum(ProductSeason::class)],
             'q' => ['nullable', 'string', 'max:100'],
         ]);
 
@@ -39,7 +37,6 @@ class ProductController extends ApiController
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->query('status')))
             ->when($request->filled('featured'), fn ($q) => $q->where('is_featured', $request->boolean('featured')))
             ->when($request->boolean('discounted'), fn ($q) => $q->whereNotNull('old_price')->whereColumn('old_price', '>', 'price'))
-            ->when($request->filled('season'), fn ($q) => $q->where('season', $request->query('season')))
             ->when($term, fn ($q) => $q->where(fn ($w) => $w
                 ->where('name_ar', 'like', "%{$term}%")
                 ->orWhere('name_en', 'like', "%{$term}%")))
@@ -121,7 +118,6 @@ class ProductController extends ApiController
             'sort_order' => ['sometimes', 'integer', 'min:0'],
             'status' => ['sometimes', Rule::enum(ProductStatus::class)],
             'is_featured' => ['sometimes', 'boolean'],
-            'season' => ['nullable', Rule::enum(ProductSeason::class)],
             'images' => ['sometimes', 'array', 'max:20'],
             'images.*.image_url' => ['required_with:images', 'string', 'max:2000', new ImageUrl],
             'images.*.sort_order' => ['sometimes', 'integer', 'min:0'],

@@ -2,8 +2,6 @@ export type MenuStatus = "DRAFT" | "PUBLISHED" | "UNPUBLISHED";
 
 export type ProductStatus = "AVAILABLE" | "UNAVAILABLE" | "HIDDEN";
 
-export type ProductSeason = "WINTER" | "SPRING" | "SUMMER" | "AUTUMN";
-
 export type OptionSelectionType = "SINGLE" | "MULTIPLE";
 
 export type Menu = {
@@ -46,7 +44,6 @@ export type Product = {
   sort_order: number;
   status: ProductStatus;
   is_featured: boolean;
-  season: ProductSeason | null;
   created_at: string;
   updated_at: string;
 };

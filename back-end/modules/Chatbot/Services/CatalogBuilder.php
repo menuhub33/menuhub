@@ -38,7 +38,6 @@ class CatalogBuilder
                     'status' => $product['status'],
                     'is_featured' => (bool) $product['is_featured'],
                     'old_price' => $product['old_price'],
-                    'season' => $product['season'] ?? null,
                     'image_url' => $primary['image_url'] ?? null,
                     'category' => $category['name_ar'],
                     'extras' => collect($product['option_groups'] ?? [])

@@ -3,7 +3,6 @@
 namespace Modules\Chatbot\Services;
 
 use Modules\Chatbot\Support\ArabicText as T;
-use Modules\Shared\Enums\ProductSeason;
 use Modules\Shared\Support\PhoneNumber;
 
 /**
@@ -154,26 +153,6 @@ class CatalogAnswerer
             }
 
             return ['reply' => "من الأعلى سعراً:\n".$this->lines($products), 'products' => $products];
-        }
-
-        if (T::looksLike($effective, '/(موسم|موسمي|شتوي|صيفي|ربيعي|خريفي|الشتاء|الصيف|الربيع|الخريف)/')) {
-            $season = ProductSeason::current();
-            if (T::looksLike($effective, '/(شتاء|شتوي)/')) {
-                $season = ProductSeason::Winter;
-            } elseif (T::looksLike($effective, '/(ربيع|ربيعي)/')) {
-                $season = ProductSeason::Spring;
-            } elseif (T::looksLike($effective, '/(صيف|صيفي)/')) {
-                $season = ProductSeason::Summer;
-            } elseif (T::looksLike($effective, '/(خريف|خريفي)/')) {
-                $season = ProductSeason::Autumn;
-            }
-
-            $products = $this->seasonal($catalog, $season);
-            if ($products === []) {
-                return $this->unknown($catalog, 'أصناف '.$season->label());
-            }
-
-            return ['reply' => "أصناف موسم {$season->label()}:\n".$this->lines($products), 'products' => $products];
         }
 
         if (T::looksLike($effective, '/(حسم|خصم|تخفيض|عروض|عرض)/')) {
@@ -334,7 +313,7 @@ class CatalogAnswerer
         foreach ($this->visible($catalog) as $product) {
             $hay = T::normalize(implode(' ', array_filter([
                 $product['name_ar'], $product['name_en'], $product['description_ar'],
-                $product['description_en'], $product['category'], $this->seasonLabel($product['season'] ?? null), ...$product['extras'],
+                $product['description_en'], $product['category'], ...$product['extras'],
             ])));
             $name = T::normalize($product['name_ar']);
             $score = 0;
@@ -411,23 +390,6 @@ class CatalogAnswerer
         return array_slice($picked, 0, $limit);
     }
 
-    private function seasonal(array $catalog, ProductSeason $season, int $limit = 8): array
-    {
-        $picked = array_values(array_filter(
-            $this->visible($catalog),
-            fn ($p) => $p['status'] === 'AVAILABLE' && ($p['season'] ?? null) === $season->value,
-        ));
-
-        return array_slice($picked, 0, $limit);
-    }
-
-    private function seasonLabel(mixed $season): ?string
-    {
-        $value = $season instanceof ProductSeason ? $season->value : $season;
-
-        return is_string($value) ? ProductSeason::tryFrom($value)?->label() : null;
-    }
-
     private function priceCap(string $query): ?float
     {
         return preg_match('/(?:اقل من|ارخص من|تحت|اقل ب|بحد اقصى)\s*(\d{2,7})/u', T::normalize($query), $m) ? (float) $m[1] : null;
@@ -455,10 +417,6 @@ class CatalogAnswerer
             if ($p['old_price'] !== null && $p['old_price'] > $p['price']) {
                 $percent = (int) round((($p['old_price'] - $p['price']) / $p['old_price']) * 100);
                 $notes[] = "حسم {$percent}% بدلاً من ".$this->price($p['old_price'], $p['currency']);
-            }
-            $season = $this->seasonLabel($p['season'] ?? null);
-            if ($season) {
-                $notes[] = "موسم {$season}";
             }
             if ($p['is_featured']) {
                 $notes[] = 'مميز';

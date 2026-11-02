@@ -8,6 +8,13 @@ import { ContentImage } from "@/core/ui/content-image";
 import { ChevronLeftIcon, ChevronRightIcon, ImageIcon } from "@/core/ui/icons";
 
 export const ALL_CATEGORIES_ID = "all";
+export const FEATURED_SECTION_ID = "featured";
+export const OFFER_SECTION_ID = "discount";
+
+export type MenuNavSection = {
+  id: string;
+  label: string;
+};
 
 function categoryCardImage(category: CategoryWithProducts): string | null {
   if (category.image_url) return category.image_url;
@@ -20,11 +27,13 @@ function categoryCardImage(category: CategoryWithProducts): string | null {
 
 export function PublicMenuNavigation({
   categories,
+  sections = [],
   selectedId,
   onSelect,
   className,
 }: {
   categories: CategoryWithProducts[];
+  sections?: MenuNavSection[];
   selectedId: string;
   onSelect: (id: string) => void;
   className?: string;
@@ -62,6 +71,8 @@ export function PublicMenuNavigation({
     setCanNext(lastRect.left < rootRect.left - slop || lastRect.right > rootRect.right + slop);
   }, []);
 
+  const sectionKey = sections.map((section) => section.id).join("|");
+
   useEffect(() => {
     const root = scrollerRef.current;
     if (!root) return;
@@ -77,7 +88,7 @@ export function PublicMenuNavigation({
       observer.disconnect();
       window.removeEventListener("resize", updateArrows);
     };
-  }, [categories.length, updateArrows]);
+  }, [categories.length, sectionKey, updateArrows]);
 
   useEffect(() => {
     const selected = scrollerRef.current?.querySelector<HTMLElement>('[data-selected="true"]');
@@ -173,6 +184,25 @@ export function PublicMenuNavigation({
             <span className="text-center text-sm font-bold">الكل</span>
           </button>
         </li>
+        {sections.map((section) => {
+          const selected = selectedId === section.id;
+          return (
+            <li key={section.id} className="shrink-0">
+              <button
+                type="button"
+                data-selected={selected ? "true" : undefined}
+                onClick={() => select(section.id)}
+                aria-pressed={selected}
+                className={cn(
+                  "relative flex size-[6.75rem] items-center justify-center overflow-hidden rounded-2xl bg-[var(--mh-primary)] p-2 text-white shadow-[0_10px_24px_rgba(0,0,0,0.1)]",
+                  selected && "ring-2 ring-[var(--mh-primary)] ring-offset-2"
+                )}
+              >
+                <span className="px-1 text-center text-[13px] font-bold leading-snug">{section.label}</span>
+              </button>
+            </li>
+          );
+        })}
         {categories.map((category) => {
           const imageUrl = categoryCardImage(category);
           const selected = selectedId === category.id;
