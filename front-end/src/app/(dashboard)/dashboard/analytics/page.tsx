@@ -9,9 +9,14 @@ export default async function AnalyticsPage() {
   const to = new Date();
   const from = new Date();
   from.setDate(from.getDate() - 29);
-  const fromIso = from.toISOString();
+  const loadFrom = new Date();
+  loadFrom.setDate(loadFrom.getDate() - 89);
   const [events, products] = await Promise.all([
-    getAnalyticsEvent({ restaurant_id: tenant.restaurant.id, from: fromIso, limit: 5000 }),
+    getAnalyticsEvent({
+      restaurant_id: tenant.restaurant.id,
+      from: loadFrom.toISOString(),
+      limit: 5000,
+    }),
     getRestaurantProducts(tenant.restaurant.id),
   ]);
   if (events.error) return <ErrorState description={events.error} />;
@@ -24,8 +29,10 @@ export default async function AnalyticsPage() {
         name_en: product.name_en,
         price: product.price,
         currency: product.currency,
+        status: product.status,
+        categoryName: product.category?.name_ar ?? "بدون قسم",
       }))}
-      initialFrom={fromIso.slice(0, 10)}
+      initialFrom={from.toISOString().slice(0, 10)}
       initialTo={to.toISOString().slice(0, 10)}
     />
   );

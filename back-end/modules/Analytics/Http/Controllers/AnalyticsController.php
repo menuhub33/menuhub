@@ -12,22 +12,16 @@ use Modules\Catalog\Http\Resources\MenuResource;
 use Modules\Catalog\Models\Category;
 use Modules\Catalog\Models\Menu;
 use Modules\Catalog\Models\Product;
-use Modules\Shared\Contracts\EnforcesPlanLimits;
 use Modules\Shared\Http\Controllers\ApiController;
 use Modules\Tenancy\Models\Restaurant;
 use Modules\Tenancy\Support\TenantContext;
 
 class AnalyticsController extends ApiController
 {
-    public function __construct(
-        private readonly AnalyticsService $analytics,
-        private readonly EnforcesPlanLimits $limits,
-    ) {}
+    public function __construct(private readonly AnalyticsService $analytics) {}
 
     public function summary(Request $request, Restaurant $restaurant): JsonResponse
     {
-        $this->limits->assertFeature($restaurant->id, 'analytics');
-
         $days = max(1, min(365, (int) $request->integer('days', 30)));
         $from = now()->subDays($days)->startOfDay();
 
@@ -41,8 +35,6 @@ class AnalyticsController extends ApiController
 
     public function events(Request $request, Restaurant $restaurant)
     {
-        $this->limits->assertFeature($restaurant->id, 'analytics');
-
         $request->validate([
             'event_type' => ['nullable', 'string', 'max:30'],
             'menu_id' => ['nullable', 'uuid'],

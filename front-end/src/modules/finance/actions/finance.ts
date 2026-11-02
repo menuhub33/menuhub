@@ -53,7 +53,7 @@ export async function saveMenuBilling(
   restaurantId: string,
   input: MenuBillingInput
 ): Promise<ActionResult<{ id: string }>> {
-  if (!restaurantId) return fail("اختر المطعم");
+  if (!restaurantId) return fail("اختر المحل");
 
   return run(async () => {
     const billing = await apiData<{ id: string }>(`/admin/restaurants/${restaurantId}/billing`, {

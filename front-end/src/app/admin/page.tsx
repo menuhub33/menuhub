@@ -81,17 +81,17 @@ export default async function AdminHomePage() {
     <div className="grid gap-6">
       <PageHeader
         title="لوحة الإدارة"
-        description="إدارة المطاعم والمستخدمين والنطاقات المحجوزة من مكان واحد."
+        description="إدارة المحلات والمستخدمين والنطاقات المحجوزة من مكان واحد."
       />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Link href="/admin/restaurants" className="block rounded-2xl transition hover:-translate-y-0.5">
-          <StatCard label="المطاعم" value={stats.data.restaurants} hint="عرض وإدارة" icon={<BuildingIcon />} />
+          <StatCard label="المحلات" value={stats.data.restaurants} hint="عرض وإدارة" icon={<BuildingIcon />} />
         </Link>
         <Link href="/admin/users" className="block rounded-2xl transition hover:-translate-y-0.5">
           <StatCard label="المستخدمون" value={stats.data.users} hint="عرض وإدارة" icon={<UsersIcon />} />
         </Link>
         <Link href="/admin/restaurants" className="block rounded-2xl transition hover:-translate-y-0.5">
-          <StatCard label="منيو منشورة" value={stats.data.published} hint="من المطاعم" icon={<UtensilsIcon />} />
+          <StatCard label="منيو منشورة" value={stats.data.published} hint="من المحلات" icon={<UtensilsIcon />} />
         </Link>
         <StatCard label="مشاهدات المنيو" value={stats.data.views} hint="إجمالي الزيارات" icon={<EyeIcon />} />
       </div>
@@ -110,21 +110,21 @@ export default async function AdminHomePage() {
 
       <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
         <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-3">
-          <h2 className="font-semibold text-zinc-900">أحدث المطاعم</h2>
+          <h2 className="font-semibold text-zinc-900">أحدث المحلات</h2>
           <Link href="/admin/restaurants" className="text-sm font-medium text-teal-700">
-            إدارة المطاعم
+            إدارة المحلات
           </Link>
         </div>
         {restaurants.error ? (
           <p className="p-4 text-sm text-red-600">{restaurants.error}</p>
         ) : recent.length === 0 ? (
-          <p className="p-6 text-center text-sm text-zinc-500">لا توجد مطاعم بعد.</p>
+          <p className="p-6 text-center text-sm text-zinc-500">لا توجد محلات بعد.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[36rem] text-sm">
               <thead className="bg-zinc-50 text-zinc-500">
                 <tr>
-                  <th className="p-3 text-start">المطعم</th>
+                  <th className="p-3 text-start">المحل</th>
                   <th className="p-3 text-start">المالك</th>
                   <th className="p-3 text-start">الحالة</th>
                   <th className="p-3 text-start">تاريخ الإنشاء</th>

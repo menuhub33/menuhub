@@ -9,6 +9,7 @@ import { StatusBadge } from "@/core/components/common/status-badge";
 import { StatCard } from "@/modules/analytics/components/dashboard/stat-card";
 import { useToast } from "@/core/ui/toast";
 import { usePublicMenuUrl } from "@/core/providers";
+import { dashboardIntro, normalizeBusinessType } from "@/modules/tenancy/lib/business-type";
 import type { AnalyticsSummary } from "@/modules/analytics/types";
 import type { Menu } from "@/modules/catalog/types";
 import type { Restaurant } from "@/modules/tenancy/types";
@@ -68,7 +69,7 @@ export function DashboardHomeView({
     <div className="grid gap-6">
       <PageHeader
         title={`مرحبًا، ${restaurant.name} 👋`}
-        description="هذه نظرة سريعة على منيو مطعمك اليوم."
+        description={dashboardIntro(normalizeBusinessType(restaurant.business_type))}
         breadcrumbs={[{ label: "الرئيسية" }]}
         actions={<StatusBadge kind="menu" value={menu?.status ?? restaurant.menu_status} />}
       />

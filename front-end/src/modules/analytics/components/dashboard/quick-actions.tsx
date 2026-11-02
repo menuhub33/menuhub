@@ -1,22 +1,31 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/ui/card";
-import { PaletteIcon, PlusIcon, QrIcon, UtensilsIcon } from "@/core/ui/icons";
+import { BagIcon, CoffeeIcon, PaletteIcon, PlusIcon, QrIcon, UtensilsIcon } from "@/core/ui/icons";
+import { normalizeBusinessType } from "@/modules/tenancy/lib/business-type";
+import type { BusinessType } from "@/modules/tenancy/types";
 
-const ACTIONS = [
-  { href: "/dashboard/menu/products/new", label: "إضافة منتج", icon: PlusIcon },
-  { href: "/dashboard/menu/categories", label: "إضافة قسم", icon: UtensilsIcon },
-  { href: "/dashboard/design", label: "تخصيص المنيو", icon: PaletteIcon },
-  { href: "/dashboard/qr", label: "QR Code", icon: QrIcon },
-];
+const CATEGORY_ICON = {
+  RESTAURANT: UtensilsIcon,
+  CAFE: CoffeeIcon,
+  SHOP: BagIcon,
+} satisfies Record<BusinessType, typeof UtensilsIcon>;
 
-export function QuickActions() {
+export function QuickActions({ businessType }: { businessType?: string | null }) {
+  const CategoryIcon = CATEGORY_ICON[normalizeBusinessType(businessType)];
+  const actions = [
+    { href: "/dashboard/menu/products/new", label: "إضافة منتج", icon: PlusIcon },
+    { href: "/dashboard/menu/categories", label: "إضافة قسم", icon: CategoryIcon },
+    { href: "/dashboard/design", label: "تخصيص المنيو", icon: PaletteIcon },
+    { href: "/dashboard/qr", label: "QR Code", icon: QrIcon },
+  ];
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>إجراءات سريعة</CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {ACTIONS.map((action) => (
+        {actions.map((action) => (
           <Link
             key={action.href}
             href={action.href}

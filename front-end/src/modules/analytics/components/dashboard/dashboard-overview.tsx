@@ -50,7 +50,7 @@ export function DashboardOverview({
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <QuickActions />
+          <QuickActions businessType={restaurant.business_type} />
         </div>
         <div className="grid gap-4">
           <MenuStatusCard

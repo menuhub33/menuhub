@@ -34,3 +34,8 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   CAFE: "كافيه",
   SHOP: "محل تجاري",
 };
+
+export function dashboardIntro(type: BusinessType): string {
+  const place = type === "CAFE" ? "كافيهك" : type === "SHOP" ? "محلك" : "مطعمك";
+  return `هذه نظرة سريعة على منيو ${place} اليوم.`;
+}

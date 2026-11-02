@@ -51,6 +51,15 @@ class PublicEventController extends ApiController
             $data['product_id'] = null;
         }
 
+        $metadata = is_array($data['metadata'] ?? null) ? $data['metadata'] : [];
+        $query = trim((string) ($metadata['query'] ?? ''));
+        if ($query !== '' && ($data['event_type'] ?? '') === EventType::Search->value) {
+            $metadata['query'] = mb_substr($query, 0, 80);
+        } else {
+            unset($metadata['query']);
+        }
+
+        unset($data['metadata']);
         $userAgent = mb_substr((string) $request->userAgent(), 0, 500);
 
         AnalyticsEvent::query()->create($data + [
@@ -58,7 +67,7 @@ class PublicEventController extends ApiController
             'user_agent' => $userAgent ?: null,
             'device_type' => AnalyticsService::deviceType($userAgent),
             'country' => $request->header('CF-IPCountry'),
-            'metadata' => $data['metadata'] ?? [],
+            'metadata' => $metadata,
         ]);
 
         return $this->message('ok', 202);

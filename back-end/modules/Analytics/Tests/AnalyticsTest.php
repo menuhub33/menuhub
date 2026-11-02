@@ -28,6 +28,20 @@ class AnalyticsTest extends ApiTestCase
             ->assertJsonPath('data.summary.productViews', 1);
     }
 
+    public function test_search_keeps_a_short_query(): void
+    {
+        [, $restaurant] = $this->makeRestaurant();
+
+        $this->postJson($this->api("public/menus/{$restaurant->slug}/events"), [
+            'event_type' => 'SEARCH',
+            'metadata' => ['query' => '  برجر  '.str_repeat('ا', 100)],
+        ])->assertStatus(202);
+
+        $saved = AnalyticsEvent::query()->where('restaurant_id', $restaurant->id)->firstOrFail();
+        $this->assertSame(80, mb_strlen($saved->metadata['query']));
+        $this->assertStringStartsWith('برجر', $saved->metadata['query']);
+    }
+
     public function test_unknown_event_types_are_rejected(): void
     {
         [, $restaurant] = $this->makeRestaurant();

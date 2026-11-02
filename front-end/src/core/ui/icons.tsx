@@ -285,6 +285,26 @@ export function UtensilsIcon(props: IconProps) {
   );
 }
 
+export function CoffeeIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M17 8h1a4 4 0 0 1 0 8h-1" />
+      <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8Z" />
+      <path d="M6 2c.6 1.4.1 2.6.1 2.6M10 2c.6 1.4.1 2.6.1 2.6M14 2c.6 1.4.1 2.6.1 2.6" />
+    </Icon>
+  );
+}
+
+export function BagIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+      <path d="M3 6h18" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </Icon>
+  );
+}
+
 export function LayoutIcon(props: IconProps) {
   return (
     <Icon {...props}>

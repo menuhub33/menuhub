@@ -134,7 +134,7 @@ export function AdminRestaurantsView({
         toast({ title: result.error, variant: "error" });
         return;
       }
-      toast({ title: "تم إنشاء المطعم والحساب. فعّله ليتمكن المالك من الدخول.", variant: "success" });
+      toast({ title: "تم إنشاء المحل والحساب. فعّله ليتمكن المالك من الدخول.", variant: "success" });
       setCreating(false);
       setName("");
       setEmail("");
@@ -145,7 +145,7 @@ export function AdminRestaurantsView({
       router.refresh();
     } catch (error) {
       toast({
-        title: error instanceof Error ? error.message : "تعذر إنشاء المطعم",
+        title: error instanceof Error ? error.message : "تعذر إنشاء المحل",
         variant: "error",
       });
     } finally {
@@ -173,7 +173,7 @@ export function AdminRestaurantsView({
       toast({ title: result.error, variant: "error" });
       return;
     }
-    toast({ title: "تم حفظ المطعم", variant: "success" });
+    toast({ title: "تم حفظ المحل", variant: "success" });
     setEditing(null);
     router.refresh();
   }
@@ -205,7 +205,7 @@ export function AdminRestaurantsView({
   return (
     <div className="grid gap-4">
       <PageHeader
-        title={lockedMall ? "المحلات" : "المطاعم"}
+        title="المحلات"
         description={
           lockedMall
             ? `منيوهات ${lockedMall.name} فقط. كل محل جديد يُربط بهذا المول.`
@@ -223,7 +223,7 @@ export function AdminRestaurantsView({
                 </Button>
               </>
             )}
-            <Button onClick={() => setCreating(true)}>{lockedMall ? "إنشاء محل" : "إنشاء مطعم"}</Button>
+            <Button onClick={() => setCreating(true)}>إنشاء محل</Button>
           </div>
         }
       />
@@ -247,7 +247,7 @@ export function AdminRestaurantsView({
         <table className="w-full min-w-[48rem] text-start text-sm">
           <thead className="bg-zinc-50 text-zinc-500">
             <tr>
-              <th className="p-3 text-start">المطعم</th>
+              <th className="p-3 text-start">المحل</th>
               <th className="p-3 text-start">نوع النشاط</th>
               {lockedMall ? null : <th className="p-3 text-start">الانتماء</th>}
               <th className="p-3 text-start">المالك</th>
@@ -260,7 +260,7 @@ export function AdminRestaurantsView({
             {rows.length === 0 ? (
               <tr>
                 <td colSpan={lockedMall ? 6 : 7} className="p-8 text-center text-zinc-500">
-                  لا توجد مطاعم مطابقة.
+                  لا توجد محلات مطابقة.
                 </td>
               </tr>
             ) : (
@@ -315,7 +315,7 @@ export function AdminRestaurantsView({
                           if (result.error) toast({ title: result.error, variant: "error" });
                           else {
                             toast({
-                              title: nextStatus === "ACTIVE" ? "تم تفعيل المطعم" : "تم تعليق المطعم",
+                              title: nextStatus === "ACTIVE" ? "تم تفعيل المحل" : "تم تعليق المحل",
                               variant: "success",
                             });
                             router.refresh();
@@ -341,8 +341,8 @@ export function AdminRestaurantsView({
         onOpenChange={(open) => {
           if (!open) setDeleting(null);
         }}
-        title="حذف المطعم؟"
-        description="سيتم حذف المطعم وكل بياناته."
+        title="حذف المحل؟"
+        description="سيتم حذف المحل وكل بياناته."
         confirmLabel="حذف"
         onConfirm={async () => {
           if (!deleting) return;
@@ -350,7 +350,7 @@ export function AdminRestaurantsView({
           if (result.error) toast({ title: result.error, variant: "error" });
           else {
             setDeleting(null);
-            toast({ title: "تم حذف المطعم", variant: "success" });
+            toast({ title: "تم حذف المحل", variant: "success" });
             router.refresh();
           }
         }}
@@ -358,7 +358,7 @@ export function AdminRestaurantsView({
       <Dialog
         open={creating}
         onOpenChange={setCreating}
-        title="إنشاء مطعم"
+        title="إنشاء محل"
         size="lg"
         description="أدخل بيانات النشاط والحساب، ثم سعر سنة الاشتراك. بعد السنة يتوقف المنيو حتى يُحدد سعر جديد."
         footer={
@@ -373,7 +373,7 @@ export function AdminRestaurantsView({
         }
       >
         <div className="grid gap-4">
-          <FormField label="اسم المطعم" htmlFor="admin-restaurant-name" required>
+          <FormField label="اسم المحل" htmlFor="admin-restaurant-name" required>
             <Input id="admin-restaurant-name" value={name} onChange={(event) => setName(event.target.value)} />
           </FormField>
           <BusinessTypePicker value={businessType} onChange={setBusinessType} disabled={saving} />
@@ -420,7 +420,7 @@ export function AdminRestaurantsView({
         onOpenChange={(open) => {
           if (!open) setEditing(null);
         }}
-        title="تعديل المطعم"
+        title="تعديل المحل"
         size="lg"
         footer={
           <>
@@ -434,7 +434,7 @@ export function AdminRestaurantsView({
         }
       >
         <div className="grid gap-4">
-          <FormField label="اسم المطعم" htmlFor="edit-restaurant-name" required>
+          <FormField label="اسم المحل" htmlFor="edit-restaurant-name" required>
             <Input id="edit-restaurant-name" value={editName} onChange={(event) => setEditName(event.target.value)} />
           </FormField>
           <FormField label="الرابط" htmlFor="edit-restaurant-slug" required>

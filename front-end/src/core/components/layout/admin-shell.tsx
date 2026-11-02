@@ -28,7 +28,7 @@ import type { Profile } from "@/modules/auth/types";
 const PLATFORM_NAV = [
   { href: "/admin", label: "الرئيسية", icon: HomeIcon, exact: true },
   { href: "/admin/malls", label: "المراكز التجارية", icon: BuildingIcon },
-  { href: "/admin/restaurants", label: "المطاعم", icon: BuildingIcon },
+  { href: "/admin/restaurants", label: "المحلات", icon: BuildingIcon },
   { href: "/admin/finance", label: "الإدارة المالية", icon: CreditCardIcon },
   { href: "/admin/users", label: "المستخدمون", icon: UsersIcon },
   { href: "/admin/settings", label: "الإعدادات", icon: SettingsIcon },

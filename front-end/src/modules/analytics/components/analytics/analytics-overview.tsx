@@ -7,6 +7,14 @@ import { ProductViewsChart } from "@/modules/analytics/components/analytics/prod
 import { TopProducts } from "@/modules/analytics/components/analytics/top-products";
 import { TrafficChart } from "@/modules/analytics/components/analytics/traffic-chart";
 import { ViewsChart } from "@/modules/analytics/components/analytics/views-chart";
+import {
+  PeakTimes,
+  PeriodComparison,
+  QuietProducts,
+  SearchTerms,
+  TopCategories,
+  VisitSources,
+} from "@/modules/analytics/components/analytics/insight-cards";
 import { EmptyState } from "@/core/components/common/empty-state";
 import { ErrorState } from "@/core/components/common/error-state";
 import { LoadingState } from "@/core/components/common/loading-state";
@@ -22,6 +30,15 @@ export function AnalyticsOverview({
   searches = [],
   topProducts = [],
   devices = [],
+  sources = { link: 0, qr: 0 },
+  comparison = { current: 0, previous: 0 },
+  hours = [],
+  busiestHour = null,
+  busiestDay = null,
+  categories = [],
+  searchTerms = [],
+  quietProducts = [],
+  quietRemaining = 0,
   from,
   to,
   onRangeChange,
@@ -37,6 +54,15 @@ export function AnalyticsOverview({
   searches?: ChartPoint[];
   topProducts?: ProductViewStat[];
   devices?: DeviceStat[];
+  sources?: { link: number; qr: number };
+  comparison?: { current: number; previous: number };
+  hours?: ChartPoint[];
+  busiestHour?: string | null;
+  busiestDay?: string | null;
+  categories?: { name: string; views: number }[];
+  searchTerms?: { term: string; count: number }[];
+  quietProducts?: { id: string; name: string }[];
+  quietRemaining?: number;
   from: string;
   to: string;
   onRangeChange: (range: DateRangeValue) => void;
@@ -82,14 +108,24 @@ export function AnalyticsOverview({
         <AnalyticsStatCard label="عمليات البحث" value={summary?.searches ?? 0} />
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
+        <VisitSources link={sources.link} qr={sources.qr} />
+        <PeriodComparison current={comparison.current} previous={comparison.previous} />
+      </div>
+      <PeakTimes hours={hours} busiestHour={busiestHour} busiestDay={busiestDay} />
+      <div className="grid gap-4 lg:grid-cols-2">
         <ViewsChart points={menuViews} />
         <ProductViewsChart points={productViews} />
       </div>
       <TrafficChart qrScans={qrScans} shares={shares} searches={searches} />
       <div className="grid gap-4 lg:grid-cols-2">
-        <TopProducts items={topProducts} />
-        <DeviceStatistics items={devices} />
+        <TopCategories rows={categories} />
+        <SearchTerms rows={searchTerms} />
       </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <TopProducts items={topProducts} />
+        <QuietProducts products={quietProducts} remaining={quietRemaining} />
+      </div>
+      <DeviceStatistics items={devices} />
     </div>
   );
 }

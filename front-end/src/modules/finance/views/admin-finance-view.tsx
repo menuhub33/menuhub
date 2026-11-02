@@ -183,7 +183,7 @@ export function AdminFinanceView({
         <table className="w-full min-w-[56rem] text-sm">
           <thead className="bg-zinc-50 text-zinc-500">
             <tr>
-              <th className="p-3 text-start">{mallName ? "المحل" : "المطعم"}</th>
+              <th className="p-3 text-start">المحل</th>
               <th className="p-3 text-start">سعر المنيو</th>
               <th className="p-3 text-start">التكلفة</th>
               <th className="p-3 text-start">الحسم</th>
@@ -275,13 +275,13 @@ export function AdminFinanceView({
         }
       >
         <div className="grid gap-4">
-          <FormField label={mallName ? "المحل" : "المطعم"} htmlFor="finance-restaurant" required>
+          <FormField label="المحل" htmlFor="finance-restaurant" required>
             <Select
               id="finance-restaurant"
               value={restaurantId}
               onChange={setRestaurantId}
               options={available.map((restaurant) => ({ value: restaurant.id, label: restaurant.name }))}
-              placeholder={mallName ? "اختر محلاً" : "اختر مطعماً"}
+              placeholder="اختر محلاً"
             />
           </FormField>
           <MenuBillingFields value={form} onChange={setForm} disabled={saving} />

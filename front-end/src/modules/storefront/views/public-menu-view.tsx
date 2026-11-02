@@ -6,6 +6,37 @@ import { PublicMenu } from "@/modules/storefront/components/public-menu";
 import { MenuNotFound } from "@/modules/storefront/components/menu-not-found";
 import type { PublicMenuData } from "@/modules/storefront/types";
 
+let skipViewsUntil = 0;
+let lastView: { key: string; at: number } | null = null;
+let trackingBound = false;
+
+if (typeof window !== "undefined" && !trackingBound) {
+  trackingBound = true;
+  window.addEventListener("popstate", () => {
+    skipViewsUntil = Date.now() + 1500;
+  });
+}
+
+/** A view is a fresh open of the menu link, or a QR scan. Reloads and back/forward do not count. */
+function menuArrival(slug: string): "link" | "qr" | null {
+  if (Date.now() < skipViewsUntil) return null;
+
+  const source = new URLSearchParams(window.location.search).get("src") === "qr" ? "qr" : "link";
+  const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+  if (nav?.name) {
+    const opened = new URL(nav.name);
+    const here = new URL(window.location.href);
+    const sameDocument = opened.origin === here.origin && opened.pathname === here.pathname;
+    if (sameDocument && nav.type !== "navigate") return null;
+  }
+
+  const key = `${slug}:${source}:${window.location.pathname}`;
+  const now = Date.now();
+  if (lastView && lastView.key === key && now - lastView.at < 800) return null;
+  lastView = { key, at: now };
+  return source;
+}
+
 const MESSAGES: Record<string, { title: string; description: string }> = {
   NOT_FOUND: {
     title: "المنيو غير موجود",
@@ -46,6 +77,9 @@ export function PublicMenuView({
 
   useEffect(() => {
     if (!data) return;
+    const arrival = menuArrival(data.restaurant.slug);
+    if (!arrival) return;
+
     const device =
       window.innerWidth < 768 ? "mobile" : window.innerWidth < 1024 ? "tablet" : "desktop";
     const base = { slug: data.restaurant.slug, menu_id: data.menu.id };
@@ -53,12 +87,11 @@ export function PublicMenuView({
       ...base,
       event_type: "MENU_VIEW",
       referrer: document.referrer || null,
-      metadata: { device },
+      metadata: { device, source: arrival },
     });
 
-    // QR codes point to `?src=qr&qr={id}` (see back-end Operations module).
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("src") === "qr") {
+    if (arrival === "qr") {
+      const params = new URLSearchParams(window.location.search);
       void createAnalyticsEvent({
         ...base,
         event_type: "QR_SCAN",
@@ -66,6 +99,20 @@ export function PublicMenuView({
       });
     }
   }, [data]);
+
+  useEffect(() => {
+    const term = query.trim();
+    if (!data || term.length < 2) return;
+    const timer = window.setTimeout(() => {
+      void createAnalyticsEvent({
+        slug: data.restaurant.slug,
+        menu_id: data.menu.id,
+        event_type: "SEARCH",
+        metadata: { query: term.slice(0, 80) },
+      });
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [data, query]);
 
   if (reason) {
     const message = MESSAGES[reason] ?? MESSAGES.NOT_FOUND;
