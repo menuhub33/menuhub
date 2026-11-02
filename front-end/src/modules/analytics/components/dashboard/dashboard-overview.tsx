@@ -1,12 +1,11 @@
 import { StatCard } from "@/modules/analytics/components/dashboard/stat-card";
 import { QuickActions } from "@/modules/analytics/components/dashboard/quick-actions";
-import { RecentActivity } from "@/modules/analytics/components/dashboard/recent-activity";
 import { MenuStatusCard } from "@/modules/analytics/components/dashboard/menu-status-card";
 import { MenuLinkCard } from "@/modules/analytics/components/dashboard/menu-link-card";
 import { DashboardEmptyState } from "@/modules/analytics/components/dashboard/dashboard-empty-state";
 import { LoadingState } from "@/core/components/common/loading-state";
 import { ErrorState } from "@/core/components/common/error-state";
-import type { ActivityItem, AnalyticsSummary } from "@/modules/analytics/types";
+import type { AnalyticsSummary } from "@/modules/analytics/types";
 import type { Menu } from "@/modules/catalog/types";
 import type { Restaurant } from "@/modules/tenancy/types";
 
@@ -15,7 +14,6 @@ export function DashboardOverview({
   menu,
   publicUrl,
   stats,
-  activity,
   loading,
   error,
   onRetry,
@@ -28,7 +26,6 @@ export function DashboardOverview({
   menu?: Menu | null;
   publicUrl?: string;
   stats?: AnalyticsSummary;
-  activity?: ActivityItem[];
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -52,9 +49,8 @@ export function DashboardOverview({
         <StatCard label="المشاركات" value={stats?.shares ?? 0} />
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="grid gap-4 lg:col-span-2">
+        <div className="lg:col-span-2">
           <QuickActions />
-          <RecentActivity items={activity ?? []} />
         </div>
         <div className="grid gap-4">
           <MenuStatusCard

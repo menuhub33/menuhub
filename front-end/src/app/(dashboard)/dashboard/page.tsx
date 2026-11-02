@@ -16,7 +16,6 @@ export default async function DashboardPage() {
       restaurant={tenant.restaurant}
       menu={stats.data.menu}
       stats={stats.data.summary}
-      activity={stats.data.activity}
       categoryCount={stats.data.categoryCount}
       productCount={stats.data.productCount}
       todayViews={stats.data.todayViews}

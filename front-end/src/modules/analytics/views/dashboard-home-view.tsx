@@ -9,7 +9,7 @@ import { StatusBadge } from "@/core/components/common/status-badge";
 import { StatCard } from "@/modules/analytics/components/dashboard/stat-card";
 import { useToast } from "@/core/ui/toast";
 import { usePublicMenuUrl } from "@/core/providers";
-import type { ActivityItem, AnalyticsSummary } from "@/modules/analytics/types";
+import type { AnalyticsSummary } from "@/modules/analytics/types";
 import type { Menu } from "@/modules/catalog/types";
 import type { Restaurant } from "@/modules/tenancy/types";
 
@@ -17,7 +17,6 @@ export function DashboardHomeView({
   restaurant,
   menu,
   stats,
-  activity,
   categoryCount,
   productCount,
   todayViews,
@@ -27,7 +26,6 @@ export function DashboardHomeView({
   restaurant: Restaurant;
   menu: Menu | null;
   stats: AnalyticsSummary;
-  activity: ActivityItem[];
   categoryCount: number;
   productCount: number;
   todayViews: number;
@@ -85,7 +83,6 @@ export function DashboardHomeView({
         menu={menu}
         publicUrl={url}
         stats={stats}
-        activity={activity}
         canPublish={canPublish}
         onPublish={publish}
         onUnpublish={unpublish}
