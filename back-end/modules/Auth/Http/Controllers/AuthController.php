@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Modules\Auth\Services\AuthService;
 use Modules\Shared\Exceptions\ApiException;
@@ -103,6 +104,34 @@ class AuthController extends ApiController
         $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
 
         return $this->message('تم تحديث كلمة المرور');
+    }
+
+    public function changeEmail(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $data = $request->validate([
+            'current_password' => ['required', 'string'],
+            'email' => ['required', 'email:rfc', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+        ]);
+
+        if (! Hash::check($data['current_password'], $user->password)) {
+            throw ApiException::invalid('كلمة المرور الحالية غير صحيحة', 'WRONG_PASSWORD');
+        }
+
+        $email = strtolower($data['email']);
+        if ($email !== strtolower($user->email)) {
+            $user->email = $email;
+            if (config('menuhub.require_email_verification')) {
+                $user->email_verified_at = null;
+                $user->save();
+                $user->sendEmailVerificationNotification();
+            } else {
+                $user->email_verified_at = now();
+                $user->save();
+            }
+        }
+
+        return $this->ok($this->userPayload($user->refresh()));
     }
 
     public function forgotPassword(Request $request): JsonResponse

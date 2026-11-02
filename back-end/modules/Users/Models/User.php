@@ -6,6 +6,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Shared\Enums\PlatformRole;
 
@@ -33,16 +35,39 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $fillable = ['full_name', 'email', 'password', 'phone', 'avatar_url'];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'password_visible', 'remember_token'];
 
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
             'platform_role' => PlatformRole::class,
             'is_active' => 'boolean',
         ];
+    }
+
+    public function setPasswordAttribute(string $value): void
+    {
+        if (! Hash::isHashed($value)) {
+            $this->attributes['password_visible'] = Crypt::encryptString($value);
+            $value = Hash::make($value);
+        }
+
+        $this->attributes['password'] = $value;
+    }
+
+    public function revealPassword(): ?string
+    {
+        $stored = $this->attributes['password_visible'] ?? null;
+        if (! is_string($stored) || $stored === '') {
+            return null;
+        }
+
+        try {
+            return Crypt::decryptString($stored);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public function isPlatformAdmin(): bool

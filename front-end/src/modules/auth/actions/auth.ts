@@ -7,6 +7,8 @@ import { RESTAURANT_COOKIE } from "@/core/config";
 import { clearToken, getToken, setToken } from "@/core/auth/token";
 import type { PlatformRole, Profile } from "@/modules/auth/types";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export type LoginInput = {
   email: string;
   password: string;
@@ -140,11 +142,34 @@ export async function resetPassword(
   });
 }
 
+export async function changeEmail(input: {
+  email: string;
+  current_password: string;
+}): Promise<ActionResult<Profile>> {
+  const email = input.email?.trim().toLowerCase();
+  if (!email || !input.current_password) {
+    return fail("البريد الإلكتروني وكلمة المرور الحالية مطلوبان");
+  }
+  if (!EMAIL_PATTERN.test(email)) {
+    return fail("صيغة البريد الإلكتروني غير صحيحة");
+  }
+
+  return run(() =>
+    apiData<Profile>("/auth/email", {
+      method: "PUT",
+      body: { email, current_password: input.current_password },
+    })
+  );
+}
+
 export async function changePassword(input: {
   current_password: string;
   password: string;
 }): Promise<ActionResult<{ success: true }>> {
-  if (!input.current_password || !input.password || input.password.length < 8) {
+  if (!input.current_password) {
+    return fail("كلمة المرور الحالية مطلوبة");
+  }
+  if (!input.password || input.password.length < 8) {
     return fail("كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل");
   }
 

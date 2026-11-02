@@ -13,6 +13,7 @@ export function PasswordInput({
   placeholder,
   autoComplete = "current-password",
   invalid,
+  required = true,
 }: {
   id: string;
   name?: string;
@@ -21,6 +22,7 @@ export function PasswordInput({
   placeholder?: string;
   autoComplete?: string;
   invalid?: boolean;
+  required?: boolean;
 }) {
   const [visible, setVisible] = useState(false);
   return (
@@ -35,7 +37,7 @@ export function PasswordInput({
         invalid={invalid}
         className="pe-11"
         onChange={(event) => onChange(event.target.value)}
-        required
+        required={required}
       />
       <button
         type="button"

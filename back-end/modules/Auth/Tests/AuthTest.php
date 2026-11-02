@@ -34,6 +34,34 @@ class AuthTest extends ApiTestCase
             ->assertStatus(401);
     }
 
+    public function test_user_can_change_email_and_password(): void
+    {
+        $user = $this->makeUser(email: 'owner@example.com');
+        Sanctum::actingAs($user);
+
+        $this->putJson($this->api('auth/email'), [
+            'email' => 'new-owner@example.com',
+            'current_password' => 'wrong-pass',
+        ])->assertStatus(422);
+
+        $this->putJson($this->api('auth/email'), [
+            'email' => 'new-owner@example.com',
+            'current_password' => 'password123',
+        ])->assertOk()->assertJsonPath('data.email', 'new-owner@example.com');
+
+        $this->assertSame('new-owner@example.com', $user->refresh()->email);
+
+        $this->putJson($this->api('auth/password'), [
+            'current_password' => 'password123',
+            'password' => 'new-password',
+        ])->assertOk();
+
+        $this->postJson($this->api('auth/login'), [
+            'email' => 'new-owner@example.com',
+            'password' => 'new-password',
+        ])->assertOk();
+    }
+
     public function test_suspended_account_cannot_use_the_api(): void
     {
         $user = $this->makeUser();

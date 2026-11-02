@@ -65,6 +65,39 @@ class PlatformTest extends ApiTestCase
         $this->assertSame($before, Restaurant::query()->count());
     }
 
+    public function test_admin_can_update_owner_email_and_password(): void
+    {
+        $this->actingAdmin();
+
+        $id = $this->postJson($this->api('admin/restaurants'), [
+            'name' => 'Cafe Nova',
+            'email' => 'owner@nova.test',
+            'password' => 'password123',
+            'billing' => [
+                'price' => 500, 'discount_type' => 'NONE', 'starts_on' => '2026-01-01', 'currency' => 'USD',
+            ],
+        ])->assertCreated()->json('data.id');
+
+        $this->getJson($this->api('admin/restaurants'))
+            ->assertOk()
+            ->assertJsonFragment(['owner_password' => 'password123']);
+
+        $this->patchJson($this->api("admin/restaurants/{$id}"), [
+            'owner_email' => 'new-owner@nova.test',
+            'owner_password' => 'new-password',
+        ])->assertOk();
+
+        $this->postJson($this->api('auth/login'), [
+            'email' => 'new-owner@nova.test',
+            'password' => 'new-password',
+        ])->assertOk();
+
+        $this->postJson($this->api('auth/login'), [
+            'email' => 'owner@nova.test',
+            'password' => 'password123',
+        ])->assertStatus(401);
+    }
+
     public function test_activating_publishes_and_notifies_the_owner(): void
     {
         $this->actingAdmin();

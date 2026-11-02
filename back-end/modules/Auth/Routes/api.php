@@ -20,6 +20,7 @@ Route::prefix('auth')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
         Route::patch('me', [AuthController::class, 'updateProfile']);
         Route::put('password', [AuthController::class, 'changePassword']);
+        Route::put('email', [AuthController::class, 'changeEmail']);
         Route::post('email/resend', [AuthController::class, 'resendVerification'])->middleware('throttle:6,1');
     });
 });

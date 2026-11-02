@@ -37,7 +37,11 @@ import type { BusinessType, Restaurant, RestaurantStatus } from "@/modules/tenan
 
 const PAGE_SIZE = 10;
 
-type RestaurantRow = Restaurant & { owner_name?: string | null };
+type RestaurantRow = Restaurant & {
+  owner_name?: string | null;
+  owner_email?: string | null;
+  owner_password?: string | null;
+};
 
 const STATUS_OPTIONS: { value: RestaurantStatus; label: string }[] = [
   { value: "TRIAL", label: "تجريبي" },
@@ -81,6 +85,8 @@ export function AdminRestaurantsView({
   const [editStatus, setEditStatus] = useState<RestaurantStatus>("SUSPENDED");
   const [editBusinessType, setEditBusinessType] = useState<BusinessType>("RESTAURANT");
   const [editMallId, setEditMallId] = useState("private");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPassword, setEditPassword] = useState("");
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -98,7 +104,7 @@ export function AdminRestaurantsView({
   const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const billingInput = parseBillingInput(billing);
   const canCreate = Boolean(name.trim() && email.trim() && password.length >= 8 && "value" in billingInput);
-  const canSave = Boolean(editName.trim() && editSlug.trim());
+  const canSave = Boolean(editName.trim() && editSlug.trim() && editEmail.trim());
 
   function openEdit(restaurant: RestaurantRow) {
     setEditing(restaurant);
@@ -109,6 +115,8 @@ export function AdminRestaurantsView({
     setEditStatus(restaurant.status);
     setEditBusinessType(normalizeBusinessType(restaurant.business_type));
     setEditMallId(restaurant.mall_id ?? "private");
+    setEditEmail(restaurant.owner_email ?? "");
+    setEditPassword(restaurant.owner_password ?? "");
   }
 
   async function createRestaurant() {
@@ -157,6 +165,8 @@ export function AdminRestaurantsView({
       status: editStatus,
       business_type: editBusinessType,
       mall_id: lockedMall ? undefined : editMallId === "private" ? null : editMallId,
+      owner_email: editEmail,
+      owner_password: editPassword.trim() || undefined,
     });
     setSaving(false);
     if (result.error) {
@@ -411,6 +421,7 @@ export function AdminRestaurantsView({
           if (!open) setEditing(null);
         }}
         title="تعديل المطعم"
+        size="lg"
         footer={
           <>
             <Button variant="outline" onClick={() => setEditing(null)}>
@@ -459,6 +470,29 @@ export function AdminRestaurantsView({
               value={editStatus}
               onChange={(value) => setEditStatus(value as RestaurantStatus)}
               options={STATUS_OPTIONS}
+            />
+          </FormField>
+          <FormField label="بريد المالك" htmlFor="edit-owner-email" required>
+            <Input
+              id="edit-owner-email"
+              type="email"
+              dir="ltr"
+              autoComplete="off"
+              value={editEmail}
+              onChange={(event) => setEditEmail(event.target.value)}
+            />
+          </FormField>
+          <FormField
+            label="كلمة مرور المالك"
+            htmlFor="edit-owner-password"
+            hint="8 أحرف على الأقل"
+          >
+            <PasswordInput
+              id="edit-owner-password"
+              autoComplete="new-password"
+              required={false}
+              value={editPassword}
+              onChange={setEditPassword}
             />
           </FormField>
         </div>

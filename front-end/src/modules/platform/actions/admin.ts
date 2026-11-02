@@ -147,13 +147,25 @@ export async function adminUpdateRestaurant(input: {
   status: Restaurant["status"];
   business_type: Restaurant["business_type"];
   mall_id?: string | null;
+  owner_email?: string;
+  owner_password?: string;
 }): Promise<ActionResult<Restaurant>> {
   const { id, ...changes } = input;
   if (!id) return fail("معرّف المطعم مطلوب");
+  const email = changes.owner_email?.trim().toLowerCase();
+  if (changes.owner_email !== undefined && !email) return fail("بريد المالك مطلوب");
+  if (changes.owner_password && changes.owner_password.length < 8) {
+    return fail("كلمة المرور يجب أن تكون 8 أحرف على الأقل");
+  }
   return run(() =>
     apiData<Restaurant>(`/admin/restaurants/${id}`, {
       method: "PATCH",
-      body: { ...changes, slug: changes.slug.trim().toLowerCase() },
+      body: {
+        ...changes,
+        slug: changes.slug.trim().toLowerCase(),
+        owner_email: email,
+        owner_password: changes.owner_password?.trim() || undefined,
+      },
     })
   );
 }

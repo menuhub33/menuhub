@@ -15,6 +15,7 @@ use Modules\Shared\Enums\DiscountType;
 use Modules\Shared\Enums\RestaurantStatus;
 use Modules\Shared\Http\Controllers\ApiController;
 use Modules\Tenancy\Http\Resources\RestaurantResource;
+use Modules\Shared\Exceptions\ApiException;
 use Modules\Tenancy\Models\Restaurant;
 use Modules\Tenancy\Models\RestaurantUser;
 use Modules\Tenancy\Rules\AvailableSlug;
@@ -41,7 +42,7 @@ class AdminRestaurantController extends ApiController
             ->paginate($this->perPage());
 
         $owners = RestaurantUser::query()
-            ->with('user:id,full_name,email')
+            ->with('user:id,full_name,email,password_visible')
             ->whereIn('restaurant_id', $restaurants->pluck('id'))
             ->where('role', 'OWNER')
             ->get()
@@ -51,8 +52,9 @@ class AdminRestaurantController extends ApiController
         $restaurants->through(fn (Restaurant $r) => array_merge(
             RestaurantResource::make($r)->resolve(),
             [
-                'owner_name' => $owners[$r->id]->user?->full_name ?? null,
-                'owner_email' => $owners[$r->id]->user?->email ?? null,
+                'owner_name' => $owners->get($r->id)?->user?->full_name,
+                'owner_email' => $owners->get($r->id)?->user?->email,
+                'owner_password' => $owners->get($r->id)?->user?->revealPassword(),
             ],
         ));
 
@@ -141,10 +143,40 @@ class AdminRestaurantController extends ApiController
 
         $status = isset($data['status']) ? RestaurantStatus::from($data['status']) : $restaurant->status;
         $attributes = array_diff_key($data, ['status' => 1]);
+        $saved = $this->admin->setStatus($restaurant, $status, $attributes)->load('mall:id,name,slug');
 
-        return $this->ok(RestaurantResource::make(
-            $this->admin->setStatus($restaurant, $status, $attributes)->load('mall:id,name,slug')
-        )->resolve());
+        if ($request->exists('owner_email') || $request->filled('owner_password')) {
+            $this->updateOwnerAccount($request, $saved);
+        }
+
+        return $this->ok(RestaurantResource::make($saved)->resolve());
+    }
+
+    private function updateOwnerAccount(Request $request, Restaurant $restaurant): void
+    {
+        $owner = $restaurant->owner();
+        if (! $owner) {
+            throw ApiException::invalid('لا يوجد مالك لهذا المطعم', 'OWNER_NOT_FOUND');
+        }
+
+        $account = $request->validate([
+            'owner_email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($owner->id)],
+            'owner_password' => ['sometimes', 'nullable', 'string', 'min:8', 'max:128'],
+        ]);
+
+        if (isset($account['owner_email'])) {
+            $email = strtolower(trim($account['owner_email']));
+            if ($email !== strtolower($owner->email)) {
+                $owner->email = $email;
+                $owner->email_verified_at = now();
+            }
+        }
+
+        if (! empty($account['owner_password'])) {
+            $owner->password = $account['owner_password'];
+        }
+
+        $owner->save();
     }
 
     public function setStatus(Request $request, Restaurant $restaurant): JsonResponse
