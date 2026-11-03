@@ -12,16 +12,18 @@ export function MenuNotFound({
     <div
       dir="rtl"
       lang="ar"
-      className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-zinc-50 px-6 py-16 text-center"
+      className="flex min-h-dvh flex-col items-center bg-zinc-50 px-6 py-16 text-center"
     >
-      <span className="flex size-16 items-center justify-center rounded-2xl bg-zinc-200 text-zinc-600">
-        <UtensilsIcon className="size-8" />
-      </span>
-      <div>
-        <h1 className="text-xl font-bold text-zinc-900">{title}</h1>
-        <p className="mt-2 max-w-sm text-sm text-zinc-500">{description}</p>
+      <div className="flex flex-1 flex-col items-center justify-center gap-4">
+        <span className="flex size-16 items-center justify-center rounded-2xl bg-zinc-200 text-zinc-600">
+          <UtensilsIcon className="size-8" />
+        </span>
+        <div>
+          <h1 className="text-xl font-bold text-zinc-900">{title}</h1>
+          <p className="mt-2 max-w-sm text-sm text-zinc-500">{description}</p>
+        </div>
       </div>
-      <DesignerCredit className="mt-6" />
+      <DesignerCredit />
     </div>
   );
 }

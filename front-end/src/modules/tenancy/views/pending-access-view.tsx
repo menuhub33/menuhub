@@ -10,7 +10,7 @@ export function PendingAccessView({
   restaurant: Restaurant | null;
 }) {
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col items-center justify-center px-4 text-center">
+    <div className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-4 text-center">
       <p className="text-sm font-medium text-teal-700">MenuHub</p>
       <h1 className="mt-3 text-2xl font-bold text-zinc-900">
         {restaurant ? "المطعم بانتظار التفعيل" : "لا يمكن إنشاء الموقع من هنا"}

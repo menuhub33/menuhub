@@ -99,20 +99,24 @@ export function PublicMallView({
     <div
       dir="rtl"
       lang="ar"
-      className="mh-mall min-h-dvh text-[var(--mh-text)] backdrop-blur-md"
+      className="mh-mall flex min-h-dvh flex-col text-[var(--mh-text)]"
       style={
         {
           ["--mh-primary"]: theme.primary_color,
           ["--mh-secondary"]: theme.secondary_color,
           ["--mh-bg"]: MENU_BACKGROUND,
-          backgroundColor: MENU_BACKGROUND,
           ["--mh-text"]: theme.text_color,
           fontFamily: theme.font_family ?? undefined,
         } as CSSProperties
       }
     >
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10 backdrop-blur-md"
+        style={{ backgroundColor: MENU_BACKGROUND }}
+      />
       {theme.custom_css ? <style>{`@scope (.mh-mall) {\n${theme.custom_css}\n}`}</style> : null}
-      <div className="mx-auto w-full max-w-2xl px-4 pt-4 pb-28">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pt-4 pb-28">
         <PublicMenuHero
           restaurant={{
             name: mall.name,
@@ -171,7 +175,7 @@ export function PublicMallView({
             </div>
           )}
         </section>
-        <PublicMenuFooter />
+        <PublicMenuFooter className="mt-auto" />
       </div>
       <PublicMenuBottomNav
         active={navTab}

@@ -8,6 +8,24 @@ function formatCount(value: number): string {
   return new Intl.NumberFormat("ar").format(value);
 }
 
+function NameCountCards({ rows }: { rows: { key: string; label: string; value: number }[] }) {
+  return (
+    <ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+      {rows.map((row) => (
+        <li
+          key={row.key}
+          className="flex min-w-0 items-center justify-between gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1"
+        >
+          <span className="truncate text-xs font-medium text-zinc-800">{row.label}</span>
+          <span className="shrink-0 rounded-md bg-white px-1.5 text-[11px] font-semibold tabular-nums leading-5 text-teal-800">
+            {formatCount(row.value)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function RankedList({
   title,
   emptyTitle,
@@ -19,8 +37,6 @@ function RankedList({
   emptyDescription: string;
   rows: { key: string; label: string; value: number }[];
 }) {
-  const max = Math.max(...rows.map((row) => row.value), 0);
-
   return (
     <Card>
       <CardHeader>
@@ -30,22 +46,7 @@ function RankedList({
         {rows.length === 0 ? (
           <EmptyState title={emptyTitle} description={emptyDescription} icon={<ChartIcon className="size-7" />} />
         ) : (
-          <ul className="grid gap-4">
-            {rows.map((row) => {
-              const percent = max === 0 ? 0 : Math.round((row.value / max) * 100);
-              return (
-                <li key={row.key} className="grid gap-1.5">
-                  <div className="flex items-center justify-between gap-3 text-sm">
-                    <span className="truncate font-medium text-zinc-800">{row.label}</span>
-                    <span className="shrink-0 tabular-nums text-zinc-500">{formatCount(row.value)}</span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
-                    <div className="h-full rounded-full bg-teal-700" style={{ width: `${percent}%` }} />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <NameCountCards rows={rows} />
         )}
       </CardContent>
     </Card>
@@ -183,13 +184,7 @@ export function SearchTerms({ rows }: { rows: { term: string; count: number }[] 
   );
 }
 
-export function QuietProducts({
-  products,
-  remaining,
-}: {
-  products: { id: string; name: string }[];
-  remaining: number;
-}) {
+export function QuietProducts({ products }: { products: { id: string; name: string }[] }) {
   return (
     <Card>
       <CardHeader>
@@ -203,18 +198,9 @@ export function QuietProducts({
             icon={<ChartIcon className="size-7" />}
           />
         ) : (
-          <div className="grid gap-2">
-            <ul className="grid gap-2">
-              {products.map((product) => (
-                <li key={product.id} className="rounded-xl bg-zinc-50 px-3 py-2 text-sm text-zinc-800">
-                  {product.name}
-                </li>
-              ))}
-            </ul>
-            {remaining > 0 ? (
-              <p className="text-xs text-zinc-400">و{formatCount(remaining)} منتجات أخرى بلا مشاهدات.</p>
-            ) : null}
-          </div>
+          <NameCountCards
+            rows={products.map((product) => ({ key: product.id, label: product.name, value: 0 }))}
+          />
         )}
       </CardContent>
     </Card>

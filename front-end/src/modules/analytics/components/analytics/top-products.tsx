@@ -1,9 +1,7 @@
 import { cn } from "@/core/lib/cn";
-import { formatPrice } from "@/core/lib/format";
 import { EmptyState } from "@/core/components/common/empty-state";
 import type { ProductViewStat } from "@/modules/analytics/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/ui/card";
-import { ContentImage } from "@/core/ui/content-image";
 import { ChartIcon } from "@/core/ui/icons";
 
 function formatCount(value: number): string {
@@ -17,8 +15,6 @@ export function TopProducts({
   items: ProductViewStat[];
   className?: string;
 }) {
-  const maxViews = Math.max(...items.map((item) => item.views), 0);
-
   return (
     <Card className={cn(className)}>
       <CardHeader>
@@ -32,47 +28,18 @@ export function TopProducts({
             icon={<ChartIcon className="size-7" />}
           />
         ) : (
-          <ul className="grid gap-4">
-            {items.map((item) => {
-              const percent = maxViews === 0 ? 0 : Math.round((item.views / maxViews) * 100);
-              return (
-                <li key={item.product.id} className="grid gap-2">
-                  <div className="flex items-center gap-3">
-                    <div className="size-11 shrink-0 overflow-hidden rounded-xl bg-zinc-100">
-                      {item.imageUrl ? (
-                        <ContentImage
-                          src={item.imageUrl}
-                          alt=""
-                          sizes="44px"
-                          className="size-full object-cover"
-                        />
-                      ) : (
-                        <span className="flex size-full items-center justify-center text-xs text-zinc-400">
-                          {item.product.name_ar.slice(0, 1)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-zinc-900">
-                        {item.product.name_ar}
-                      </p>
-                      <p className="text-xs text-zinc-500">
-                        {formatPrice(item.product.price, item.product.currency)}
-                      </p>
-                    </div>
-                    <span className="shrink-0 text-sm font-semibold tabular-nums text-teal-800">
-                      {formatCount(item.views)}
-                    </span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
-                    <div
-                      className="h-full rounded-full bg-teal-700 transition-[width]"
-                      style={{ width: `${percent}%` }}
-                    />
-                  </div>
-                </li>
-              );
-            })}
+          <ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+            {items.map((item) => (
+              <li
+                key={item.product.id}
+                className="flex min-w-0 items-center justify-between gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1"
+              >
+                <span className="truncate text-xs font-medium text-zinc-800">{item.product.name_ar}</span>
+                <span className="shrink-0 rounded-md bg-white px-1.5 text-[11px] font-semibold tabular-nums leading-5 text-teal-800">
+                  {formatCount(item.views)}
+                </span>
+              </li>
+            ))}
           </ul>
         )}
       </CardContent>

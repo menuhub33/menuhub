@@ -15,13 +15,13 @@ export function PublicMenuFooter({
   return (
     <footer
       className={cn(
-        "mt-10 border-t border-[var(--mh-text)]/10 px-0 py-8",
+        "border-t border-[var(--mh-text)]/10 px-0 py-8",
         className
       )}
     >
       <div className="grid gap-6">
-        <DesignerCredit onMenu />
         {hasSocial ? <SocialLinks links={socialLinks ?? []} /> : null}
+        <DesignerCredit onMenu />
       </div>
     </footer>
   );

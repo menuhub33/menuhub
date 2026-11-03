@@ -38,7 +38,6 @@ export function AnalyticsOverview({
   categories = [],
   searchTerms = [],
   quietProducts = [],
-  quietRemaining = 0,
   from,
   to,
   onRangeChange,
@@ -62,7 +61,6 @@ export function AnalyticsOverview({
   categories?: { name: string; views: number }[];
   searchTerms?: { term: string; count: number }[];
   quietProducts?: { id: string; name: string }[];
-  quietRemaining?: number;
   from: string;
   to: string;
   onRangeChange: (range: DateRangeValue) => void;
@@ -123,7 +121,7 @@ export function AnalyticsOverview({
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <TopProducts items={topProducts} />
-        <QuietProducts products={quietProducts} remaining={quietRemaining} />
+        <QuietProducts products={quietProducts} />
       </div>
       <DeviceStatistics items={devices} />
     </div>

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-dvh flex-col bg-white">
+    <div className="flex flex-1 flex-col bg-white">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5">
         <Link href="/" className="text-xl font-bold text-teal-800">
           MenuHub

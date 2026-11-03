@@ -1,7 +1,7 @@
 import { cn } from "@/core/lib/cn";
 
 export const DESIGNER = {
-  name: "م.منتصر الحاج عمر",
+  name: "م. منتصر الحاج عمر",
   phone: "+905316924944",
   phoneHref: "tel:+905316924944",
 } as const;
@@ -22,7 +22,7 @@ export function DesignerCredit({
       )}
     >
       برمجة وتطوير <span className="font-semibold">{DESIGNER.name}</span>
-      <span className="px-1">·</span>
+      <span className="px-1">-</span>
       <a
         href={DESIGNER.phoneHref}
         dir="ltr"

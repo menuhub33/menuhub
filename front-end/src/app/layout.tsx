@@ -27,7 +27,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       dir="rtl"
       className={`${expoArabic.variable} ${expoArabic.className} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900">
+      <body className="flex min-h-dvh flex-col bg-zinc-50 text-zinc-900">
         <Providers host={origin.host} protocol={origin.protocol}>
           <div className="flex flex-1 flex-col">{children}</div>
           <SystemDesignerCredit />

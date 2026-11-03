@@ -80,7 +80,7 @@ export function AnalyticsView({
   }
   const topProducts = [...topMap.entries()]
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
+    .slice(0, 10)
     .map(([id, views]) => {
       const product = products.find((item) => item.id === id);
       return product ? { product, views } : null;
@@ -140,7 +140,7 @@ export function AnalyticsView({
   }
   const categories = [...categoryCounts.entries()]
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
+    .slice(0, 10)
     .map(([name, views]) => ({ name, views }));
 
   const searchCounts = new Map<string, number>();
@@ -151,7 +151,7 @@ export function AnalyticsView({
   }
   const searchTerms = [...searchCounts.entries()]
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
+    .slice(0, 10)
     .map(([term, count]) => ({ term, count }));
 
   const quiet = products.filter(
@@ -190,8 +190,7 @@ export function AnalyticsView({
         busiestDay={menuVisits.length > 0 ? WEEKDAYS[busiestDayIndex] : null}
         categories={categories}
         searchTerms={searchTerms}
-        quietProducts={quiet.slice(0, 8).map((product) => ({ id: product.id, name: product.name_ar }))}
-        quietRemaining={Math.max(0, quiet.length - 8)}
+        quietProducts={quiet.slice(0, 10).map((product) => ({ id: product.id, name: product.name_ar }))}
       />
       <p className="text-sm text-zinc-500">الزوار الفريدون في الفترة: {unique}</p>
     </div>

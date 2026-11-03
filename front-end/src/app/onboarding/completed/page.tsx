@@ -7,7 +7,7 @@ export default async function OnboardingCompletedPage() {
   const tenant = await requireRestaurantAccess("/onboarding/completed");
   const url = await currentPublicMenuUrl(tenant.restaurant.slug);
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center px-4 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
       <p className="text-4xl">🎉</p>
       <h1 className="mt-4 text-2xl font-bold">تم إنشاء منيو مطعمك</h1>
       <p className="mt-3 rounded-xl bg-white px-4 py-2 text-sm text-zinc-600" dir="ltr">

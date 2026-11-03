@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { askMenuChat } from "@/modules/chatbot/actions/chat";
 import { formatPrice } from "@/core/lib/format";
 import { cn } from "@/core/lib/cn";
@@ -34,10 +35,30 @@ export function PublicMenuChat({
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [themeStyle, setThemeStyle] = useState<CSSProperties>({});
+  const anchorRef = useRef<HTMLSpanElement>(null);
   const [messages, setMessages] = useState<ChatBubble[]>([
     { role: "assistant", content: welcome, suggestions: SUGGESTIONS },
   ]);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    const parent = anchorRef.current?.parentElement;
+    if (!parent) return;
+    const computed = getComputedStyle(parent);
+    setThemeStyle({
+      ["--mh-primary" as string]: computed.getPropertyValue("--mh-primary"),
+      ["--mh-secondary" as string]: computed.getPropertyValue("--mh-secondary"),
+      ["--mh-bg" as string]: computed.getPropertyValue("--mh-bg"),
+      ["--mh-text" as string]: computed.getPropertyValue("--mh-text"),
+      fontFamily: computed.fontFamily,
+    });
+  }, [mounted]);
 
   useEffect(() => {
     if (!open) return;
@@ -94,18 +115,26 @@ export function PublicMenuChat({
       ? last.suggestions
       : null;
 
+  const launcher =
+    open || !mounted
+      ? null
+      : createPortal(
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label={name}
+            style={themeStyle}
+            className="fixed right-4 z-40 flex size-14 items-center justify-center rounded-full bg-[var(--mh-primary)] text-white shadow-[0_12px_30px_rgba(0,0,0,0.22)] bottom-[calc(5.75rem+env(safe-area-inset-bottom))]"
+          >
+            <BotIcon className="size-7" />
+          </button>,
+          document.body
+        );
+
   return (
     <>
-      {open ? null : (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label={name}
-          className="fixed right-4 z-30 flex size-14 items-center justify-center rounded-full bg-[var(--mh-primary)] text-white shadow-[0_12px_30px_rgba(0,0,0,0.22)] bottom-[calc(5.75rem+env(safe-area-inset-bottom))]"
-        >
-          <BotIcon className="size-7" />
-        </button>
-      )}
+      <span ref={anchorRef} hidden />
+      {launcher}
 
       <PublicSheet
         open={open}

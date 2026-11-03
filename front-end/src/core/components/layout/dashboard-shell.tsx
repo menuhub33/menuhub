@@ -57,7 +57,7 @@ export function DashboardShell({
           <DashboardSidebar restaurant={restaurant} items={items} activeHref={pathname} />
         </div>
       </div>
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
         <DashboardHeader
           profile={profile}
           unreadCount={unreadCount}
@@ -81,7 +81,7 @@ export function DashboardShell({
           <RestaurantSwitcher restaurants={restaurants} currentId={restaurant.id} />
         </div>
         <main className="flex-1 px-4 py-6 pb-24 lg:px-8 lg:pb-8">{children}</main>
-        <DesignerCredit className="px-4 pt-2 pb-24 lg:pb-4" />
+        <DesignerCredit className="mt-auto px-4 pt-2 pb-24 lg:pb-4" />
       </div>
       <DashboardMobileNav
         open={navOpen}

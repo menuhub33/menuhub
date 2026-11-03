@@ -144,7 +144,7 @@ export function AdminShell({
         </div>
         {footer}
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-zinc-200 bg-white/90 px-4 backdrop-blur">
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)} aria-label="فتح القائمة">
             <MenuIcon />
@@ -162,7 +162,7 @@ export function AdminShell({
           </div>
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8">{children}</main>
-        <DesignerCredit className="px-4 py-4" />
+        <DesignerCredit className="mt-auto px-4 py-4" />
       </div>
       <Drawer open={open} onOpenChange={setOpen} title="القائمة" side="start">
         <AdminNav pathname={pathname} items={items} onNavigate={() => setOpen(false)} />
