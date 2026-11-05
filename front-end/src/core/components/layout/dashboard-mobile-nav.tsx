@@ -8,18 +8,15 @@ import {
   DashboardSidebar,
 } from "@/core/components/layout/dashboard-sidebar";
 import type { NavItem } from "@/core/lib/types";
-import type { Restaurant } from "@/modules/tenancy/types";
 
 export function DashboardMobileNav({
   open,
   onOpenChange,
-  restaurant,
   items = DEFAULT_DASHBOARD_NAV,
   activeHref,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  restaurant?: Pick<Restaurant, "name" | "logo_url" | "slug">;
   items?: NavItem[];
   activeHref?: string;
 }) {
@@ -27,7 +24,6 @@ export function DashboardMobileNav({
     <>
       <Drawer open={open} onOpenChange={onOpenChange} title="القائمة" side="start">
         <DashboardSidebar
-          restaurant={restaurant}
           items={items}
           activeHref={activeHref}
           className="flex h-auto w-full border-e-0 lg:flex"

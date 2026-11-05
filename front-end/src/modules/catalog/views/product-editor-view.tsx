@@ -56,6 +56,7 @@ export function ProductEditorView({
           currency: values.currency,
           sort_order: values.sort_order,
           is_featured: values.is_featured,
+          stock_quantity: values.stock_quantity,
         });
     if (result.error || !result.data) {
       setLoading(false);

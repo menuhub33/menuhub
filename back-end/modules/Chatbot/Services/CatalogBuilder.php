@@ -35,7 +35,7 @@ class CatalogBuilder
                     'description_en' => $product['description_en'],
                     'price' => (float) $product['price'],
                     'currency' => $product['currency'],
-                    'status' => $product['status'],
+                    'status' => $this->availability($product),
                     'is_featured' => (bool) $product['is_featured'],
                     'old_price' => $product['old_price'],
                     'image_url' => $primary['image_url'] ?? null,
@@ -89,5 +89,17 @@ class CatalogBuilder
     private function time(?string $time): string
     {
         return $time ? substr($time, 0, 5) : '؟';
+    }
+
+    /** A tracked product with nothing left is unavailable, while a manual hide stays hidden. */
+    private function availability(array $product): string
+    {
+        $status = (string) ($product['status'] ?? 'AVAILABLE');
+        $stock = $product['stock_quantity'] ?? null;
+        if ($status === 'AVAILABLE' && $stock !== null && (int) $stock <= 0) {
+            return 'UNAVAILABLE';
+        }
+
+        return $status;
     }
 }

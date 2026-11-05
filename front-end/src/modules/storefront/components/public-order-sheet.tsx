@@ -20,10 +20,10 @@ import { isVenueBusiness, normalizeBusinessType, orderTypeCopy } from "@/modules
 import { toWhatsAppNumber } from "@/core/lib/phone";
 import {
   buildWhatsAppInvoice,
-  createInvoiceNumber,
   openWhatsAppInvoice,
   type OrderDeliveryType,
 } from "@/modules/storefront/lib/order-invoice";
+import { placePublicOrder } from "@/modules/orders/actions/orders";
 import type { Branch } from "@/modules/operations/types";
 import type { Restaurant } from "@/modules/tenancy/types";
 
@@ -37,6 +37,7 @@ export function PublicOrderSheet({
   items,
   menuUrl,
   onBack,
+  onPlaced,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -45,6 +46,7 @@ export function PublicOrderSheet({
   items: PublicCartItem[];
   menuUrl?: string;
   onBack: () => void;
+  onPlaced?: () => void;
 }) {
   const businessType = normalizeBusinessType(restaurant.business_type);
   const copy = orderTypeCopy(businessType);
@@ -71,6 +73,7 @@ export function PublicOrderSheet({
   const [tableNumber, setTableNumber] = useState("");
   const [chosenBranchId, setChosenBranchId] = useState("");
   const [showQr, setShowQr] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const branchOptions = useMemo(() => {
@@ -132,7 +135,7 @@ export function PublicOrderSheet({
     ? `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(menuUrl)}`
     : null;
 
-  function sendWhatsApp() {
+  async function sendWhatsApp() {
     if (!wa) {
       setError("أضف رقم واتساب للمنيو من الإعدادات في لوحة التحكم.");
       return;
@@ -154,7 +157,27 @@ export function PublicOrderSheet({
       return;
     }
 
+    setSending(true);
     setError(null);
+    const placed = await placePublicOrder(restaurant.slug, {
+      delivery_type: deliveryType,
+      branch_name: selectedBranch?.name,
+      table_number: deliveryType === "dine_in" ? tableNumber.trim() : null,
+      address: deliveryType === "delivery" ? address.trim() : null,
+      latitude: deliveryType === "delivery" ? location?.latitude : null,
+      longitude: deliveryType === "delivery" ? location?.longitude : null,
+      items: items.map((item) => ({
+        product_id: item.product.id,
+        quantity: item.quantity,
+        extra: item.extra,
+      })),
+    });
+    setSending(false);
+    if (placed.error || !placed.data) {
+      setError(placed.error ?? "تعذر تسجيل الطلب");
+      return;
+    }
+
     const text = buildWhatsAppInvoice({
       restaurantName: restaurant.name,
       items,
@@ -163,10 +186,11 @@ export function PublicOrderSheet({
       location,
       branchName: selectedBranch?.name,
       tableNumber,
-      invoiceNumber: createInvoiceNumber(),
+      invoiceNumber: placed.data.number,
       businessType,
     });
     openWhatsAppInvoice(wa, text);
+    onPlaced?.();
   }
 
   return (
@@ -189,10 +213,11 @@ export function PublicOrderSheet({
             <button
               type="button"
               onClick={sendWhatsApp}
-              className="flex h-12 flex-[2] items-center justify-center gap-2 rounded-xl bg-emerald-500 text-sm font-bold text-white"
+              disabled={sending}
+              className="flex h-12 flex-[2] items-center justify-center gap-2 rounded-xl bg-emerald-500 text-sm font-bold text-white disabled:opacity-60"
             >
               <WhatsAppIcon className="size-5" />
-              اطلب عبر واتساب
+              {sending ? "جارٍ تسجيل الطلب..." : "اطلب عبر واتساب"}
             </button>
             <button
               type="button"

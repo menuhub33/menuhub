@@ -7,6 +7,7 @@ import { ProductAvailabilityToggle } from "@/modules/catalog/components/products
 import { getProductPrimaryImage, ProductCard } from "@/modules/catalog/components/products/product-card";
 import { ProductPrice } from "@/modules/catalog/components/products/product-price";
 import { ProductStatusBadge } from "@/modules/catalog/components/products/product-status-badge";
+import { stockLabel } from "@/modules/catalog/lib/stock";
 import { ProductVisibilityToggle } from "@/modules/catalog/components/products/product-visibility-toggle";
 import { Card } from "@/core/ui/card";
 import { ContentImage } from "@/core/ui/content-image";
@@ -105,6 +106,9 @@ export function ProductTable({
                         old_price={product.old_price}
                         currency={product.currency}
                       />
+                      {stockLabel(product) ? (
+                        <p className="mt-1 text-xs text-zinc-500">{stockLabel(product)}</p>
+                      ) : null}
                     </TableCell>
                     <TableCell>
                       <div className="grid gap-2">

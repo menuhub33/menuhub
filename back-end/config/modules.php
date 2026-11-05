@@ -23,6 +23,7 @@ return [
         'Audit',
         'Notifications',
         'Catalog',
+        'Orders',
         'Theming',
         'Operations',
         'Media',

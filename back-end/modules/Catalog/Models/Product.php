@@ -29,6 +29,7 @@ class Product extends BaseModel
             'old_price' => 'decimal:2',
             'sort_order' => 'integer',
             'is_featured' => 'boolean',
+            'stock_quantity' => 'integer',
             'status' => ProductStatus::class,
         ];
     }

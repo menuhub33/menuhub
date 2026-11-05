@@ -19,6 +19,7 @@ import { Select } from "@/core/ui/select";
 import { Textarea } from "@/core/ui/textarea";
 import type { Category, ProductStatus } from "@/modules/catalog/types";
 import { discountPercent } from "@/modules/catalog/lib/merchandising";
+import { stockLabel } from "@/modules/catalog/lib/stock";
 
 export type ProductFormValues = {
   name_ar: string;
@@ -31,6 +32,7 @@ export type ProductFormValues = {
   category_id: string;
   status: ProductStatus;
   is_featured: boolean;
+  stock_quantity: number | null;
   sort_order: number;
   images: ProductGalleryItem[];
 };
@@ -46,11 +48,12 @@ type Draft = {
   category_id: string;
   status: ProductStatus;
   is_featured: boolean;
+  stock_quantity: string;
   sort_order: string;
   images: ProductGalleryItem[];
 };
 
-type FieldKey = "name_ar" | "price" | "category_id" | "old_price" | "sort_order";
+type FieldKey = "name_ar" | "price" | "category_id" | "old_price" | "sort_order" | "stock_quantity";
 
 const STATUS_OPTIONS: { value: ProductStatus; label: string }[] = [
   { value: "AVAILABLE", label: PRODUCT_STATUS_LABELS.AVAILABLE },
@@ -70,6 +73,7 @@ function emptyDraft(currency: string, categoryId: string): Draft {
     category_id: categoryId,
     status: "AVAILABLE",
     is_featured: false,
+    stock_quantity: "",
     sort_order: "0",
     images: [],
   };
@@ -92,6 +96,7 @@ function fromProduct(
     category_id: product.category_id,
     status: product.status,
     is_featured: product.is_featured,
+    stock_quantity: product.stock_quantity != null ? String(product.stock_quantity) : "",
     sort_order: String(product.sort_order),
     images: (product.images ?? []).map((image) => ({
       id: image.id,
@@ -154,6 +159,12 @@ export function ProductForm({
   );
   const previewPrice = Number(values.price);
   const previewOldPrice = parseAmount(values.old_price);
+  const previewStock = /^\d+$/.test(values.stock_quantity.trim())
+    ? Number.parseInt(values.stock_quantity.trim(), 10)
+    : null;
+  const previewStatus: ProductStatus =
+    values.status === "AVAILABLE" && previewStock === 0 ? "UNAVAILABLE" : values.status;
+  const previewStockLabel = stockLabel({ stock_quantity: previewStock });
 
   function isFieldKey(key: keyof Draft): key is FieldKey {
     return (
@@ -161,7 +172,8 @@ export function ProductForm({
       key === "price" ||
       key === "category_id" ||
       key === "old_price" ||
-      key === "sort_order"
+      key === "sort_order" ||
+      key === "stock_quantity"
     );
   }
 
@@ -204,6 +216,16 @@ export function ProductForm({
     const sortOrder = Number.parseInt(values.sort_order || "0", 10);
     if (!Number.isFinite(sortOrder)) nextErrors.sort_order = "ترتيب العرض يجب أن يكون رقمًا";
 
+    let stockQuantity: number | null = null;
+    if (values.stock_quantity.trim()) {
+      if (!/^\d+$/.test(values.stock_quantity.trim())) {
+        nextErrors.stock_quantity = "أدخل عدداً صحيحاً من صفر أو أكثر";
+      } else {
+        stockQuantity = Number.parseInt(values.stock_quantity.trim(), 10);
+        if (stockQuantity > 1000000) nextErrors.stock_quantity = "الكمية كبيرة جداً";
+      }
+    }
+
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0 || price == null || Number.isNaN(price)) return null;
 
@@ -218,6 +240,7 @@ export function ProductForm({
       category_id: values.category_id,
       status: values.status,
       is_featured: values.is_featured,
+      stock_quantity: stockQuantity,
       sort_order: Number.isFinite(sortOrder) ? sortOrder : 0,
       images: values.images,
     };
@@ -318,7 +341,7 @@ export function ProductForm({
           </FormField>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <FormField label="التصنيف" htmlFor="category_id" required error={fieldErrors.category_id}>
             <Select
               id="category_id"
@@ -337,6 +360,23 @@ export function ProductForm({
               value={values.status}
               onChange={(value) => update("status", value as ProductStatus)}
               options={STATUS_OPTIONS}
+            />
+          </FormField>
+          <FormField
+            label="الكمية المتوفرة"
+            htmlFor="stock_quantity"
+            hint="فارغ يعني بدون حد. الصفر يظهر غير متوفر في المنيو"
+            error={fieldErrors.stock_quantity}
+          >
+            <Input
+              id="stock_quantity"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              step={1}
+              value={values.stock_quantity}
+              invalid={Boolean(fieldErrors.stock_quantity)}
+              onChange={(event) => update("stock_quantity", event.target.value)}
             />
           </FormField>
           <FormField label="ترتيب العرض" htmlFor="sort_order" error={fieldErrors.sort_order}>
@@ -467,7 +507,7 @@ export function ProductForm({
                   </p>
                 ) : null}
               </div>
-              <ProductStatusBadge status={values.status} />
+              <ProductStatusBadge status={previewStatus} />
             </div>
             {Number.isFinite(previewPrice) && values.price !== "" ? (
               <ProductPrice
@@ -478,6 +518,9 @@ export function ProductForm({
             ) : (
               <p className="text-sm text-zinc-400">السعر</p>
             )}
+            {previewStockLabel ? (
+              <p className="text-xs text-zinc-500">{previewStockLabel}</p>
+            ) : null}
           </div>
         </Card>
       </aside>

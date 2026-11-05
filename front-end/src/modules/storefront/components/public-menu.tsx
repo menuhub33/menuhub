@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/core/lib/cn";
 import { hasDiscount } from "@/modules/catalog/lib/merchandising";
+import { stockCap } from "@/modules/catalog/lib/stock";
 import type { CategoryWithProducts, ProductWithRelations } from "@/modules/catalog/types";
 import type { PublicMenuData } from "@/modules/storefront/types";
 import { PublicMenuBottomNav, type PublicMenuTab } from "@/modules/storefront/components/public-menu-bottom-nav";
@@ -180,15 +181,20 @@ export function PublicMenu({
   const theme = data.theme ?? FALLBACK_THEME;
 
   function setQuantity(productId: string, next: number) {
+    const product = categories
+      .flatMap((category) => category.products ?? [])
+      .find((item) => item.id === productId);
+    const cap = product ? stockCap(product) : undefined;
+    const limited = cap == null ? next : Math.min(next, cap);
     setQuantities((current) => {
-      if (next <= 0) {
+      if (limited <= 0) {
         const rest = { ...current };
         delete rest[productId];
         return rest;
       }
-      return { ...current, [productId]: next };
+      return { ...current, [productId]: limited };
     });
-    if (next <= 0) {
+    if (limited <= 0) {
       setExtras((current) => {
         const rest = { ...current };
         delete rest[productId];
@@ -399,6 +405,11 @@ export function PublicMenu({
         onBack={() => {
           setOrderOpen(false);
           setCartOpen(true);
+        }}
+        onPlaced={() => {
+          clearCart();
+          setOrderOpen(false);
+          setNavTab(selectedCategoryId === ALL_CATEGORIES_ID ? "home" : "categories");
         }}
       />
 

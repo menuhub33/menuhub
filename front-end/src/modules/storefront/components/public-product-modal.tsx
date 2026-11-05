@@ -11,8 +11,16 @@ import type { ProductWithRelations } from "@/modules/catalog/types";
 import { PublicOptionSelector } from "@/modules/storefront/components/public-option-selector";
 import { PublicProductBadges } from "@/modules/storefront/components/public-product-badges";
 import { discountPercent } from "@/modules/catalog/lib/merchandising";
+import { isShownUnavailable, stockCap } from "@/modules/catalog/lib/stock";
 import { PublicQtyStepper } from "@/modules/storefront/components/public-qty-stepper";
 import { PublicSheet } from "@/modules/storefront/components/public-sheet";
+
+function openingQuantity(product: ProductWithRelations | null, initialQuantity: number) {
+  const cap = product ? stockCap(product) : undefined;
+  const start = Math.max(1, initialQuantity);
+  if (cap == null) return start;
+  return Math.min(start, Math.max(cap, 1));
+}
 
 function sortedImages(product: ProductWithRelations) {
   return [...(product.images ?? [])].sort((a, b) => {
@@ -45,11 +53,12 @@ export function PublicProductModal({
     setShownProductId(product.id);
     setActiveIndex(0);
     setExtra(0);
-    setQuantity(Math.max(1, initialQuantity));
+    setQuantity(openingQuantity(product, initialQuantity));
   }
 
   const images = useMemo(() => (product ? sortedImages(product) : []), [product]);
-  const unavailable = product?.status === "UNAVAILABLE";
+  const unavailable = product ? isShownUnavailable(product) : false;
+  const cap = product ? stockCap(product) : undefined;
   const groups = product?.option_groups ?? [];
   const oldPrice = product?.old_price;
   const showOldPrice = oldPrice != null && product != null && oldPrice > product.price;
@@ -188,6 +197,7 @@ export function PublicProductModal({
             <PublicQtyStepper
               variant="gold"
               value={quantity}
+              max={cap}
               onChange={setQuantity}
               disabled={unavailable}
             />

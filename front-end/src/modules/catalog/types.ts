@@ -44,6 +44,7 @@ export type Product = {
   sort_order: number;
   status: ProductStatus;
   is_featured: boolean;
+  stock_quantity: number | null;
   created_at: string;
   updated_at: string;
 };

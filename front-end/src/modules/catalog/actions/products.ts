@@ -16,6 +16,7 @@ export type CreateProductInput = {
   currency?: string;
   sort_order?: number;
   is_featured?: boolean;
+  stock_quantity?: number | null;
 };
 
 export async function createProduct(
@@ -26,6 +27,12 @@ export async function createProduct(
   if (input.price == null || input.price < 0) return fail("السعر يجب أن يكون صفراً أو أكبر");
   if (input.old_price != null && input.old_price <= input.price) {
     return fail("السعر قبل الحسم يجب أن يكون أكبر من السعر الحالي");
+  }
+  if (
+    input.stock_quantity != null &&
+    (!Number.isInteger(input.stock_quantity) || input.stock_quantity < 0)
+  ) {
+    return fail("الكمية يجب أن تكون رقماً صحيحاً من صفر أو أكثر");
   }
 
   return run(async () => {
@@ -49,6 +56,7 @@ export type UpdateProductInput = {
   currency?: string;
   sort_order?: number;
   is_featured?: boolean;
+  stock_quantity?: number | null;
   status?: Product["status"];
 };
 
@@ -62,6 +70,12 @@ export async function updateProduct(
   }
   if (changes.price !== undefined && changes.price < 0) {
     return fail("السعر يجب أن يكون صفراً أو أكبر");
+  }
+  if (
+    changes.stock_quantity != null &&
+    (!Number.isInteger(changes.stock_quantity) || changes.stock_quantity < 0)
+  ) {
+    return fail("الكمية يجب أن تكون رقماً صحيحاً من صفر أو أكثر");
   }
 
   return run(async () => {

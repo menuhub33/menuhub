@@ -9,9 +9,11 @@ import { BrandMark } from "@/core/components/layout/brand-mark";
 import { NotificationBell } from "@/modules/notifications/components/notification-bell";
 import type { Notification } from "@/modules/notifications/types";
 import type { Profile } from "@/modules/auth/types";
+import type { Restaurant } from "@/modules/tenancy/types";
 
 export function DashboardHeader({
   profile,
+  restaurant,
   unreadCount = 0,
   notifications = [],
   onOpenNav,
@@ -21,6 +23,7 @@ export function DashboardHeader({
   onOpenNotifications,
 }: {
   profile?: Pick<Profile, "full_name" | "avatar_url">;
+  restaurant?: Pick<Restaurant, "name" | "slug">;
   unreadCount?: number;
   notifications?: Notification[];
   onOpenNav?: () => void;
@@ -46,7 +49,17 @@ export function DashboardHeader({
       <Button variant="ghost" size="icon" className="lg:hidden" onClick={onOpenNav} aria-label="فتح القائمة">
         <MenuIcon />
       </Button>
-      <BrandMark href="/dashboard" compact className="w-28 lg:hidden" />
+      <BrandMark href="/dashboard" compact className="w-24 shrink-0" />
+      {restaurant ? (
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold leading-5 text-zinc-900">{restaurant.name}</p>
+          {restaurant.slug ? (
+            <p className="truncate text-xs leading-4 text-zinc-500" dir="ltr">
+              {restaurant.slug}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       <div className="ms-auto flex items-center gap-2">
         <NotificationBell
           unreadCount={unreadCount}

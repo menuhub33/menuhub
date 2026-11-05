@@ -54,12 +54,13 @@ export function DashboardShell({
     <div className="flex min-h-dvh bg-zinc-50">
       <div className="hidden lg:block">
         <div className="sticky top-0 h-dvh">
-          <DashboardSidebar restaurant={restaurant} items={items} activeHref={pathname} />
+          <DashboardSidebar items={items} activeHref={pathname} />
         </div>
       </div>
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
         <DashboardHeader
           profile={profile}
+          restaurant={restaurant}
           unreadCount={unreadCount}
           notifications={notifications}
           onOpenNav={() => setNavOpen(true)}
@@ -86,7 +87,6 @@ export function DashboardShell({
       <DashboardMobileNav
         open={navOpen}
         onOpenChange={setNavOpen}
-        restaurant={restaurant}
         items={items}
         activeHref={pathname}
       />

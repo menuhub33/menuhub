@@ -22,6 +22,8 @@ export type Permission =
   | "products.update"
   | "products.delete"
   | "products.availability"
+  | "orders.view"
+  | "orders.manage"
   | "options.manage"
   | "design.update"
   | "qr.manage"
@@ -47,6 +49,8 @@ const OWNER: Permission[] = [
   "products.update",
   "products.delete",
   "products.availability",
+  "orders.view",
+  "orders.manage",
   "options.manage",
   "design.update",
   "qr.manage",
@@ -73,6 +77,8 @@ const MANAGER: Permission[] = [
   "products.update",
   "products.delete",
   "products.availability",
+  "orders.view",
+  "orders.manage",
   "options.manage",
   "analytics.view",
   "audit.view",

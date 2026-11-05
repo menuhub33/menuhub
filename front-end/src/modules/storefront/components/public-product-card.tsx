@@ -5,6 +5,7 @@ import type { ProductWithRelations } from "@/modules/catalog/types";
 import { productPrimaryImageUrl } from "@/modules/storefront/components/product-image";
 import { PublicProductBadges } from "@/modules/storefront/components/public-product-badges";
 import { PublicQtyStepper } from "@/modules/storefront/components/public-qty-stepper";
+import { isShownUnavailable, stockCap, stockLabel } from "@/modules/catalog/lib/stock";
 import { ContentImage } from "@/core/ui/content-image";
 import { ImageIcon } from "@/core/ui/icons";
 
@@ -21,7 +22,9 @@ export function PublicProductCard({
   onQuantityChange?: (next: number) => void;
   className?: string;
 }) {
-  const unavailable = product.status === "UNAVAILABLE";
+  const unavailable = isShownUnavailable(product);
+  const cap = stockCap(product);
+  const remaining = stockLabel(product);
   const imageUrl = productPrimaryImageUrl(product);
   const oldPrice = product.old_price;
   const showOldPrice = oldPrice != null && oldPrice > product.price;
@@ -75,11 +78,15 @@ export function PublicProductCard({
               {formatPrice(oldPrice, product.currency)}
             </p>
           ) : null}
+          {remaining && !unavailable ? (
+            <p className="text-[10px] text-zinc-500">{remaining}</p>
+          ) : null}
         </div>
         {onQuantityChange ? (
           <PublicQtyStepper
             value={quantity}
             onChange={onQuantityChange}
+            max={cap}
             disabled={unavailable}
           />
         ) : null}

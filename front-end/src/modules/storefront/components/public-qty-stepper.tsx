@@ -7,12 +7,14 @@ export function PublicQtyStepper({
   value,
   onChange,
   disabled = false,
+  max,
   variant = "compact",
   className,
 }: {
   value: number;
   onChange: (next: number) => void;
   disabled?: boolean;
+  max?: number;
   variant?: "compact" | "gold" | "cart";
   className?: string;
 }) {
@@ -60,7 +62,7 @@ export function PublicQtyStepper({
       <button
         type="button"
         aria-label="زيادة الكمية"
-        disabled={disabled}
+        disabled={disabled || (max != null && value >= max)}
         className={cn(
           "flex items-center justify-center disabled:opacity-30",
           gold
@@ -71,7 +73,7 @@ export function PublicQtyStepper({
         )}
         onClick={(event) => {
           event.stopPropagation();
-          onChange(value + 1);
+          onChange(max != null ? Math.min(max, value + 1) : value + 1);
         }}
       >
         <PlusIcon className={gold ? "size-4" : "size-3.5"} />

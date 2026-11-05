@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 import { BrandMark } from "@/core/components/layout/brand-mark";
 import { cn } from "@/core/lib/cn";
-import { Avatar } from "@/core/ui/avatar";
 import {
+  BuildingIcon,
   ChartIcon,
   ChevronDownIcon,
+  ClipboardIcon,
   HomeIcon,
   LayoutIcon,
   PaletteIcon,
@@ -15,14 +16,13 @@ import {
   SettingsIcon,
   UsersIcon,
   UtensilsIcon,
-  BuildingIcon,
 } from "@/core/ui/icons";
 import type { NavItem } from "@/core/lib/types";
-import type { Restaurant } from "@/modules/tenancy/types";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   home: HomeIcon,
   menu: UtensilsIcon,
+  orders: ClipboardIcon,
   layout: LayoutIcon,
   theme: PaletteIcon,
   qr: QrIcon,
@@ -44,6 +44,7 @@ export const DEFAULT_DASHBOARD_NAV: NavItem[] = [
       { href: "/dashboard/menu/options", label: "الإضافات" },
     ],
   },
+  { href: "/dashboard/orders", label: "الطلبات", icon: "orders", permission: "orders.view" },
   { href: "/dashboard/design", label: "التصميم", icon: "theme", permission: "design.update" },
   { href: "/dashboard/qr", label: "QR Code", icon: "qr", permission: "qr.manage" },
   { href: "/dashboard/analytics", label: "الإحصائيات", icon: "analytics", permission: "analytics.view" },
@@ -59,12 +60,10 @@ function isActive(href: string, activeHref?: string) {
 }
 
 export function DashboardSidebar({
-  restaurant,
   items = DEFAULT_DASHBOARD_NAV,
   activeHref,
   className,
 }: {
-  restaurant?: Pick<Restaurant, "name" | "logo_url" | "slug">;
   items?: NavItem[];
   activeHref?: string;
   className?: string;
@@ -76,21 +75,9 @@ export function DashboardSidebar({
         className
       )}
     >
-      <div className="border-b border-zinc-100 px-4 pt-4">
+      <div className="px-4 py-4">
         <BrandMark href="/dashboard" />
-      </div>
-      <div className="flex items-center gap-3 border-b border-zinc-100 px-4 py-4">
-        <Avatar src={restaurant?.logo_url} alt={restaurant?.name ?? "MenuHub"} fallback="MH" />
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-zinc-900">
-            {restaurant?.name ?? "MenuHub"}
-          </p>
-          {restaurant?.slug ? (
-            <p className="truncate text-xs text-zinc-500" dir="ltr">
-              {restaurant.slug}
-            </p>
-          ) : null}
-        </div>
+        <p className="mt-1 text-center text-xs font-medium text-zinc-400">لوحة المنيو</p>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {items.map((item) => (

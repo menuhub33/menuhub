@@ -3,6 +3,7 @@
 import { formatPrice } from "@/core/lib/format";
 import type { ProductWithRelations } from "@/modules/catalog/types";
 import { PublicQtyStepper } from "@/modules/storefront/components/public-qty-stepper";
+import { stockCap } from "@/modules/catalog/lib/stock";
 import { PublicSheet } from "@/modules/storefront/components/public-sheet";
 import { CartIcon, TrashIcon, UtensilsIcon } from "@/core/ui/icons";
 
@@ -87,6 +88,7 @@ export function PublicCartSheet({
                 <PublicQtyStepper
                   variant="cart"
                   value={quantity}
+                  max={stockCap(product)}
                   onChange={(next) => onQuantityChange(product.id, next)}
                 />
                 <button

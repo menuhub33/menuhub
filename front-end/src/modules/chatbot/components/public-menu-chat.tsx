@@ -121,12 +121,18 @@ export function PublicMenuChat({
       : createPortal(
           <button
             type="button"
+            dir="rtl"
             onClick={() => setOpen(true)}
-            aria-label={name}
+            aria-label={`${name}: اسألني وأساعدك تختار`}
             style={themeStyle}
-            className="fixed right-4 z-40 flex size-14 items-center justify-center rounded-full bg-[var(--mh-primary)] text-white shadow-[0_12px_30px_rgba(0,0,0,0.22)] bottom-[calc(5.75rem+env(safe-area-inset-bottom))]"
+            className="fixed right-4 z-40 flex max-w-[calc(100vw-2rem)] items-center gap-2 bg-transparent bottom-[calc(5.75rem+env(safe-area-inset-bottom))]"
           >
-            <BotIcon className="size-7" />
+            <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[var(--mh-primary)] text-white shadow-[0_12px_30px_rgba(0,0,0,0.22)]">
+              <BotIcon className="size-7" />
+            </span>
+            <span className="text-start text-sm font-semibold leading-5 text-[var(--mh-primary)]">
+              اسألني وأساعدك تختار
+            </span>
           </button>,
           document.body
         );

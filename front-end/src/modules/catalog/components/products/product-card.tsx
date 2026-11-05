@@ -6,6 +6,7 @@ import { ProductActions } from "@/modules/catalog/components/products/product-ac
 import { ProductAvailabilityToggle } from "@/modules/catalog/components/products/product-availability-toggle";
 import { ProductPrice } from "@/modules/catalog/components/products/product-price";
 import { ProductStatusBadge } from "@/modules/catalog/components/products/product-status-badge";
+import { stockLabel } from "@/modules/catalog/lib/stock";
 import { ProductVisibilityToggle } from "@/modules/catalog/components/products/product-visibility-toggle";
 import { Card } from "@/core/ui/card";
 import { ContentImage } from "@/core/ui/content-image";
@@ -91,6 +92,9 @@ export function ProductCard({
           <ProductStatusBadge status={product.status} />
         </div>
         <ProductPrice price={product.price} old_price={product.old_price} currency={product.currency} />
+        {stockLabel(product) ? (
+          <p className="text-xs text-zinc-500">{stockLabel(product)}</p>
+        ) : null}
         {showToggles ? (
           <div className="flex flex-wrap items-center gap-3 border-t border-zinc-100 pt-3">
             {onToggleAvailability ? (
