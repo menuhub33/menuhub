@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "@/core/lib/cn";
-import { CartIcon, GridFourIcon, HomeIcon, UndoIcon } from "@/core/ui/icons";
+import { AlertCircleIcon, CartIcon, GridFourIcon, HomeIcon, UndoIcon } from "@/core/ui/icons";
 
-export type PublicMenuTab = "home" | "cart" | "categories";
+export type PublicMenuTab = "home" | "cart" | "categories" | "complaints";
 
 export function PublicMenuBottomNav({
   active,
@@ -11,6 +11,7 @@ export function PublicMenuBottomNav({
   onHome,
   onCart,
   onCategories,
+  onComplaints,
   onBack,
   hideCart = false,
 }: {
@@ -19,22 +20,31 @@ export function PublicMenuBottomNav({
   onHome: () => void;
   onCart?: () => void;
   onCategories: () => void;
+  onComplaints?: () => void;
   onBack: () => void;
   hideCart?: boolean;
 }) {
   const items = [
     { id: "home" as const, label: "الرئيسية", icon: HomeIcon, onClick: onHome },
     { id: "cart" as const, label: "السلة", icon: CartIcon, onClick: onCart, badge: cartCount },
+    { id: "complaints" as const, label: "شكاوي", icon: AlertCircleIcon, onClick: onComplaints },
     { id: "categories" as const, label: "التصنيفات", icon: GridFourIcon, onClick: onCategories },
     { id: "back" as const, label: "رجوع", icon: UndoIcon, onClick: onBack },
-  ].filter((item) => !(hideCart && item.id === "cart"));
+  ].filter((item) => {
+    if (hideCart && item.id === "cart") return false;
+    if (!onComplaints && item.id === "complaints") return false;
+    return true;
+  });
+
+  const columns =
+    items.length >= 5 ? "grid-cols-5" : items.length === 4 ? "grid-cols-4" : "grid-cols-3";
 
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--mh-text)]/8 bg-[var(--mh-bg)]/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] backdrop-blur-md"
       aria-label="التنقل"
     >
-      <ul className={cn("mx-auto grid max-w-2xl px-2 pt-2 pb-2", hideCart ? "grid-cols-3" : "grid-cols-4")}>
+      <ul className={cn("mx-auto grid max-w-2xl px-2 pt-2 pb-2", columns)}>
         {items.map((item) => {
           const Icon = item.icon;
           const current = item.id !== "back" && item.id === active;
@@ -50,7 +60,7 @@ export function PublicMenuBottomNav({
               >
                 <span className="relative">
                   <Icon className="size-5" />
-                  {item.badge ? (
+                  {"badge" in item && item.badge ? (
                     <span
                       lang="en"
                       dir="ltr"

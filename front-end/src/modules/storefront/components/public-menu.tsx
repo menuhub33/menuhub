@@ -8,6 +8,7 @@ import type { CategoryWithProducts, ProductWithRelations } from "@/modules/catal
 import type { PublicMenuData } from "@/modules/storefront/types";
 import { PublicMenuBottomNav, type PublicMenuTab } from "@/modules/storefront/components/public-menu-bottom-nav";
 import { PublicMenuFooter } from "@/modules/storefront/components/public-menu-footer";
+import { OrderComplaintSheet } from "@/modules/storefront/components/order-complaint-sheet";
 import { PublicMenuHero } from "@/modules/storefront/components/public-menu-hero";
 import {
   ALL_CATEGORIES_ID,
@@ -118,6 +119,7 @@ export function PublicMenu({
   const [extras, setExtras] = useState<Record<string, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
+  const [complaintOpen, setComplaintOpen] = useState(false);
   const [openProduct, setOpenProduct] = useState<ProductWithRelations | null>(null);
   const [navTab, setNavTab] = useState<PublicMenuTab>("home");
   const [collection, setCollection] = useState<MenuCollection | null>(null);
@@ -363,14 +365,30 @@ export function PublicMenu({
       <PublicMenuBottomNav
         active={navTab}
         cartCount={cartCount}
-        onHome={goHome}
+        onHome={() => {
+          setComplaintOpen(false);
+          goHome();
+        }}
         onCart={() => {
+          setComplaintOpen(false);
           setNavTab("cart");
           setOrderOpen(false);
           setCartOpen(true);
         }}
-        onCategories={goCategories}
-        onBack={goBack}
+        onCategories={() => {
+          setComplaintOpen(false);
+          goCategories();
+        }}
+        onComplaints={() => {
+          setCartOpen(false);
+          setOrderOpen(false);
+          setNavTab("complaints");
+          setComplaintOpen(true);
+        }}
+        onBack={() => {
+          setComplaintOpen(false);
+          goBack();
+        }}
       />
 
       <PublicCartSheet
@@ -411,6 +429,17 @@ export function PublicMenu({
           setOrderOpen(false);
           setNavTab(selectedCategoryId === ALL_CATEGORIES_ID ? "home" : "categories");
         }}
+      />
+
+      <OrderComplaintSheet
+        open={complaintOpen}
+        onOpenChange={(open) => {
+          setComplaintOpen(open);
+          if (!open && navTab === "complaints") {
+            setNavTab(selectedCategoryId === ALL_CATEGORIES_ID ? "home" : "categories");
+          }
+        }}
+        slug={data.restaurant.slug}
       />
 
       <PublicProductModal

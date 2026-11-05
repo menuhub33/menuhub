@@ -15,6 +15,7 @@ import { cn } from "@/core/lib/cn";
 import { Button } from "@/core/ui/button";
 import { Drawer } from "@/core/ui/drawer";
 import {
+  AlertCircleIcon,
   BuildingIcon,
   CreditCardIcon,
   HomeIcon,
@@ -37,6 +38,7 @@ const PLATFORM_NAV = [
 const MALL_NAV = [
   { href: "/admin", label: "الرئيسية", icon: HomeIcon, exact: true },
   { href: "/admin/restaurants", label: "المحلات", icon: BuildingIcon },
+  { href: "/admin/complaints", label: "الشكاوي", icon: AlertCircleIcon },
   { href: "/admin/finance", label: "الحالة المالية", icon: CreditCardIcon },
   { href: "/admin/mall/design", label: "تصميم الدليل", icon: SettingsIcon },
   { href: "/admin/mall", label: "بطاقة المول", icon: SettingsIcon, exact: true },

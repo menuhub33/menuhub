@@ -5,6 +5,7 @@ import { useState } from "react";
 import { BrandMark } from "@/core/components/layout/brand-mark";
 import { cn } from "@/core/lib/cn";
 import {
+  AlertCircleIcon,
   BuildingIcon,
   ChartIcon,
   ChevronDownIcon,
@@ -23,6 +24,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   home: HomeIcon,
   menu: UtensilsIcon,
   orders: ClipboardIcon,
+  complaints: AlertCircleIcon,
   layout: LayoutIcon,
   theme: PaletteIcon,
   qr: QrIcon,
@@ -45,6 +47,7 @@ export const DEFAULT_DASHBOARD_NAV: NavItem[] = [
     ],
   },
   { href: "/dashboard/orders", label: "الطلبات", icon: "orders", permission: "orders.view" },
+  { href: "/dashboard/complaints", label: "الشكاوي", icon: "complaints", permission: "orders.view" },
   { href: "/dashboard/design", label: "التصميم", icon: "theme", permission: "design.update" },
   { href: "/dashboard/qr", label: "QR Code", icon: "qr", permission: "qr.manage" },
   { href: "/dashboard/analytics", label: "الإحصائيات", icon: "analytics", permission: "analytics.view" },

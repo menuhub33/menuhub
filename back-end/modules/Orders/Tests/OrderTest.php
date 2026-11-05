@@ -7,6 +7,7 @@ use Modules\Catalog\Models\Product;
 use Modules\Orders\Models\Order;
 use Modules\Shared\Enums\RestaurantRole;
 use Modules\Shared\Tests\ApiTestCase;
+use Modules\Users\Models\User;
 
 class OrderTest extends ApiTestCase
 {
@@ -173,5 +174,81 @@ class OrderTest extends ApiTestCase
             ->assertOk()
             ->assertJsonPath('data.data.categories.0.products.0.stock_quantity', 0)
             ->assertJsonPath('data.data.categories.0.products.0.status', 'AVAILABLE');
+    }
+
+    public function test_a_customer_can_report_a_product_problem(): void
+    {
+        [$owner, $restaurant] = $this->makeRestaurant();
+
+        $this->postJson($this->api("public/menus/{$restaurant->slug}/complaints"), [
+            'product_name' => '  برغر  ',
+            'description' => '  وصل بارد وناقص  ',
+        ])->assertCreated()
+            ->assertJsonPath('data.product_name', 'برغر')
+            ->assertJsonPath('data.description', 'وصل بارد وناقص');
+
+        $this->postJson($this->api("public/menus/{$restaurant->slug}/complaints"), [
+            'product_name' => '',
+            'description' => 'ناقص',
+        ])->assertStatus(422);
+
+        $this->postJson($this->api('public/menus/missing-menu/complaints'), [
+            'product_name' => 'شاي',
+            'description' => 'ما وصل',
+        ])->assertNotFound();
+
+        Sanctum::actingAs($owner);
+        $this->getJson($this->api("restaurants/{$restaurant->id}/complaints"))
+            ->assertOk()
+            ->assertJsonPath('data.0.product_name', 'برغر')
+            ->assertJsonPath('data.0.description', 'وصل بارد وناقص');
+    }
+
+    public function test_a_mall_manager_sees_complaints_only_from_their_stores(): void
+    {
+        $this->actingAdmin();
+        $this->postJson($this->api('admin/malls'), [
+            'name' => 'City Mall',
+            'slug' => 'city-mall',
+            'manager' => [
+                'full_name' => 'Mall Manager',
+                'email' => 'mall-orders@example.com',
+                'password' => 'password123',
+            ],
+        ])->assertCreated();
+        $this->postJson($this->api('admin/malls'), [
+            'name' => 'Other Mall',
+            'slug' => 'other-mall',
+            'manager' => [
+                'full_name' => 'Other Manager',
+                'email' => 'other-orders@example.com',
+                'password' => 'password123',
+            ],
+        ])->assertCreated();
+
+        $manager = User::query()->where('email', 'mall-orders@example.com')->firstOrFail();
+        Sanctum::actingAs($manager);
+        $store = $this->postJson($this->api('admin/restaurants'), [
+            'name' => 'Mall Cafe',
+            'email' => 'cafe-orders@example.com',
+            'password' => 'password123',
+        ])->assertCreated()->json('data');
+        $this->putJson($this->api("admin/restaurants/{$store['id']}/status"), ['status' => 'ACTIVE'])->assertOk();
+
+        $this->postJson($this->api("public/menus/{$store['slug']}/complaints"), [
+            'product_name' => 'صحن',
+            'description' => 'الصحن مكسور',
+        ])->assertCreated();
+
+        $this->getJson($this->api('admin/order-complaints'))
+            ->assertOk()
+            ->assertJsonPath('data.0.product_name', 'صحن')
+            ->assertJsonPath('data.0.description', 'الصحن مكسور')
+            ->assertJsonPath('data.0.restaurant.name', 'Mall Cafe');
+
+        Sanctum::actingAs(User::query()->where('email', 'other-orders@example.com')->firstOrFail());
+        $this->getJson($this->api('admin/order-complaints'))
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
     }
 }

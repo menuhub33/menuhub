@@ -29,6 +29,13 @@ export type ShopOrder = {
   items: OrderItem[];
 };
 
+export type ProductComplaint = {
+  id: string;
+  product_name: string;
+  description: string;
+  created_at: string | null;
+};
+
 export type PlacePublicOrderInput = {
   delivery_type: OrderDeliveryType;
   branch_name?: string | null;

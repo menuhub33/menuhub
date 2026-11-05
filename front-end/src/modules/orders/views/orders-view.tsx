@@ -85,7 +85,7 @@ export function OrdersView({
     <div className="grid gap-6">
       <PageHeader
         title="الطلبات"
-        description="تصل الطلبات عند إرسال الزبون طلبه. التأكيد يخصم الكمية من المنتج، والرفض يبقيها كما هي."
+        description="تصل الطلبات عند إرسال الزبون طلبه."
         breadcrumbs={[{ label: "الرئيسية", href: "/dashboard" }, { label: "الطلبات" }]}
       />
 

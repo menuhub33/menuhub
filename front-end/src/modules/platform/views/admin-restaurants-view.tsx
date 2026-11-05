@@ -208,7 +208,7 @@ export function AdminRestaurantsView({
         title="المحلات"
         description={
           lockedMall
-            ? `منيوهات ${lockedMall.name} فقط. كل محل جديد يُربط بهذا المول.`
+            ? `منيوهات ${lockedMall.name}.`
             : "أنشئ منيو تابع لمول أو منيو محل خاص، ثم فعّله ليظهر للزوار."
         }
         actions={

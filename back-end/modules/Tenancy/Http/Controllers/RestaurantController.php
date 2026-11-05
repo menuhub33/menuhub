@@ -25,7 +25,7 @@ class RestaurantController extends ApiController
     {
         $user = $request->user();
         $memberships = RestaurantUser::query()
-            ->with('restaurant')
+            ->with('restaurant.mall:id,name,slug')
             ->where('user_id', $user->getKey())
             ->where('is_active', true)
             ->get();
@@ -40,6 +40,7 @@ class RestaurantController extends ApiController
         if ($mall) {
             $known = $memberships->pluck('restaurant_id');
             $extra = Restaurant::query()
+                ->with('mall:id,name,slug')
                 ->where('mall_id', $mall->id)
                 ->whereNotIn('id', $known)
                 ->orderBy('name')
@@ -60,6 +61,7 @@ class RestaurantController extends ApiController
     public function show(Restaurant $restaurant): JsonResponse
     {
         $tenant = TenantContext::current();
+        $restaurant->loadMissing('mall:id,name,slug');
 
         return $this->ok([
             'restaurant' => new RestaurantResource($restaurant),

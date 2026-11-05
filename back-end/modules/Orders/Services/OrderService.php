@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Modules\Catalog\Models\Menu;
 use Modules\Catalog\Models\Product;
 use Modules\Finance\Services\YearlyMenuSubscription;
+use Modules\Orders\Models\MenuComplaint;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Models\OrderItem;
 use Modules\Shared\Enums\MenuStatus;
@@ -58,6 +59,17 @@ class OrderService
 
             return $order->load('items');
         });
+    }
+
+    public function complain(string $slug, string $productName, string $description): MenuComplaint
+    {
+        $restaurant = $this->openRestaurant($slug);
+
+        return MenuComplaint::query()->create([
+            'restaurant_id' => $restaurant->id,
+            'product_name' => trim($productName),
+            'description' => trim($description),
+        ]);
     }
 
     public function confirm(Order $order): Order

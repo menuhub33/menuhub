@@ -30,4 +30,20 @@ class PublicOrderController extends ApiController
 
         return $this->created(new OrderResource($this->orders->place($slug, $data)));
     }
+
+    public function complain(Request $request, string $slug): JsonResponse
+    {
+        $data = $request->validate([
+            'product_name' => ['required', 'string', 'max:120'],
+            'description' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $complaint = $this->orders->complain($slug, $data['product_name'], $data['description']);
+
+        return $this->created([
+            'id' => $complaint->id,
+            'product_name' => $complaint->product_name,
+            'description' => $complaint->description,
+        ]);
+    }
 }

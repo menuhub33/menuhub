@@ -145,9 +145,14 @@ class AdminRestaurantController extends ApiController
             $data['slug'] = strtolower(trim($data['slug']));
         }
 
+        $leavingMall = array_key_exists('mall_id', $data) && $data['mall_id'] === null && $restaurant->mall_id !== null;
         $status = isset($data['status']) ? RestaurantStatus::from($data['status']) : $restaurant->status;
         $attributes = array_diff_key($data, ['status' => 1]);
         $saved = $this->admin->setStatus($restaurant, $status, $attributes)->load('mall:id,name,slug');
+
+        if ($leavingMall) {
+            $saved->ratings()->delete();
+        }
 
         if ($request->exists('owner_email') || $request->filled('owner_password')) {
             $this->updateOwnerAccount($request, $saved);
