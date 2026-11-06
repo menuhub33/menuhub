@@ -71,7 +71,7 @@ export function DashboardShell({
             router.refresh();
           }}
           onMarkAllRead={async () => {
-            await markAllNotificationsRead();
+            await markAllNotificationsRead({ audience: "shop", restaurantId: restaurant.id });
             router.refresh();
           }}
         />

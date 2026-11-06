@@ -157,7 +157,7 @@ export function AdminShell({
               unreadCount={unreadCount}
               notifications={notifications}
               onMarkAllRead={async () => {
-                await markAllNotificationsRead();
+                await markAllNotificationsRead({ audience: "mall" });
                 router.refresh();
               }}
             />

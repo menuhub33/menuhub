@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Modules\Catalog\Models\Menu;
 use Modules\Catalog\Models\Product;
 use Modules\Finance\Services\YearlyMenuSubscription;
+use Modules\Notifications\Services\NotificationService;
 use Modules\Orders\Models\MenuComplaint;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Models\OrderItem;
@@ -14,10 +15,13 @@ use Modules\Shared\Enums\MenuStatus;
 use Modules\Shared\Enums\OrderStatus;
 use Modules\Shared\Enums\ProductStatus;
 use Modules\Shared\Exceptions\ApiException;
+use Modules\Tenancy\Models\MallUser;
 use Modules\Tenancy\Models\Restaurant;
 
 class OrderService
 {
+    public function __construct(private readonly NotificationService $notifications) {}
+
     /** @param  array<string, mixed>  $data */
     public function place(string $slug, array $data): Order
     {
@@ -65,11 +69,39 @@ class OrderService
     {
         $restaurant = $this->openRestaurant($slug);
 
-        return MenuComplaint::query()->create([
+        $complaint = MenuComplaint::query()->create([
             'restaurant_id' => $restaurant->id,
             'product_name' => trim($productName),
             'description' => trim($description),
         ]);
+
+        $this->notifyComplaint($restaurant, $complaint);
+
+        return $complaint;
+    }
+
+    private function notifyComplaint(Restaurant $restaurant, MenuComplaint $complaint): void
+    {
+        $detail = $complaint->product_name.' — '.$complaint->description;
+        if (mb_strlen($detail) > 180) {
+            $detail = rtrim(mb_substr($detail, 0, 177)).'...';
+        }
+
+        $this->notifications->notifyRestaurant($restaurant->id, 'SHOP_COMPLAINT', 'شكوى جديدة', $detail);
+
+        if (! $restaurant->mall_id) {
+            return;
+        }
+
+        $managers = MallUser::query()
+            ->where('mall_id', $restaurant->mall_id)
+            ->where('is_active', true)
+            ->pluck('user_id');
+
+        $mallDetail = $restaurant->name.' — '.$detail;
+        foreach ($managers as $userId) {
+            $this->notifications->notifyUser((string) $userId, 'MALL_COMPLAINT', 'شكوى جديدة', $mallDetail);
+        }
     }
 
     public function confirm(Order $order): Order

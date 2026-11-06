@@ -4,8 +4,11 @@ import { apiPage, apiData, run } from "@/core/api/client";
 import type { ActionResult } from "@/core/api/result";
 import type { Notification } from "@/modules/notifications/types";
 
+export type NotificationAudience = "shop" | "mall";
+
 export type GetNotificationInput = {
   restaurant_id?: string;
+  audience?: NotificationAudience;
   unread_only?: boolean;
   limit?: number;
 };
@@ -17,6 +20,7 @@ export async function getNotification(
     const page = await apiPage<Notification>("/notifications", {
       query: {
         restaurant_id: input.restaurant_id,
+        audience: input.audience,
         unread: input.unread_only ? 1 : undefined,
         per_page: input.limit ?? 20,
       },
@@ -25,11 +29,18 @@ export async function getNotification(
   });
 }
 
-export async function markAllNotificationsRead(): Promise<
-  ActionResult<{ success: true }>
-> {
+export async function markAllNotificationsRead(input: {
+  audience: NotificationAudience;
+  restaurantId?: string;
+}): Promise<ActionResult<{ success: true }>> {
   return run(async () => {
-    await apiData("/notifications/read-all", { method: "POST" });
+    await apiData("/notifications/read-all", {
+      method: "POST",
+      body: {
+        audience: input.audience,
+        restaurant_id: input.restaurantId,
+      },
+    });
     return { success: true as const };
   });
 }

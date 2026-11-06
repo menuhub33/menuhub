@@ -202,6 +202,15 @@ class OrderTest extends ApiTestCase
             ->assertOk()
             ->assertJsonPath('data.0.product_name', 'برغر')
             ->assertJsonPath('data.0.description', 'وصل بارد وناقص');
+
+        $this->getJson($this->api("notifications?restaurant_id={$restaurant->id}&audience=shop"))
+            ->assertOk()
+            ->assertJsonFragment([
+                'type' => 'SHOP_COMPLAINT',
+                'title' => 'شكوى جديدة',
+                'message' => 'برغر — وصل بارد وناقص',
+            ])
+            ->assertJsonMissing(['type' => 'MALL_COMPLAINT']);
     }
 
     public function test_a_mall_manager_sees_complaints_only_from_their_stores(): void
@@ -246,9 +255,38 @@ class OrderTest extends ApiTestCase
             ->assertJsonPath('data.0.description', 'الصحن مكسور')
             ->assertJsonPath('data.0.restaurant.name', 'Mall Cafe');
 
+        $this->getJson($this->api('notifications?audience=mall'))
+            ->assertOk()
+            ->assertJsonFragment([
+                'type' => 'MALL_COMPLAINT',
+                'title' => 'شكوى جديدة',
+                'message' => 'Mall Cafe — صحن — الصحن مكسور',
+            ])
+            ->assertJsonMissing(['type' => 'SHOP_COMPLAINT']);
+
+        $this->getJson($this->api("notifications?restaurant_id={$store['id']}&audience=shop"))
+            ->assertOk()
+            ->assertJsonMissing(['type' => 'MALL_COMPLAINT']);
+
+        Sanctum::actingAs(User::query()->where('email', 'cafe-orders@example.com')->firstOrFail());
+        $this->getJson($this->api("notifications?restaurant_id={$store['id']}&audience=shop"))
+            ->assertOk()
+            ->assertJsonFragment([
+                'type' => 'SHOP_COMPLAINT',
+                'message' => 'صحن — الصحن مكسور',
+            ])
+            ->assertJsonMissing(['type' => 'MALL_COMPLAINT']);
+        $this->getJson($this->api('notifications?audience=mall'))
+            ->assertOk()
+            ->assertJsonMissing(['type' => 'SHOP_COMPLAINT']);
+
         Sanctum::actingAs(User::query()->where('email', 'other-orders@example.com')->firstOrFail());
         $this->getJson($this->api('admin/order-complaints'))
             ->assertOk()
             ->assertJsonCount(0, 'data');
+        $this->getJson($this->api('notifications'))
+            ->assertOk()
+            ->assertJsonMissing(['type' => 'MALL_COMPLAINT'])
+            ->assertJsonMissing(['type' => 'SHOP_COMPLAINT']);
     }
 }

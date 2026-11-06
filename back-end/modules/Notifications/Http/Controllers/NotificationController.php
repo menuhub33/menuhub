@@ -14,6 +14,8 @@ class NotificationController extends ApiController
         $query = Notification::query()
             ->where('user_id', $request->user()->getKey())
             ->when($request->filled('restaurant_id'), fn ($q) => $q->where('restaurant_id', $request->query('restaurant_id')))
+            ->when($request->query('audience') === 'shop', fn ($q) => $q->where('type', '!=', 'MALL_COMPLAINT'))
+            ->when($request->query('audience') === 'mall', fn ($q) => $q->where('type', '!=', 'SHOP_COMPLAINT'))
             ->when($request->boolean('unread'), fn ($q) => $q->where('is_read', false));
 
         $unread = (clone $query)->where('is_read', false)->count();
@@ -47,6 +49,9 @@ class NotificationController extends ApiController
         $count = Notification::query()
             ->where('user_id', $request->user()->getKey())
             ->where('is_read', false)
+            ->when($request->filled('restaurant_id'), fn ($q) => $q->where('restaurant_id', $request->input('restaurant_id')))
+            ->when($request->input('audience') === 'shop', fn ($q) => $q->where('type', '!=', 'MALL_COMPLAINT'))
+            ->when($request->input('audience') === 'mall', fn ($q) => $q->where('type', '!=', 'SHOP_COMPLAINT'))
             ->update(['is_read' => true]);
 
         return $this->ok(['updated' => $count]);

@@ -6,7 +6,10 @@ export default async function DashboardGroupLayout({
   children,
 }: LayoutProps<"/dashboard">) {
   const tenant = await requireRestaurantAccess("/dashboard");
-  const notifications = await getNotification({ restaurant_id: tenant.restaurant.id });
+  const notifications = await getNotification({
+    restaurant_id: tenant.restaurant.id,
+    audience: "shop",
+  });
 
   return (
     <DashboardShell
