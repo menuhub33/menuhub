@@ -17,6 +17,8 @@ use Modules\Tenancy\Models\Restaurant;
 
 class ProductService
 {
+    public const MAX_IMAGES = 4;
+
     private const FILLABLE = [
         'category_id', 'name_ar', 'name_en', 'description_ar', 'description_en',
         'price', 'old_price', 'currency', 'sort_order', 'status', 'is_featured', 'stock_quantity',
@@ -30,6 +32,7 @@ class ProductService
         $category = $this->categoryOf($restaurant, $data['category_id']);
         $this->guardDiscount($data);
         $this->limits->creating($restaurant->id, EnforcesPlanLimits::PRODUCTS);
+        $this->assertImageRoom(count($data['images'] ?? []));
 
         return DB::transaction(function () use ($restaurant, $category, $data) {
             $product = Product::query()->create([
@@ -123,7 +126,10 @@ class ProductService
     public function addImage(Product $product, array $data): ProductImage
     {
         return DB::transaction(function () use ($product, $data) {
-            $hasImages = ProductImage::query()->where('product_id', $product->id)->exists();
+            $count = ProductImage::query()->where('product_id', $product->id)->lockForUpdate()->count();
+            $this->assertImageRoom($count + 1);
+
+            $hasImages = $count > 0;
             $primary = ! $hasImages || ($data['is_primary'] ?? false);
 
             if ($primary) {
@@ -236,6 +242,16 @@ class ProductService
 
         if ((float) $old <= (float) $price) {
             throw ApiException::invalid('السعر قبل الحسم يجب أن يكون أكبر من السعر الحالي', 'INVALID_DISCOUNT');
+        }
+    }
+
+    private function assertImageRoom(int $total): void
+    {
+        if ($total > self::MAX_IMAGES) {
+            throw ApiException::invalid(
+                'يمكن إضافة '.self::MAX_IMAGES.' صور كحد أقصى لكل منتج',
+                'PRODUCT_IMAGE_LIMIT',
+            );
         }
     }
 

@@ -8,6 +8,8 @@ import { ContentImage } from "@/core/ui/content-image";
 import { GripIcon, StarIcon, TrashIcon } from "@/core/ui/icons";
 import type { ProductImage } from "@/modules/catalog/types";
 
+export const MAX_PRODUCT_IMAGES = 4;
+
 export type ProductGalleryItem = Pick<ProductImage, "id" | "image_url" | "sort_order" | "is_primary">;
 
 function sortImages(images: ProductGalleryItem[]): ProductGalleryItem[] {
@@ -76,6 +78,7 @@ export function ProductGallery({
   }
 
   async function addFromUrl(url: string) {
+    if (ordered.length >= MAX_PRODUCT_IMAGES) return;
     const item: ProductGalleryItem = {
       id: crypto.randomUUID(),
       image_url: url,
@@ -88,8 +91,11 @@ export function ProductGallery({
 
   return (
     <div className="grid gap-3">
+      <p className="text-xs text-zinc-500">
+        {ordered.length} من {MAX_PRODUCT_IMAGES} صور. الصورة الأولى هي الرئيسية، ويمكن تغييرها من النجمة.
+      </p>
       {ordered.length === 0 ? (
-        <p className="text-sm text-zinc-500">لم تُضف صور بعد. ارفع الصورة الرئيسية للمنتج.</p>
+        <p className="text-sm text-zinc-500">لم تُضف صور بعد. ارفع حتى 4 صور للمنتج.</p>
       ) : (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {ordered.map((image) => (
@@ -166,7 +172,11 @@ export function ProductGallery({
           ))}
         </ul>
       )}
-      {disabled ? null : (
+      {disabled || ordered.length >= MAX_PRODUCT_IMAGES ? (
+        ordered.length >= MAX_PRODUCT_IMAGES ? (
+          <p className="text-sm text-zinc-500">وصلت إلى الحد الأقصى: 4 صور لكل منتج.</p>
+        ) : null
+      ) : (
         <ProductImageUpload
           key={uploadKey}
           label={ordered.length === 0 ? "الصورة الرئيسية" : "إضافة صورة"}

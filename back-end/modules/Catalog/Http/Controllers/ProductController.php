@@ -119,7 +119,7 @@ class ProductController extends ApiController
             'status' => ['sometimes', Rule::enum(ProductStatus::class)],
             'is_featured' => ['sometimes', 'boolean'],
             'stock_quantity' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:1000000'],
-            'images' => ['sometimes', 'array', 'max:20'],
+            'images' => ['sometimes', 'array', 'max:'.ProductService::MAX_IMAGES],
             'images.*.image_url' => ['required_with:images', 'string', 'max:2000', new ImageUrl],
             'images.*.sort_order' => ['sometimes', 'integer', 'min:0'],
             'images.*.is_primary' => ['sometimes', 'boolean'],

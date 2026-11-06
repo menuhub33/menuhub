@@ -58,6 +58,22 @@ class CatalogTest extends ApiTestCase
         ])->assertStatus(422);
     }
 
+    public function test_product_gallery_stops_at_four_images(): void
+    {
+        [$owner, $restaurant] = $this->makeRestaurant();
+        $product = $this->makeProduct($this->makeCategory($restaurant));
+        Sanctum::actingAs($owner);
+        $path = $this->api("restaurants/{$restaurant->id}/products/{$product->id}/images");
+
+        foreach (range(1, 4) as $index) {
+            $this->postJson($path, ['image_url' => "https://cdn.example.com/p{$index}.jpg"])->assertCreated();
+        }
+
+        $this->postJson($path, ['image_url' => 'https://cdn.example.com/p5.jpg'])
+            ->assertStatus(422)
+            ->assertJsonPath('code', 'PRODUCT_IMAGE_LIMIT');
+    }
+
     public function test_plan_product_limit_is_enforced(): void
     {
         Plan::query()->where('slug', 'free')->update(['max_products' => 2]);
