@@ -57,7 +57,9 @@ class ProvisioningService
                 'menu_status' => MenuStatus::Draft,
                 'business_type' => BusinessType::normalize($input['business_type'] ?? null),
                 'mall_id' => $input['mall_id'] ?? null,
-                'currency' => strtoupper($input['billing']['currency'] ?? 'SYP'),
+                'currency' => empty($input['billing']['plan_id'])
+                    ? strtoupper((string) ($input['billing']['currency'] ?? 'SYP'))
+                    : 'SYP',
             ]);
 
             RestaurantUser::query()->create([

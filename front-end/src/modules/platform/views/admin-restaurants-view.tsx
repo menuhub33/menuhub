@@ -28,7 +28,7 @@ import {
   MenuBillingFields,
   type BillingFormState,
 } from "@/modules/finance/components/menu-billing-fields";
-import { parseBillingInput } from "@/modules/finance/lib/menu-billing";
+import { parseBillingInput, type PricedPlan } from "@/modules/finance/lib/menu-billing";
 import { BusinessTypePicker } from "@/modules/tenancy/components/restaurants/business-type-picker";
 import { setCurrentRestaurant } from "@/modules/tenancy/actions/restaurants";
 import { isRestaurantActivated } from "@/modules/tenancy/lib/restaurant-status";
@@ -54,10 +54,12 @@ const STATUS_OPTIONS: { value: RestaurantStatus; label: string }[] = [
 export function AdminRestaurantsView({
   restaurants = [],
   malls = [],
+  plans = [],
   lockedMall = null,
 }: {
   restaurants?: RestaurantRow[];
   malls?: { id: string; name: string }[];
+  plans?: PricedPlan[];
   /** Set for a mall manager: every new menu is forced into this mall. */
   lockedMall?: { id: string; name: string } | null;
 }) {
@@ -102,7 +104,7 @@ export function AdminRestaurantsView({
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const billingInput = parseBillingInput(billing);
+  const billingInput = parseBillingInput(billing, plans);
   const canCreate = Boolean(name.trim() && email.trim() && password.length >= 8 && "value" in billingInput);
   const canSave = Boolean(editName.trim() && editSlug.trim() && editEmail.trim());
 
@@ -141,7 +143,7 @@ export function AdminRestaurantsView({
       setPassword("");
       setBusinessType("RESTAURANT");
       setAffiliation("private");
-      setBilling(emptyBillingForm());
+      setBilling(emptyBillingForm(plans[0]?.id ?? ""));
       router.refresh();
     } catch (error) {
       toast({
@@ -223,7 +225,14 @@ export function AdminRestaurantsView({
                 </Button>
               </>
             )}
-            <Button onClick={() => setCreating(true)}>إنشاء محل</Button>
+            <Button
+              onClick={() => {
+                setBilling(emptyBillingForm(plans[0]?.id ?? ""));
+                setCreating(true);
+              }}
+            >
+              إنشاء محل
+            </Button>
           </div>
         }
       />
@@ -360,7 +369,7 @@ export function AdminRestaurantsView({
         onOpenChange={setCreating}
         title="إنشاء محل"
         size="lg"
-        description="أدخل بيانات النشاط والحساب، ثم سعر سنة الاشتراك. بعد السنة يتوقف المنيو حتى يُحدد سعر جديد."
+        description="اختر الخطة فيُحسب سعر السنة منها، ثم حسم أو تقسيط."
         footer={
           <>
             <Button variant="outline" onClick={() => setCreating(false)}>
@@ -412,7 +421,7 @@ export function AdminRestaurantsView({
               onChange={setPassword}
             />
           </FormField>
-          <MenuBillingFields value={billing} onChange={setBilling} disabled={saving} />
+          <MenuBillingFields plans={plans} value={billing} onChange={setBilling} disabled={saving} />
         </div>
       </Dialog>
       <Dialog

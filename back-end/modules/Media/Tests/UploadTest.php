@@ -5,6 +5,8 @@ namespace Modules\Media\Tests;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
+use Modules\Billing\Models\Plan;
+use Modules\Media\Models\MediaFile;
 use Modules\Media\Services\MediaStorage;
 use Modules\Shared\Tests\ApiTestCase;
 
@@ -34,6 +36,25 @@ class UploadTest extends ApiTestCase
         ], ['Accept' => 'application/json'])->assertSuccessful()->json('data.url');
 
         $this->assertNotEmpty($url);
+        $this->assertSame(1, MediaFile::query()->where('restaurant_id', $restaurant->id)->count());
+    }
+
+    public function test_upload_stops_when_the_plan_storage_is_full(): void
+    {
+        Plan::query()->where('slug', 'free')->update(['max_storage_mb' => 1]);
+        [$owner, $restaurant] = $this->makeRestaurant();
+        MediaFile::query()->create([
+            'restaurant_id' => $restaurant->id,
+            'key' => 'uploads/'.$owner->id.'/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.png',
+            'bytes' => 1024 * 1024,
+        ]);
+        Sanctum::actingAs($owner);
+
+        $this->post($this->api('uploads'), [
+            'file' => $this->image(), 'folder' => 'uploads', 'restaurant_id' => $restaurant->id,
+        ], ['Accept' => 'application/json'])
+            ->assertForbidden()
+            ->assertJsonPath('code', 'PLAN_LIMIT_REACHED');
     }
 
     public function test_non_members_and_anonymous_users_cannot_upload(): void

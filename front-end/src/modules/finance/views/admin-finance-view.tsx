@@ -9,6 +9,7 @@ import {
   type FinanceContract,
 } from "@/modules/finance/actions/finance";
 import {
+  billingFormFromContract,
   emptyBillingForm,
   MenuBillingFields,
   type BillingFormState,
@@ -24,23 +25,10 @@ import { Dialog } from "@/core/ui/dialog";
 import { FormField } from "@/core/components/forms/form-field";
 import { Select } from "@/core/ui/select";
 import { useToast } from "@/core/ui/toast";
-import { parseBillingInput, contractProfit } from "@/modules/finance/lib/menu-billing";
+import { parseBillingInput, contractProfit, type PricedPlan } from "@/modules/finance/lib/menu-billing";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
-}
-
-function formFromContract(contract: FinanceContract): BillingFormState {
-  return {
-    price: String(contract.price),
-    setupCost: String(contract.setup_cost),
-    annualRenewal: String(contract.annual_renewal),
-    discountType: contract.discount_type,
-    discountValue: String(contract.discount_value),
-    installmentsCount: String(contract.installments_count),
-    startsOn: contract.starts_on,
-    currency: contract.currency,
-  };
 }
 
 function discountLabel(contract: FinanceContract) {
@@ -52,10 +40,12 @@ function discountLabel(contract: FinanceContract) {
 export function AdminFinanceView({
   contracts,
   restaurants,
+  plans = [],
   mallName = null,
 }: {
   contracts: FinanceContract[];
   restaurants: { id: string; name: string }[];
+  plans?: PricedPlan[];
   mallName?: string | null;
 }) {
   const router = useRouter();
@@ -112,7 +102,7 @@ export function AdminFinanceView({
   const available = restaurants.filter((restaurant) => !linked.has(restaurant.id));
 
   async function save(targetId: string) {
-    const parsed = parseBillingInput(form);
+    const parsed = parseBillingInput(form, plans);
     if ("error" in parsed) {
       toast({ title: parsed.error, variant: "error" });
       return;
@@ -127,7 +117,7 @@ export function AdminFinanceView({
     toast({ title: "تم حفظ العقد المالي", variant: "success" });
     setCreating(false);
     setEditing(null);
-    setForm(emptyBillingForm());
+    setForm(emptyBillingForm(plans[0]?.id ?? ""));
     router.refresh();
   }
 
@@ -144,7 +134,7 @@ export function AdminFinanceView({
           <Button
             onClick={() => {
               setRestaurantId(available[0]?.id ?? "");
-              setForm(emptyBillingForm());
+              setForm(emptyBillingForm(plans[0]?.id ?? ""));
               setCreating(true);
             }}
             disabled={available.length === 0}
@@ -244,7 +234,7 @@ export function AdminFinanceView({
                           variant="outline"
                           onClick={() => {
                             setEditing(contract);
-                            setForm(formFromContract(contract));
+                            setForm(billingFormFromContract(contract, plans));
                           }}
                         >
                           تعديل
@@ -284,7 +274,7 @@ export function AdminFinanceView({
               placeholder="اختر محلاً"
             />
           </FormField>
-          <MenuBillingFields value={form} onChange={setForm} disabled={saving} />
+          <MenuBillingFields plans={plans} value={form} onChange={setForm} disabled={saving} />
         </div>
       </Dialog>
 
@@ -304,7 +294,7 @@ export function AdminFinanceView({
           </>
         }
       >
-        <MenuBillingFields value={form} onChange={setForm} disabled={saving} />
+        <MenuBillingFields plans={plans} value={form} onChange={setForm} disabled={saving} />
       </Dialog>
 
       <Dialog

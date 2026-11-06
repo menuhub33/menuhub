@@ -17,6 +17,7 @@ import { Drawer } from "@/core/ui/drawer";
 import {
   AlertCircleIcon,
   BuildingIcon,
+  ClipboardIcon,
   CreditCardIcon,
   HomeIcon,
   LogOutIcon,
@@ -31,6 +32,7 @@ const PLATFORM_NAV = [
   { href: "/admin/malls", label: "المراكز التجارية", icon: BuildingIcon },
   { href: "/admin/restaurants", label: "المحلات", icon: BuildingIcon },
   { href: "/admin/finance", label: "الإدارة المالية", icon: CreditCardIcon },
+  { href: "/admin/plans", label: "الخطط", icon: ClipboardIcon },
   { href: "/admin/users", label: "المستخدمون", icon: UsersIcon },
   { href: "/admin/settings", label: "الإعدادات", icon: SettingsIcon },
 ];

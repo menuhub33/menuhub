@@ -14,9 +14,18 @@ export type PlanFeature = {
   value: string;
 };
 
-function formatLimit(max: number | null): string {
+export function formatLimit(max: number | null): string {
   if (max == null) return "غير محدود";
   return new Intl.NumberFormat("ar-SY").format(max);
+}
+
+export function formatStorageLimit(mb: number | null): string {
+  if (mb == null) return "غير محدود";
+  if (mb >= 1024) {
+    const gb = Math.round((mb / 1024) * 10) / 10;
+    return `${new Intl.NumberFormat("ar-SY").format(gb)} GB`;
+  }
+  return `${formatLimit(mb)} MB`;
 }
 
 export function planPrice(plan: Plan, interval: BillingInterval): number {
@@ -40,10 +49,28 @@ export function getPlanFeatures(plan: Plan): PlanFeature[] {
       value: formatLimit(plan.max_menus),
     },
     {
+      key: "categories",
+      label: "الأقسام",
+      included: plan.max_categories !== 0,
+      value: formatLimit(plan.max_categories ?? null),
+    },
+    {
       key: "products",
       label: "المنتجات",
       included: plan.max_products !== 0,
       value: formatLimit(plan.max_products),
+    },
+    {
+      key: "product_images",
+      label: "صور لكل منتج",
+      included: plan.max_product_images !== 0,
+      value: formatLimit(plan.max_product_images ?? null),
+    },
+    {
+      key: "storage",
+      label: "التخزين",
+      included: plan.max_storage_mb !== 0,
+      value: formatStorageLimit(plan.max_storage_mb ?? null),
     },
     {
       key: "branches",

@@ -4,6 +4,7 @@ namespace Modules\Catalog\Services;
 
 use Modules\Catalog\Models\Category;
 use Modules\Catalog\Models\Menu;
+use Modules\Shared\Contracts\EnforcesPlanLimits;
 use Modules\Shared\Events\RestaurantContentChanged;
 use Modules\Shared\Exceptions\ApiException;
 use Modules\Shared\Support\Reorder;
@@ -11,9 +12,12 @@ use Modules\Tenancy\Models\Restaurant;
 
 class CategoryService
 {
+    public function __construct(private readonly PlanGuard $limits) {}
+
     /** @param  array<string, mixed>  $data */
     public function create(Restaurant $restaurant, array $data): Category
     {
+        $this->limits->creating($restaurant->id, EnforcesPlanLimits::CATEGORIES);
         $menu = $this->menuOf($restaurant, $data['menu_id']);
 
         $data['sort_order'] ??= (int) Category::query()->where('menu_id', $menu->id)->max('sort_order') + 1;

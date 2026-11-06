@@ -22,10 +22,12 @@ import type { Category } from "@/modules/catalog/types";
 export function ProductEditorView({
   product,
   categories,
+  maxImages = 4,
 }: {
   product?: ProductWithRelations | null;
   categories: Category[];
   restaurantId: string;
+  maxImages?: number;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -135,6 +137,7 @@ export function ProductEditorView({
       <ProductForm
         product={product}
         categories={categories}
+        maxImages={maxImages}
         loading={loading}
         error={error}
         onCancel={() => router.push("/dashboard/menu/products")}

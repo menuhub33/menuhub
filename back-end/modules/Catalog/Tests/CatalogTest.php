@@ -89,6 +89,34 @@ class CatalogTest extends ApiTestCase
         $this->postJson($path, $payload)->assertForbidden()->assertJsonPath('code', 'PLAN_LIMIT_REACHED');
     }
 
+    public function test_plan_category_and_image_caps_are_enforced(): void
+    {
+        Plan::query()->where('slug', 'free')->update([
+            'max_categories' => 1,
+            'max_product_images' => 1,
+        ]);
+        [$owner, $restaurant] = $this->makeRestaurant();
+        Sanctum::actingAs($owner);
+        $menuId = $this->defaultMenu($restaurant)->id;
+
+        $this->postJson($this->api("restaurants/{$restaurant->id}/categories"), [
+            'menu_id' => $menuId,
+            'name_ar' => 'مشاوي',
+        ])->assertCreated();
+
+        $this->postJson($this->api("restaurants/{$restaurant->id}/categories"), [
+            'menu_id' => $menuId,
+            'name_ar' => 'حلويات',
+        ])->assertForbidden()->assertJsonPath('code', 'PLAN_LIMIT_REACHED');
+
+        $product = $this->makeProduct($this->makeCategory($restaurant));
+        $path = $this->api("restaurants/{$restaurant->id}/products/{$product->id}/images");
+        $this->postJson($path, ['image_url' => 'https://cdn.example.com/a.jpg'])->assertCreated();
+        $this->postJson($path, ['image_url' => 'https://cdn.example.com/b.jpg'])
+            ->assertStatus(422)
+            ->assertJsonPath('code', 'PRODUCT_IMAGE_LIMIT');
+    }
+
     public function test_product_can_be_featured_and_discounted(): void
     {
         [$owner, $restaurant] = $this->makeRestaurant();

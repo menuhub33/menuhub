@@ -16,7 +16,10 @@ export type Plan = {
   price_yearly: number;
   currency: string;
   max_menus: number | null;
+  max_categories: number | null;
   max_products: number | null;
+  max_product_images: number | null;
+  max_storage_mb: number | null;
   max_branches: number | null;
   max_staff: number | null;
   analytics_enabled: boolean;

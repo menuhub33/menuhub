@@ -10,6 +10,8 @@ interface EnforcesPlanLimits
 {
     public const MENUS = 'menus';
 
+    public const CATEGORIES = 'categories';
+
     public const PRODUCTS = 'products';
 
     public const BRANCHES = 'branches';
@@ -21,6 +23,12 @@ interface EnforcesPlanLimits
      * limit of its plan for the given resource.
      */
     public function assertCanCreate(string $restaurantId, string $resource): void;
+
+    /** Throws when another upload would pass the plan storage cap. */
+    public function assertStorage(string $restaurantId, int $additionalBytes): void;
+
+    /** Per-product gallery cap from the plan. Null means the caller default. */
+    public function productImageLimit(string $restaurantId): ?int;
 
     /** Throws when the plan does not include the feature (e.g. custom_domain). */
     public function assertFeature(string $restaurantId, string $feature): void;

@@ -126,6 +126,29 @@ class PlatformTest extends ApiTestCase
             ->assertJsonPath('data.plan.features.custom_domain', true);
     }
 
+    public function test_admin_can_update_plan_limits(): void
+    {
+        $this->actingAdmin();
+        $pro = Plan::query()->where('slug', 'pro')->firstOrFail();
+
+        $this->assertSame(1, $pro->max_menus);
+        $this->assertSame(10, $pro->max_categories);
+        $this->assertSame(120, $pro->max_products);
+        $this->assertSame(2, $pro->max_product_images);
+        $this->assertSame(200, $pro->max_storage_mb);
+
+        $this->patchJson($this->api("admin/plans/{$pro->id}"), [
+            'max_products' => 80,
+            'max_categories' => 12,
+            'max_storage_mb' => 250,
+            'price_yearly' => 90,
+        ])->assertOk()
+            ->assertJsonPath('data.max_products', 80)
+            ->assertJsonPath('data.max_categories', 12)
+            ->assertJsonPath('data.max_storage_mb', 250)
+            ->assertJsonPath('data.price_yearly', 90);
+    }
+
     public function test_only_super_admin_edits_settings(): void
     {
         Sanctum::actingAs($this->makeUser(PlatformRole::Admin));

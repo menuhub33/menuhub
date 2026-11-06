@@ -41,6 +41,7 @@ class MediaStorage
         $key = "{$folder}/{$userId}/{$id}.{$main['ext']}";
 
         $this->put($key, $main['bytes'], $main['mime']);
+        $storedBytes = strlen($main['bytes']);
 
         $cardUrl = null;
         if ($folder === 'products' && $this->optimizer->canConvert()) {
@@ -52,13 +53,14 @@ class MediaStorage
             $cardKey = "{$folder}/{$userId}/{$id}@".config('menuhub.media.card_width', 640).".{$card['ext']}";
             $this->put($cardKey, $card['bytes'], $card['mime']);
             $cardUrl = $this->url($cardKey);
+            $storedBytes += strlen($card['bytes']);
         }
 
         return [
             'key' => $key,
             'url' => $this->url($key),
             'card_url' => $cardUrl,
-            'size' => strlen($main['bytes']),
+            'size' => $storedBytes,
             'mime' => $main['mime'],
         ];
     }

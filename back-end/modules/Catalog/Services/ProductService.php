@@ -17,7 +17,11 @@ use Modules\Tenancy\Models\Restaurant;
 
 class ProductService
 {
-    public const MAX_IMAGES = 4;
+    /** Hard ceiling so a plan edit cannot accept an unbounded gallery. */
+    public const MAX_IMAGES = 12;
+
+    /** Used when the plan does not set max_product_images. */
+    public const DEFAULT_IMAGE_LIMIT = 4;
 
     private const FILLABLE = [
         'category_id', 'name_ar', 'name_en', 'description_ar', 'description_en',
@@ -32,7 +36,7 @@ class ProductService
         $category = $this->categoryOf($restaurant, $data['category_id']);
         $this->guardDiscount($data);
         $this->limits->creating($restaurant->id, EnforcesPlanLimits::PRODUCTS);
-        $this->assertImageRoom(count($data['images'] ?? []));
+        $this->assertImageRoom($restaurant->id, count($data['images'] ?? []));
 
         return DB::transaction(function () use ($restaurant, $category, $data) {
             $product = Product::query()->create([
@@ -83,14 +87,15 @@ class ProductService
     {
         $this->limits->creating($restaurant->id, EnforcesPlanLimits::PRODUCTS);
 
-        return DB::transaction(function () use ($product) {
+        return DB::transaction(function () use ($product, $restaurant) {
             $copy = $product->replicate(['created_at', 'updated_at']);
             $copy->name_ar = $product->name_ar.' (نسخة)';
             $copy->name_en = $product->name_en ? $product->name_en.' (copy)' : null;
             $copy->sort_order = (int) Product::query()->where('category_id', $product->category_id)->max('sort_order') + 1;
             $copy->save();
 
-            foreach ($product->images as $image) {
+            $limit = $this->imageLimit($restaurant->id);
+            foreach ($product->images->take($limit) as $image) {
                 ProductImage::query()->create([
                     'product_id' => $copy->id,
                     'image_url' => $image->image_url,
@@ -127,7 +132,7 @@ class ProductService
     {
         return DB::transaction(function () use ($product, $data) {
             $count = ProductImage::query()->where('product_id', $product->id)->lockForUpdate()->count();
-            $this->assertImageRoom($count + 1);
+            $this->assertImageRoom($product->restaurantId(), $count + 1);
 
             $hasImages = $count > 0;
             $primary = ! $hasImages || ($data['is_primary'] ?? false);
@@ -245,14 +250,23 @@ class ProductService
         }
     }
 
-    private function assertImageRoom(int $total): void
+    private function assertImageRoom(?string $restaurantId, int $total): void
     {
-        if ($total > self::MAX_IMAGES) {
+        $max = $this->imageLimit($restaurantId);
+        if ($total > $max) {
             throw ApiException::invalid(
-                'يمكن إضافة '.self::MAX_IMAGES.' صور كحد أقصى لكل منتج',
+                'يمكن إضافة '.$max.' صور كحد أقصى لكل منتج',
                 'PRODUCT_IMAGE_LIMIT',
             );
         }
+    }
+
+    private function imageLimit(?string $restaurantId): int
+    {
+        $fromPlan = $restaurantId ? $this->limits->productImageLimit($restaurantId) : null;
+        $limit = $fromPlan ?? self::DEFAULT_IMAGE_LIMIT;
+
+        return max(1, min(self::MAX_IMAGES, $limit));
     }
 
     private function categoryOf(Restaurant $restaurant, string $categoryId): Category

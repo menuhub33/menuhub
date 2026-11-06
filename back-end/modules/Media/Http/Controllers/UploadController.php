@@ -4,7 +4,9 @@ namespace Modules\Media\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Media\Models\MediaFile;
 use Modules\Media\Services\MediaStorage;
+use Modules\Shared\Contracts\EnforcesPlanLimits;
 use Modules\Shared\Exceptions\ApiException;
 use Modules\Shared\Http\Controllers\ApiController;
 use Modules\Tenancy\Models\RestaurantUser;
@@ -34,6 +36,24 @@ class UploadController extends ApiController
 
         $bytes = (string) file_get_contents($request->file('file')->getRealPath());
         $stored = $this->media->store($bytes, $data['folder'] ?? 'uploads', $user->id);
+        $restaurantId = $data['restaurant_id'] ?? null;
+
+        try {
+            if ($restaurantId) {
+                if (app()->bound(EnforcesPlanLimits::class)) {
+                    app(EnforcesPlanLimits::class)->assertStorage($restaurantId, $stored['size']);
+                }
+
+                MediaFile::query()->create([
+                    'restaurant_id' => $restaurantId,
+                    'key' => $stored['key'],
+                    'bytes' => $stored['size'],
+                ]);
+            }
+        } catch (ApiException $exception) {
+            $this->media->delete($stored['key']);
+            throw $exception;
+        }
 
         return $this->created([
             'url' => $stored['url'],
@@ -59,6 +79,7 @@ class UploadController extends ApiController
         }
 
         $this->media->delete($key);
+        MediaFile::query()->where('key', $key)->delete();
 
         return $this->noContent();
     }

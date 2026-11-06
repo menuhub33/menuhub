@@ -122,6 +122,7 @@ export async function adminCreateRestaurant(input: {
         mall_id: input.mall_id,
         billing: billing
           ? {
+              plan_id: billing.planId,
               price: billing.price,
               setup_cost: billing.setupCost,
               annual_renewal: billing.annualRenewal,

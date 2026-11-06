@@ -1,3 +1,4 @@
+import { getProductImageCap } from "@/modules/billing/actions/billing";
 import { getMenuCatalog } from "@/modules/catalog/actions/catalog";
 import { ProductEditorView } from "@/modules/catalog/views/product-editor-view";
 import { requirePermission } from "@/core/auth/authorization";
@@ -9,7 +10,10 @@ export default async function EditProductPage({
 }: PageProps<"/dashboard/menu/products/[id]/edit">) {
   const { id } = await params;
   const tenant = await requirePermission("products.update");
-  const catalog = await getMenuCatalog(tenant.restaurant.id);
+  const [catalog, imageCap] = await Promise.all([
+    getMenuCatalog(tenant.restaurant.id),
+    getProductImageCap(tenant.restaurant.id),
+  ]);
   if (catalog.error) return <ErrorState description={catalog.error} />;
   const categories = catalog.data?.categories ?? [];
   const product = categories
@@ -21,6 +25,7 @@ export default async function EditProductPage({
       product={product}
       categories={categories}
       restaurantId={tenant.restaurant.id}
+      maxImages={imageCap.data ?? 4}
     />
   );
 }

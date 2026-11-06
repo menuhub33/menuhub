@@ -14,7 +14,10 @@ export type CreatePlanInput = {
   price_yearly?: number;
   currency?: string;
   max_menus?: number | null;
+  max_categories?: number | null;
   max_products?: number | null;
+  max_product_images?: number | null;
+  max_storage_mb?: number | null;
   max_branches?: number | null;
   max_staff?: number | null;
   analytics_enabled?: boolean;
@@ -32,6 +35,51 @@ export async function createPlan(input: CreatePlanInput): Promise<ActionResult<P
   return run(() =>
     apiData<Plan>("/admin/plans", { method: "POST", body: { ...input, name, slug } })
   );
+}
+
+/** Active plans for pricing a new restaurant or menu contract. */
+export async function getActivePlans(): Promise<ActionResult<Plan[]>> {
+  return run(() => apiData<Plan[]>("/plans", { auth: false }));
+}
+
+export async function getAdminPlans(): Promise<ActionResult<Plan[]>> {
+  return run(() => apiData<Plan[]>("/admin/plans"));
+}
+
+export type UpdatePlanInput = {
+  id: string;
+  name: string;
+  price_monthly: number;
+  price_yearly: number;
+  max_menus: number | null;
+  max_categories: number | null;
+  max_products: number | null;
+  max_product_images: number | null;
+  max_storage_mb: number | null;
+};
+
+export async function updatePlan(input: UpdatePlanInput): Promise<ActionResult<Plan>> {
+  const { id, name, ...limits } = input;
+  const trimmed = name.trim();
+  if (!id) return fail("معرّف الخطة مطلوب");
+  if (!trimmed) return fail("اسم الخطة مطلوب");
+  return run(() =>
+    apiData<Plan>(`/admin/plans/${id}`, {
+      method: "PATCH",
+      body: { ...limits, name: trimmed },
+    })
+  );
+}
+
+/** Gallery size for the active restaurant. Falls back to 4 when the plan leaves it open. */
+export async function getProductImageCap(restaurantId: string): Promise<ActionResult<number>> {
+  return run(async () => {
+    const payload = await apiData<{
+      plan?: { caps?: { product_images?: number | null } } | null;
+    }>(`/restaurants/${restaurantId}`);
+    const cap = payload?.plan?.caps?.product_images;
+    return cap == null ? 4 : cap;
+  });
 }
 
 export async function updatePlanStatus(

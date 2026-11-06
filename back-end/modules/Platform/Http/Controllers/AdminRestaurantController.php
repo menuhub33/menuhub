@@ -77,7 +77,8 @@ class AdminRestaurantController extends ApiController
             'business_type' => ['nullable', Rule::enum(BusinessType::class)],
             'mall_id' => ['nullable', 'uuid', Rule::exists('malls', 'id')],
             'billing' => ['nullable', 'array'],
-            'billing.price' => ['required_with:billing', 'numeric', 'min:0'],
+            'billing.plan_id' => ['nullable', 'uuid', 'exists:plans,id'],
+            'billing.price' => ['nullable', 'numeric', 'min:0'],
             'billing.setup_cost' => ['nullable', 'numeric', 'min:0'],
             'billing.annual_renewal' => ['nullable', 'numeric', 'min:0'],
             'billing.discount_type' => ['required_with:billing', Rule::enum(DiscountType::class)],
@@ -93,10 +94,14 @@ class AdminRestaurantController extends ApiController
             $data['mall_id'] = $scoped->id;
         }
 
-        if (isset($data['billing'])) {
+        if (isset($data['billing']) && empty($data['billing']['plan_id']) && ! isset($data['billing']['price'])) {
+            return response()->json(['message' => 'سعر المنيو أو الخطة مطلوب'], 422);
+        }
+
+        if (isset($data['billing']) && empty($data['billing']['plan_id'])) {
             $type = $data['billing']['discount_type'];
             $value = (float) ($data['billing']['discount_value'] ?? 0);
-            if (($type === 'PERCENT' && $value > 100) || ($type === 'AMOUNT' && $value > (float) $data['billing']['price'])) {
+            if (($type === 'PERCENT' && $value > 100) || ($type === 'AMOUNT' && $value > (float) ($data['billing']['price'] ?? 0))) {
                 return response()->json(['message' => 'قيمة الخصم غير صالحة'], 422);
             }
         }

@@ -3,6 +3,7 @@
 namespace Modules\Finance\Tests;
 
 use Laravel\Sanctum\Sanctum;
+use Modules\Billing\Models\Plan;
 use Modules\Finance\Models\MenuBilling;
 use Modules\Finance\Models\MenuInstallment;
 use Modules\Finance\Support\BillingCalculator as Calc;
@@ -202,6 +203,39 @@ class FinanceTest extends ApiTestCase
             ->assertJsonPath('data.contracts.0.restaurant_id', $storeId)
             ->assertJsonCount(1, 'data.restaurants')
             ->assertJsonPath('data.summary.USD.contracts', 1);
+    }
+
+    public function test_a_plan_prices_the_contract_and_blocks_discount_with_installments(): void
+    {
+        $this->actingAdmin();
+        [, $restaurant] = $this->makeRestaurant();
+        $pro = Plan::query()->where('slug', 'pro')->firstOrFail();
+
+        $this->putJson($this->api("admin/restaurants/{$restaurant->id}/billing"), [
+            'plan_id' => $pro->id,
+            'discount_type' => 'PERCENT',
+            'discount_value' => 10,
+            'installments_count' => 1,
+            'starts_on' => '2026-01-01',
+        ])->assertOk()
+            ->assertJsonPath('data.price', 100)
+            ->assertJsonPath('data.currency', 'USD')
+            ->assertJsonPath('data.plan_id', $pro->id)
+            ->assertJsonPath('data.discount_value', 10);
+
+        $this->assertSame('SYP', $restaurant->refresh()->currency);
+        $this->assertSame(
+            $pro->id,
+            \Modules\Billing\Models\Subscription::query()->where('restaurant_id', $restaurant->id)->value('plan_id')
+        );
+
+        $this->putJson($this->api("admin/restaurants/{$restaurant->id}/billing"), [
+            'plan_id' => $pro->id,
+            'discount_type' => 'PERCENT',
+            'discount_value' => 10,
+            'installments_count' => 4,
+            'starts_on' => '2026-01-01',
+        ])->assertStatus(422)->assertJsonPath('code', 'BILLING_ADJUSTMENT');
     }
 
     /** @return array<string, mixed> */

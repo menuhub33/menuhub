@@ -22,6 +22,7 @@ function withSortOrder(images: ProductGalleryItem[]): ProductGalleryItem[] {
 
 export function ProductGallery({
   images,
+  maxImages = MAX_PRODUCT_IMAGES,
   disabled,
   onChange,
   onSetPrimary,
@@ -31,6 +32,7 @@ export function ProductGallery({
   onUpload,
 }: {
   images: ProductGalleryItem[];
+  maxImages?: number;
   disabled?: boolean;
   onChange?: (images: ProductGalleryItem[]) => void;
   onSetPrimary?: (id: string) => void;
@@ -78,7 +80,7 @@ export function ProductGallery({
   }
 
   async function addFromUrl(url: string) {
-    if (ordered.length >= MAX_PRODUCT_IMAGES) return;
+    if (ordered.length >= maxImages) return;
     const item: ProductGalleryItem = {
       id: crypto.randomUUID(),
       image_url: url,
@@ -92,10 +94,10 @@ export function ProductGallery({
   return (
     <div className="grid gap-3">
       <p className="text-xs text-zinc-500">
-        {ordered.length} من {MAX_PRODUCT_IMAGES} صور. الصورة الأولى هي الرئيسية، ويمكن تغييرها من النجمة.
+        {ordered.length} من {maxImages} صور. الصورة الأولى هي الرئيسية، ويمكن تغييرها من النجمة.
       </p>
       {ordered.length === 0 ? (
-        <p className="text-sm text-zinc-500">لم تُضف صور بعد. ارفع حتى 4 صور للمنتج.</p>
+        <p className="text-sm text-zinc-500">لم تُضف صور بعد. ارفع حتى {maxImages} صور للمنتج.</p>
       ) : (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {ordered.map((image) => (
@@ -172,9 +174,9 @@ export function ProductGallery({
           ))}
         </ul>
       )}
-      {disabled || ordered.length >= MAX_PRODUCT_IMAGES ? (
-        ordered.length >= MAX_PRODUCT_IMAGES ? (
-          <p className="text-sm text-zinc-500">وصلت إلى الحد الأقصى: 4 صور لكل منتج.</p>
+      {disabled || ordered.length >= maxImages ? (
+        ordered.length >= maxImages ? (
+          <p className="text-sm text-zinc-500">وصلت إلى الحد الأقصى: {maxImages} صور لكل منتج.</p>
         ) : null
       ) : (
         <ProductImageUpload

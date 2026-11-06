@@ -15,4 +15,13 @@ class PlanGuard
             app(EnforcesPlanLimits::class)->assertCanCreate($restaurantId, $resource);
         }
     }
+
+    public function productImageLimit(string $restaurantId): ?int
+    {
+        if (! app()->bound(EnforcesPlanLimits::class)) {
+            return null;
+        }
+
+        return app(EnforcesPlanLimits::class)->productImageLimit($restaurantId);
+    }
 }

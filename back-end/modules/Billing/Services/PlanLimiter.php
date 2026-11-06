@@ -4,8 +4,10 @@ namespace Modules\Billing\Services;
 
 use Modules\Billing\Models\Plan;
 use Modules\Billing\Models\Subscription;
+use Modules\Catalog\Models\Category;
 use Modules\Catalog\Models\Menu;
 use Modules\Catalog\Models\Product;
+use Modules\Media\Models\MediaFile;
 use Modules\Operations\Models\Branch;
 use Modules\Shared\Contracts\EnforcesPlanLimits;
 use Modules\Shared\Enums\SubscriptionStatus;
@@ -22,6 +24,7 @@ class PlanLimiter implements EnforcesPlanLimits
 {
     private const LABELS = [
         self::MENUS => ['max_menus', 'قائمة'],
+        self::CATEGORIES => ['max_categories', 'قسم'],
         self::PRODUCTS => ['max_products', 'منتج'],
         self::BRANCHES => ['max_branches', 'فرع'],
         self::STAFF => ['max_staff', 'عضو فريق'],
@@ -44,6 +47,36 @@ class PlanLimiter implements EnforcesPlanLimits
                 'PLAN_LIMIT_REACHED',
             );
         }
+    }
+
+    public function assertStorage(string $restaurantId, int $additionalBytes): void
+    {
+        if (! config('menuhub.enforce_plan_limits') || $additionalBytes <= 0) {
+            return;
+        }
+
+        $maxMb = $this->planOf($restaurantId)?->max_storage_mb;
+        if ($maxMb === null) {
+            return;
+        }
+
+        $used = (int) MediaFile::query()->where('restaurant_id', $restaurantId)->sum('bytes');
+        if ($used + $additionalBytes > $maxMb * 1024 * 1024) {
+            throw new ApiException(
+                "وصلت إلى حد التخزين في خطتك ({$maxMb} MB). احذف صوراً أو قم بترقية الخطة",
+                403,
+                'PLAN_LIMIT_REACHED',
+            );
+        }
+    }
+
+    public function productImageLimit(string $restaurantId): ?int
+    {
+        if (! config('menuhub.enforce_plan_limits')) {
+            return null;
+        }
+
+        return $this->planOf($restaurantId)?->max_product_images;
     }
 
     public function assertFeature(string $restaurantId, string $feature): void
@@ -76,8 +109,16 @@ class PlanLimiter implements EnforcesPlanLimits
             $limits[$resource] = ['used' => $this->usage($restaurantId, $resource), 'max' => $plan?->{$column}];
         }
 
+        $limits['storage'] = [
+            'used' => (int) round($this->storageBytes($restaurantId) / 1048576),
+            'max' => $plan?->max_storage_mb,
+        ];
+
         return [
             'plan' => $plan ? ['id' => $plan->id, 'name' => $plan->name, 'slug' => $plan->slug] : null,
+            'caps' => [
+                'product_images' => $plan?->max_product_images,
+            ],
             'subscription' => $subscription ? [
                 'status' => $subscription->status->value,
                 'starts_at' => $subscription->starts_at?->toIso8601String(),
@@ -118,9 +159,15 @@ class PlanLimiter implements EnforcesPlanLimits
     {
         return match ($resource) {
             self::MENUS => Menu::query()->where('restaurant_id', $restaurantId)->count(),
+            self::CATEGORIES => Category::query()->forRestaurant($restaurantId)->count(),
             self::PRODUCTS => Product::query()->forRestaurant($restaurantId)->count(),
             self::BRANCHES => Branch::query()->where('restaurant_id', $restaurantId)->count(),
             self::STAFF => RestaurantUser::query()->where('restaurant_id', $restaurantId)->where('is_active', true)->count(),
         };
+    }
+
+    private function storageBytes(string $restaurantId): int
+    {
+        return (int) MediaFile::query()->where('restaurant_id', $restaurantId)->sum('bytes');
     }
 }

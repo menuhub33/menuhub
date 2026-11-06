@@ -2,7 +2,17 @@ export type DiscountType = "NONE" | "PERCENT" | "AMOUNT";
 export type InstallmentKind = "INSTALLMENT" | "RENEWAL";
 export type InstallmentStatus = "PENDING" | "PAID";
 
+export type BillingAdjustment = "discount" | "installment";
+
+export type PricedPlan = {
+  id: string;
+  name: string;
+  price_yearly: number;
+  currency: string;
+};
+
 export type MenuBillingInput = {
+  planId: string;
   price: number;
   setupCost: number;
   annualRenewal: number;
@@ -57,45 +67,49 @@ export function addMonths(isoDate: string, months: number) {
   return `${y}-${m}-${d}`;
 }
 
-export function parseBillingInput(input: {
-  price: string;
-  setupCost: string;
-  annualRenewal: string;
-  discountType: string;
-  discountValue: string;
-  installmentsCount: string;
-  startsOn: string;
-  currency?: string;
-  notes?: string;
-}): { error: string } | { value: MenuBillingInput } {
-  const price = Number(input.price);
-  const setupCost = input.setupCost.trim() === "" ? 0 : Number(input.setupCost);
-  const annualRenewal = input.annualRenewal.trim() === "" ? 0 : Number(input.annualRenewal);
-  const discountValue = input.discountValue.trim() === "" ? 0 : Number(input.discountValue);
-  const installmentsCount = input.installmentsCount.trim() === "" ? 1 : Number(input.installmentsCount);
-  const currency = (input.currency || "SYP").toUpperCase();
-  const discountType = input.discountType as DiscountType;
+export function parseBillingInput(
+  input: {
+    planId: string;
+    adjustment: BillingAdjustment;
+    discountValue: string;
+    installmentsCount: string;
+    startsOn: string;
+    notes?: string;
+  },
+  plans: PricedPlan[]
+): { error: string } | { value: MenuBillingInput } {
+  const plan = plans.find((item) => item.id === input.planId);
+  if (!plan) return { error: "اختر الخطة" };
 
-  if (!input.price.trim() || !Number.isFinite(price) || price < 0) return { error: "سعر المنيو مطلوب" };
-  if (!["SYP", "USD", "TRY", "EUR", "SAR", "AED"].includes(currency)) return { error: "اختر عملة السعر" };
-  if (!Number.isFinite(setupCost) || setupCost < 0) return { error: "تكلفة الاستضافة أو التركيب غير صالحة" };
-  if (!Number.isFinite(annualRenewal) || annualRenewal < 0) return { error: "سعر التجديد السنوي غير صالح" };
-  if (!["NONE", "PERCENT", "AMOUNT"].includes(discountType)) return { error: "نوع الحسم غير صالح" };
-  if (!Number.isFinite(discountValue) || discountValue < 0) return { error: "قيمة الحسم غير صالحة" };
-  if (discountType === "PERCENT" && discountValue > 100) return { error: "نسبة الحسم لا تتجاوز 100" };
-  if (discountType === "AMOUNT" && discountValue > price) return { error: "قيمة الحسم أكبر من سعر المنيو" };
-  if (!Number.isInteger(installmentsCount) || installmentsCount < 1 || installmentsCount > 24) {
-    return { error: "عدد الأقساط يجب أن يكون بين 1 و 24" };
+  const price = plan.price_yearly;
+  const currency = plan.currency.toUpperCase();
+  if (!Number.isFinite(price) || price < 0) return { error: "سعر الخطة غير صالح" };
+
+  const discountMode = input.adjustment === "discount";
+  const discountValue = input.discountValue.trim() === "" ? 0 : Number(input.discountValue);
+  const installmentsCount = discountMode
+    ? 1
+    : input.installmentsCount.trim() === ""
+      ? 2
+      : Number(input.installmentsCount);
+
+  if (discountMode) {
+    if (!Number.isFinite(discountValue) || discountValue < 0 || discountValue > 100) {
+      return { error: "نسبة الحسم بين 0 و 100" };
+    }
+  } else if (!Number.isInteger(installmentsCount) || installmentsCount < 2 || installmentsCount > 24) {
+    return { error: "عدد الأقساط يجب أن يكون بين 2 و 24" };
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.startsOn)) return { error: "تاريخ البداية غير صالح" };
 
   return {
     value: {
+      planId: plan.id,
       price: roundMoney(price),
-      setupCost: roundMoney(setupCost),
-      annualRenewal: roundMoney(annualRenewal),
-      discountType,
-      discountValue: discountType === "NONE" ? 0 : roundMoney(discountValue),
+      setupCost: 0,
+      annualRenewal: 0,
+      discountType: discountMode && discountValue > 0 ? "PERCENT" : "NONE",
+      discountValue: discountMode ? roundMoney(discountValue) : 0,
       installmentsCount,
       startsOn: input.startsOn,
       currency,

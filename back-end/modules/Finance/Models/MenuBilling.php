@@ -4,6 +4,7 @@ namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Billing\Models\Plan;
 use Modules\Shared\Enums\DiscountType;
 use Modules\Shared\Models\BaseModel;
 use Modules\Tenancy\Models\Restaurant;
@@ -33,6 +34,11 @@ class MenuBilling extends BaseModel
     public function restaurant(): BelongsTo
     {
         return $this->belongsTo(Restaurant::class);
+    }
+
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
     }
 
     public function installments(): HasMany

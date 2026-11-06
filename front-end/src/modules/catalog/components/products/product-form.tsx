@@ -125,6 +125,7 @@ export function ProductForm({
   optionGroups,
   defaultCurrency = "SYP",
   defaultCategoryId,
+  maxImages,
   loading,
   error,
   onSubmit,
@@ -138,6 +139,7 @@ export function ProductForm({
   optionGroups?: OptionGroupWithOptions[];
   defaultCurrency?: string;
   defaultCategoryId?: string;
+  maxImages?: number;
   loading?: boolean;
   error?: string | null;
   onSubmit: (values: ProductFormValues) => void | Promise<void>;
@@ -408,6 +410,7 @@ export function ProductForm({
           <p className="text-sm font-medium text-zinc-800">صور المنتج</p>
           <ProductGallery
             images={values.images}
+            maxImages={maxImages}
             disabled={loading}
             onUpload={onUploadImage}
             onChange={(images) => update("images", images)}

@@ -1,3 +1,4 @@
+import { getProductImageCap } from "@/modules/billing/actions/billing";
 import { getMenuCatalog } from "@/modules/catalog/actions/catalog";
 import { ProductEditorView } from "@/modules/catalog/views/product-editor-view";
 import { requirePermission } from "@/core/auth/authorization";
@@ -8,7 +9,10 @@ import Link from "next/link";
 
 export default async function NewProductPage() {
   const tenant = await requirePermission("products.create");
-  const catalog = await getMenuCatalog(tenant.restaurant.id);
+  const [catalog, imageCap] = await Promise.all([
+    getMenuCatalog(tenant.restaurant.id),
+    getProductImageCap(tenant.restaurant.id),
+  ]);
   if (catalog.error) return <ErrorState description={catalog.error} />;
   const categories = catalog.data?.categories ?? [];
   if (categories.length === 0) {
@@ -25,6 +29,10 @@ export default async function NewProductPage() {
     );
   }
   return (
-    <ProductEditorView categories={categories} restaurantId={tenant.restaurant.id} />
+    <ProductEditorView
+      categories={categories}
+      restaurantId={tenant.restaurant.id}
+      maxImages={imageCap.data ?? 4}
+    />
   );
 }

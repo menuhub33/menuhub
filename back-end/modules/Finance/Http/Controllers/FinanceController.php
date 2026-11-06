@@ -34,7 +34,8 @@ class FinanceController extends ApiController
     {
         MallAccess::assertRestaurant($request->user(), $restaurant);
         $data = $request->validate([
-            'price' => ['required', 'numeric', 'min:0'],
+            'plan_id' => ['nullable', 'uuid', 'exists:plans,id'],
+            'price' => ['nullable', 'numeric', 'min:0'],
             'setup_cost' => ['nullable', 'numeric', 'min:0'],
             'annual_renewal' => ['nullable', 'numeric', 'min:0'],
             'discount_type' => ['required', Rule::enum(DiscountType::class)],
@@ -45,8 +46,15 @@ class FinanceController extends ApiController
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
+        if (empty($data['plan_id']) && ! isset($data['price'])) {
+            return response()->json(['message' => 'سعر المنيو أو الخطة مطلوب'], 422);
+        }
+
         $validator = validator($data, []);
         $validator->after(function (Validator $v) use ($data) {
+            if (! empty($data['plan_id'])) {
+                return;
+            }
             $type = $data['discount_type'];
             $value = (float) ($data['discount_value'] ?? 0);
 

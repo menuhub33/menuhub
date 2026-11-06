@@ -24,6 +24,7 @@ export type FinanceContract = {
   id: string;
   restaurant_id: string;
   restaurant_name: string;
+  plan_id?: string | null;
   price: number;
   annual_renewal: number;
   setup_cost: number;
@@ -59,6 +60,7 @@ export async function saveMenuBilling(
     const billing = await apiData<{ id: string }>(`/admin/restaurants/${restaurantId}/billing`, {
       method: "PUT",
       body: {
+        plan_id: input.planId,
         price: input.price,
         setup_cost: input.setupCost,
         annual_renewal: input.annualRenewal,
