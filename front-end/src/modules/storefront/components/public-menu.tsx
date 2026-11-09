@@ -18,6 +18,10 @@ import {
   PublicMenuNavigation,
 } from "@/modules/storefront/components/public-menu-navigation";
 import { PublicMenuSearch } from "@/modules/storefront/components/public-menu-search";
+import {
+  PublicMenuFilterSheet,
+  type MenuFilters,
+} from "@/modules/storefront/components/public-menu-filter-sheet";
 import { PublicProductGrid } from "@/modules/storefront/components/public-product-grid";
 import { PublicCartSheet } from "@/modules/storefront/components/public-cart-sheet";
 import { PublicOrderSheet } from "@/modules/storefront/components/public-order-sheet";
@@ -93,6 +97,28 @@ function productsForView(
   return matched;
 }
 
+function applyMenuFilters(products: ProductWithRelations[], filters: MenuFilters | null) {
+  if (!filters) return products;
+  const min = filters.min.trim() === "" ? null : Number(filters.min);
+  const max = filters.max.trim() === "" ? null : Number(filters.max);
+  const bounded = products.filter((product) => {
+    if (min != null && Number.isFinite(min) && (product.price == null || product.price < min)) return false;
+    if (max != null && Number.isFinite(max) && (product.price == null || product.price > max)) return false;
+    return true;
+  });
+  const sorted = [...bounded];
+  if (filters.sort === "name") {
+    sorted.sort((a, b) => a.name_ar.localeCompare(b.name_ar, "ar"));
+  } else if (filters.sort === "price-asc") {
+    sorted.sort((a, b) => (a.price ?? Number.POSITIVE_INFINITY) - (b.price ?? Number.POSITIVE_INFINITY));
+  } else if (filters.sort === "price-desc") {
+    sorted.sort((a, b) => (b.price ?? Number.NEGATIVE_INFINITY) - (a.price ?? Number.NEGATIVE_INFINITY));
+  } else {
+    sorted.sort((a, b) => Number(b.is_featured) - Number(a.is_featured) || a.sort_order - b.sort_order);
+  }
+  return sorted;
+}
+
 export function PublicMenu({
   data,
   loading = false,
@@ -122,6 +148,8 @@ export function PublicMenu({
   const [openProduct, setOpenProduct] = useState<ProductWithRelations | null>(null);
   const [navTab, setNavTab] = useState<PublicMenuTab>("home");
   const [collection, setCollection] = useState<MenuCollection | null>(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filters, setFilters] = useState<MenuFilters | null>(null);
 
   const categories = useMemo(
     () => activeCategories(data?.categories ?? []),
@@ -152,10 +180,14 @@ export function PublicMenu({
       : categories.find((category) => category.id === selectedCategoryId);
 
   const displayedProducts = useMemo(() => {
-    if (collection === "featured") return products.filter((product) => product.is_featured);
-    if (collection === "discount") return products.filter((product) => hasDiscount(product));
-    return products;
-  }, [products, collection]);
+    const scoped =
+      collection === "featured"
+        ? products.filter((product) => product.is_featured)
+        : collection === "discount"
+          ? products.filter((product) => hasDiscount(product))
+          : products;
+    return applyMenuFilters(scoped, filters);
+  }, [products, collection, filters]);
 
   const sectionTitle = collection === "featured"
     ? "منتجات مميزة"
@@ -196,18 +228,10 @@ export function PublicMenu({
       }
       return { ...current, [productId]: limited };
     });
-    if (limited <= 0) {
-      setExtras((current) => {
-        const rest = { ...current };
-        delete rest[productId];
-        return rest;
-      });
-    }
   }
 
   function clearCart() {
     setQuantities({});
-    setExtras({});
   }
 
   function selectCollection(next: MenuCollection) {
@@ -292,7 +316,8 @@ export function PublicMenu({
               onSearch?.(query);
               setNavTab("home");
             }}
-            onFilterClick={goCategories}
+            onFilterClick={() => setFilterOpen(true)}
+            filterActive={filters != null}
           />
         </div>
 
@@ -338,7 +363,7 @@ export function PublicMenu({
           <h2 className="mb-4 text-lg font-bold">{sectionTitle}</h2>
           {displayedProducts.length === 0 ? (
             <p className="py-12 text-center text-sm opacity-60">
-              {searchQuery.trim()
+              {searchQuery.trim() || filters
                 ? "لا توجد نتائج مطابقة"
                 : collection
                   ? "لا توجد أصناف في هذه المجموعة."
@@ -441,6 +466,15 @@ export function PublicMenu({
           }
         }}
         slug={data.restaurant.slug}
+      />
+
+      <PublicMenuFilterSheet
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        value={filters ?? { min: "", max: "", sort: "name" }}
+        currency={data.restaurant.currency || "SYP"}
+        onApply={setFilters}
+        onClear={() => setFilters(null)}
       />
 
       <PublicProductModal

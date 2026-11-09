@@ -7,11 +7,13 @@ export function PublicMenuSearch({
   value,
   onChange,
   onFilterClick,
+  filterActive = false,
   className,
 }: {
   value: string;
   onChange: (value: string) => void;
   onFilterClick?: () => void;
+  filterActive?: boolean;
   className?: string;
 }) {
   return (
@@ -40,10 +42,14 @@ export function PublicMenuSearch({
         <button
           type="button"
           onClick={onFilterClick}
-          className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--mh-primary)] text-white shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
-          aria-label="عرض الأقسام"
+          className="relative flex size-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--mh-primary)] text-white shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+          aria-label="خيارات التصفية"
+          aria-pressed={filterActive}
         >
           <SlidersIcon className="size-5" />
+          {filterActive ? (
+            <span className="absolute top-2 end-2 size-2.5 rounded-full bg-white ring-2 ring-[var(--mh-primary)]" />
+          ) : null}
         </button>
       ) : null}
     </div>

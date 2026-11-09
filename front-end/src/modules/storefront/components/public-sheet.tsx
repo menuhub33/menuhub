@@ -15,6 +15,7 @@ export function PublicSheet({
   footer,
   size = "md",
   hideHeader = false,
+  scrollable = true,
   className,
 }: {
   open: boolean;
@@ -25,6 +26,7 @@ export function PublicSheet({
   footer?: ReactNode;
   size?: "sm" | "md" | "lg";
   hideHeader?: boolean;
+  scrollable?: boolean;
   className?: string;
 }) {
   const anchorRef = useRef<HTMLSpanElement>(null);
@@ -103,7 +105,7 @@ export function PublicSheet({
             </button>
           </div>
         )}
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">{children}</div>
+        <div className={cn("min-h-0 flex-1 px-4 py-4", scrollable ? "overflow-y-auto" : "overflow-visible")}>{children}</div>
         {footer ? <div className="shrink-0 border-t border-zinc-100 px-4 py-3">{footer}</div> : null}
       </div>
     </div>
