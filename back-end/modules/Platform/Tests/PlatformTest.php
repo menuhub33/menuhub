@@ -126,6 +126,33 @@ class PlatformTest extends ApiTestCase
             ->assertJsonPath('data.plan.features.custom_domain', true);
     }
 
+    public function test_admin_can_create_a_plan_without_a_slug(): void
+    {
+        $this->actingAdmin();
+
+        $created = $this->postJson($this->api('admin/plans'), [
+            'name' => 'ذهبية',
+            'price_monthly' => 40,
+            'price_yearly' => 400,
+            'max_products' => 50,
+            'max_categories' => 8,
+        ])->assertCreated()
+            ->assertJsonPath('data.name', 'ذهبية')
+            ->assertJsonPath('data.price_yearly', 400)
+            ->assertJsonPath('data.max_products', 50)
+            ->assertJsonPath('data.max_categories', 8)
+            ->assertJsonPath('data.is_active', true);
+
+        $this->assertMatchesRegularExpression('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', (string) $created->json('data.slug'));
+
+        $this->postJson($this->api('admin/plans'), [
+            'name' => 'فضية',
+            'slug' => 'silver',
+            'price_monthly' => 15,
+            'price_yearly' => 150,
+        ])->assertCreated()->assertJsonPath('data.slug', 'silver');
+    }
+
     public function test_admin_can_update_plan_limits(): void
     {
         $this->actingAdmin();

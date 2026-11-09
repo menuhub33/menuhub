@@ -8,8 +8,6 @@ use Illuminate\Routing\Route as RouteInstance;
 use Illuminate\Support\Facades\Route;
 use Modules\Catalog\Models\Category;
 use Modules\Catalog\Models\Menu;
-use Modules\Catalog\Models\Option;
-use Modules\Catalog\Models\OptionGroup;
 use Modules\Catalog\Models\Product;
 use Modules\Catalog\Models\ProductImage;
 use Modules\Shared\Support\ModuleServiceProvider;
@@ -25,8 +23,6 @@ class CatalogServiceProvider extends ModuleServiceProvider
         $this->scopedBinding('category', fn (string $rid) => Category::query()->forRestaurant($rid));
         $this->scopedBinding('product', fn (string $rid) => Product::query()->forRestaurant($rid));
         $this->scopedBinding('image', fn (string $rid) => ProductImage::query()->forRestaurant($rid));
-        $this->scopedBinding('group', fn (string $rid) => OptionGroup::query()->forRestaurant($rid));
-        $this->scopedBinding('option', fn (string $rid) => Option::query()->forRestaurant($rid));
 
         Restaurant::resolveRelationUsing('menus', fn (Restaurant $r) => $r->hasMany(Menu::class));
         Restaurant::resolveRelationUsing('defaultMenu', fn (Restaurant $r) => $r->hasOne(Menu::class)->where('is_default', true));

@@ -44,6 +44,14 @@ class AdminRestaurantController extends ApiController
 
         app(YearlyMenuSubscription::class)->closeDue($restaurants->getCollection()->pluck('id')->all());
         $restaurants->getCollection()->each(fn (Restaurant $restaurant) => $restaurant->refresh());
+        $restaurants->getCollection()->load([
+            'mall:id,name,slug',
+            'currentSubscription.plan:id,name',
+        ]);
+        $billings = MenuBilling::query()
+            ->whereIn('restaurant_id', $restaurants->getCollection()->pluck('id'))
+            ->get()
+            ->keyBy('restaurant_id');
 
         $owners = RestaurantUser::query()
             ->with('user:id,full_name,email,password_visible')
@@ -59,6 +67,13 @@ class AdminRestaurantController extends ApiController
                 'owner_name' => $owners->get($r->id)?->user?->full_name,
                 'owner_email' => $owners->get($r->id)?->user?->email,
                 'owner_password' => $owners->get($r->id)?->user?->revealPassword(),
+                'plan_id' => $r->currentSubscription?->plan_id,
+                'plan_name' => $r->currentSubscription?->plan?->name,
+                'billing_price' => $billings->get($r->id)?->price,
+                'discount_type' => $billings->get($r->id)?->discount_type?->value,
+                'discount_value' => $billings->get($r->id)?->discount_value,
+                'installments_count' => $billings->get($r->id)?->installments_count,
+                'billing_starts_on' => $billings->get($r->id)?->starts_on?->toDateString(),
             ],
         ));
 

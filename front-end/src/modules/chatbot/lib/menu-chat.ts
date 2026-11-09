@@ -18,7 +18,6 @@ export type MenuChatProduct = {
   old_price: number | null;
   image_url: string | null;
   category: string;
-  extras: string[];
 };
 
 export type MenuChatMessage = {

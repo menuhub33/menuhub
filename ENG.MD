@@ -158,7 +158,6 @@ fail("رسالة عربية") // { data: null, error }
 | الأقسام: حذف | ✓ | ✓ | ✗ |
 | المنتجات: إنشاء/تعديل/توفر | ✓ | ✓ | ✓ |
 | المنتجات: حذف | ✓ | ✓ | ✗ |
-| الخيارات (`options.manage`) | ✓ | ✓ | ✓ |
 | التحليلات | ✓ | ✓ | ✗ |
 | التصميم (`design.update`) | ✓ | ✗ | ✗ |
 | QR (`qr.manage`) | ✓ | ✗ | ✗ |
@@ -208,8 +207,7 @@ fail("رسالة عربية") // { data: null, error }
 | `/dashboard/menu/categories` | إدارة الأقسام: إنشاء/تعديل/تفعيل/حذف/ترتيب/صورة | EDITOR+ (الحذف MANAGER+) |
 | `/dashboard/menu/products` | قائمة المنتجات: بحث/فلترة/تكرار/ترتيب/حذف/تغيير حالة | EDITOR+ |
 | `/dashboard/menu/products/new` | محرّر منتج جديد | EDITOR+ |
-| `/dashboard/menu/products/[id]/edit` | تعديل منتج + معرض صور + مجموعات خيارات | EDITOR+ |
-| `/dashboard/menu/options` | إدارة مجموعات الخيارات والإضافات | `options.manage` |
+| `/dashboard/menu/products/[id]/edit` | تعديل منتج + معرض صور | EDITOR+ |
 | `/dashboard/design` | التصميم: معرض ثيمات + مخصّص ألوان/خط/CSS + معاينة حيّة | OWNER |
 | `/dashboard/qr` | توليد QR وتنزيله وتخصيصه | OWNER |
 | `/dashboard/analytics` | تحليلات المنيو (فترات، رسوم، حركة المرور) | OWNER/MANAGER |
@@ -255,7 +253,7 @@ fail("رسالة عربية") // { data: null, error }
 - **تنقّل الأقسام**: شريط قابل للسحب مع أسهم، "الكل" + أقسام بصورها (صورة القسم أو أول منتج).
 - **بحث** داخل المنتجات.
 - **بطاقة المنتج** (`product-card`) بصورة محسّنة `@640`، سعر، سعر سابق مشطوب، شارة "مميز".
-- **نافذة المنتج** (`product-modal`): معرض صور، وصف، **مجموعات الخيارات** (اختيار واحد/متعدد، إلزامي، حد أدنى/أقصى، فرق سعر لكل خيار).
+- **نافذة المنتج** (`product-modal`): معرض صور، وصف، سعر، كمية.
 - **السلة** (`cart-sheet`) وشريط سفلي (`bottom-nav`).
 - **ورقة الطلب** (`order-sheet`): بيانات العميل حسب نوع الطلب.
 - **المشاركة** (`share-menu`): نسخ الرابط/مشاركة النظام.
@@ -267,9 +265,9 @@ fail("رسالة عربية") // { data: null, error }
 
 ### 8.2 الطلب عبر واتساب
 
-1. العميل يضيف منتجات + خيارات للسلة (حالة محلية).
+1. العميل يضيف منتجات للسلة (حالة محلية).
 2. يختار نوع الطلب (داخل المطعم/استلام/توصيل... حسب `business_type` والإعدادات المفعّلة) ويدخل البيانات (طاولة/اسم/هاتف/عنوان/ملاحظات).
-3. `lib/order-invoice.ts` يبني **فاتورة نصية** عربية (البنود، الخيارات، المجموع، العملة).
+3. `lib/order-invoice.ts` يبني **فاتورة نصية** عربية (البنود، المجموع، العملة).
 4. `lib/phone.ts` يطبّع رقم واتساب المطعم؛ يُفتح `https://wa.me/{number}?text=...`.
 5. **لا يُخزَّن أي شيء** في قاعدة البيانات.
 
@@ -280,13 +278,11 @@ fail("رسالة عربية") // { data: null, error }
 - **تعقيم المدخلات** وتقطيع الطول.
 - يبني سياقاً من المنيو (أقسام/منتجات/أسعار/ساعات العمل) ويرسله لـ LLM؛ وعند غياب المفتاح أو فشل الاتصال → **رد احتياطي بقواعد** (أسئلة عن السعر، التوفر، الأقسام، الساعات، الاقتراحات) بالعربية.
 
-### 8.4 الأقسام والمنتجات والخيارات
+### 8.4 الأقسام والمنتجات
 
 - **أقسام**: `name_ar` مطلوب، `name_en`، وصف ثنائي، صورة، ترتيب، حالة (`is_active`).
 - **منتجات**: اسم ووصف (ar/en)، سعر، سعر سابق ("يظهر مشطوباً عند وجود خصم")، تصنيف، حالة (`AVAILABLE/UNAVAILABLE/...`)، ترتيب، **منتج مميز**، صورة رئيسية + معرض (`product_images`).
-- **مجموعات الخيارات** (`product_option_groups`) وخياراتها (`product_options`): نوع (`SINGLE/MULTIPLE`)، إلزامي، `min_selection`، `max_selection` (فارغ=بلا حد)، ترتيب؛ وللخيار فرق سعر وحالة.
 - عمليات إضافية: **تكرار منتج** (`duplicateProduct`)، **إعادة ترتيب** (`reorderProducts`)، **تغيير حالة**، **حذف**.
-- مجموعات الخيارات تُدار من صفحة المنتج (بعد إنشائه) ومن `/dashboard/menu/options`.
 
 ### 8.5 التصميم (`/dashboard/design`)
 
@@ -371,14 +367,14 @@ fail("رسالة عربية") // { data: null, error }
 المرجع: `schame.md` + migrations `00014–00016`. (ملاحظة: الـ migrations `00002–00013` المذكورة في المرجع **غير موجودة** في المستودع.)
 
 ### 9.1 Enums (أهمها)
-`platform_role`, `restaurant_role`, `restaurant_status`, `menu_status`, `business_type`, `product_status`, `option_selection_type`, `subscription_status`, `analytics_event_type`, ...
+`platform_role`, `restaurant_role`, `restaurant_status`, `menu_status`, `business_type`, `product_status`, `subscription_status`, `analytics_event_type`, ...
 
 ### 9.2 الجداول الرئيسية (24+)
 
 | المجموعة | الجداول |
 |---|---|
 | الهوية | `profiles`, `restaurants`, `restaurant_users` |
-| المحتوى | `menus`, `categories`, `products`, `product_images`, `product_option_groups`, `product_options` |
+| المحتوى | `menus`, `categories`, `products`, `product_images` |
 | المظهر | `themes`, `restaurant_themes` |
 | التشغيل | `business_hours`, `social_links`, `branches`, `custom_domains`, `qr_codes` |
 | الأعمال | `plans`, `subscriptions`, `invoices`, `payments` |
@@ -394,7 +390,7 @@ fail("رسالة عربية") // { data: null, error }
 - دوال مساعدة: `is_platform_admin()`, `user_restaurant_ids()`، وRPC `restaurant_public_state`.
 
 ### 9.4 RLS (ملخّص)
-- القراءة العامة للمنيو المنشور (مطاعم/قوائم/أقسام/منتجات/خيارات/ثيمات/روابط).
+- القراءة العامة للمنيو المنشور (مطاعم/قوائم/أقسام/منتجات/ثيمات/روابط).
 - الأعضاء يديرون بحسب الدور؛ الأدمن يدير كل شيء.
 - `analytics_events`: إدخال عام.
 - `menu_billings`/`menu_installments`: أدمن فقط.
@@ -414,7 +410,6 @@ fail("رسالة عربية") // { data: null, error }
 | `categories/` | create/update/updateStatus/delete | |
 | `products/` | create/update/updateStatus/duplicate/reorder/delete | |
 | `product-images/` | create/update/delete | |
-| `product-option-groups/`, `product-options/` | create/update/updateStatus/delete | |
 | `menus/` | `createMenu`, `updateMenu`, `updateMenuStatus`, `getMenu` | |
 | `restaurant-themes/` | create/update/get | |
 | `qr-codes/` | create/update/delete/get | تحقق عضوية فقط |

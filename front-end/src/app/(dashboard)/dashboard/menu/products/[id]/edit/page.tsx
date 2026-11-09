@@ -4,6 +4,7 @@ import { ProductEditorView } from "@/modules/catalog/views/product-editor-view";
 import { requirePermission } from "@/core/auth/authorization";
 import { ErrorState } from "@/core/components/common/error-state";
 import { notFound } from "next/navigation";
+import { normalizeBusinessType, showsStockCount } from "@/modules/tenancy/lib/business-type";
 
 export default async function EditProductPage({
   params,
@@ -26,6 +27,7 @@ export default async function EditProductPage({
       categories={categories}
       restaurantId={tenant.restaurant.id}
       maxImages={imageCap.data ?? 4}
+      showStockCount={showsStockCount(normalizeBusinessType(tenant.restaurant.business_type))}
     />
   );
 }

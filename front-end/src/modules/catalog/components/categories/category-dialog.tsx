@@ -12,6 +12,7 @@ export function CategoryDialog({
   error,
   onSubmit,
   onUpload,
+  orderPosition,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -20,6 +21,7 @@ export function CategoryDialog({
   error?: string | null;
   onSubmit: (values: CategoryFormValues) => void | Promise<void>;
   onUpload?: (file: File) => Promise<string>;
+  orderPosition?: number;
 }) {
   const isEdit = Boolean(category);
 
@@ -34,13 +36,14 @@ export function CategoryDialog({
       size="lg"
     >
       <CategoryForm
-        key={category?.id ?? "new"}
+        key={`${category?.id ?? "new"}-${orderPosition ?? 1}`}
         category={category}
         loading={loading}
         error={error}
         onSubmit={onSubmit}
         onCancel={() => onOpenChange(false)}
         onUpload={onUpload}
+        orderPosition={orderPosition}
       />
     </Dialog>
   );

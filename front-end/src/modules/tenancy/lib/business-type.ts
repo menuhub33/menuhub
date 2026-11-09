@@ -11,6 +11,11 @@ export function isVenueBusiness(type: BusinessType) {
   return type === "RESTAURANT" || type === "CAFE";
 }
 
+/** Remaining stock is a shop concern. Restaurants and cafes do not show a product count. */
+export function showsStockCount(type: BusinessType) {
+  return !isVenueBusiness(type);
+}
+
 export function orderTypeCopy(type: BusinessType) {
   const venue = type === "CAFE" ? "الكافيه" : "المطعم";
   return {

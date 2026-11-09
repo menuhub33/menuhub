@@ -22,6 +22,7 @@ type LimitField =
 
 type Draft = {
   name: string;
+  slug: string;
   price_monthly: string;
   price_yearly: string;
   max_menus: string;
@@ -42,6 +43,7 @@ const LIMIT_FIELDS: { key: LimitField; label: string; hint: string }[] = [
 function blankDraft(): Draft {
   return {
     name: "",
+    slug: "",
     price_monthly: "0",
     price_yearly: "0",
     max_menus: "",
@@ -55,6 +57,7 @@ function blankDraft(): Draft {
 function draftFromPlan(plan: Plan): Draft {
   return {
     name: plan.name,
+    slug: plan.slug,
     price_monthly: String(plan.price_monthly),
     price_yearly: String(plan.price_yearly),
     max_menus: plan.max_menus == null ? "" : String(plan.max_menus),
@@ -83,25 +86,42 @@ function readLimit(value: string, max?: number): number | null | "invalid" {
 export function AdminPlansView({ plans }: { plans: Plan[] }) {
   const router = useRouter();
   const { toast } = useToast();
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [price, setPrice] = useState("0");
-  const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Plan | null>(null);
+  const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState<Draft>(blankDraft());
   const [saving, setSaving] = useState(false);
 
+  function openCreate() {
+    setEditing(null);
+    setCreating(true);
+    setDraft(blankDraft());
+  }
+
   function openEdit(plan: Plan) {
+    setCreating(false);
     setEditing(plan);
     setDraft(draftFromPlan(plan));
   }
 
-  async function saveEdit() {
-    if (!editing) return;
+  function closeDialog() {
+    setEditing(null);
+    setCreating(false);
+  }
+
+  async function savePlan() {
     const priceMonthly = readPrice(draft.price_monthly);
     const priceYearly = readPrice(draft.price_yearly);
+    if (!draft.name.trim()) {
+      toast({ title: "اسم الخطة مطلوب", variant: "error" });
+      return;
+    }
     if (priceMonthly == null || priceYearly == null) {
       toast({ title: "أدخل سعراً شهرياً وسنوياً صحيحاً", variant: "error" });
+      return;
+    }
+    const slug = draft.slug.trim().toLowerCase();
+    if (creating && slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+      toast({ title: "المعرّف أحرف إنجليزية صغيرة وأرقام وشرطات فقط، أو اتركه فارغاً", variant: "error" });
       return;
     }
 
@@ -117,20 +137,28 @@ export function AdminPlansView({ plans }: { plans: Plan[] }) {
     }
 
     setSaving(true);
-    const result = await updatePlan({
-      id: editing.id,
-      name: draft.name,
-      price_monthly: priceMonthly,
-      price_yearly: priceYearly,
-      ...limits,
-    });
+    const result = creating
+      ? await createPlan({
+          name: draft.name,
+          slug,
+          price_monthly: priceMonthly,
+          price_yearly: priceYearly,
+          ...limits,
+        })
+      : await updatePlan({
+          id: editing?.id ?? "",
+          name: draft.name,
+          price_monthly: priceMonthly,
+          price_yearly: priceYearly,
+          ...limits,
+        });
     setSaving(false);
     if (result.error) {
       toast({ title: result.error, variant: "error" });
       return;
     }
-    setEditing(null);
-    toast({ title: "تم حفظ الخطة", variant: "success" });
+    closeDialog();
+    toast({ title: creating ? "أُضيفت الخطة" : "تم حفظ الخطة", variant: "success" });
     router.refresh();
   }
 
@@ -139,42 +167,10 @@ export function AdminPlansView({ plans }: { plans: Plan[] }) {
       <PageHeader
         title="الخطط"
         description="سقوف القوائم والأقسام والمنتجات والصور والتخزين. اترك حدّاً فارغاً ليبقى بلا سقف."
+        actions={
+          <Button onClick={openCreate}>إضافة خطة</Button>
+        }
       />
-      <form
-        className="grid gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:grid-cols-4"
-        onSubmit={async (event) => {
-          event.preventDefault();
-          setCreating(true);
-          const result = await createPlan({
-            name,
-            slug,
-            price_monthly: Number(price) || 0,
-          });
-          setCreating(false);
-          if (result.error) toast({ title: result.error, variant: "error" });
-          else {
-            setName("");
-            setSlug("");
-            toast({ title: "أُضيفت الخطة. عدّل سقوفها من الجدول", variant: "success" });
-            router.refresh();
-          }
-        }}
-      >
-        <FormField label="الاسم">
-          <Input value={name} onChange={(event) => setName(event.target.value)} />
-        </FormField>
-        <FormField label="المعرّف">
-          <Input dir="ltr" value={slug} onChange={(event) => setSlug(event.target.value)} />
-        </FormField>
-        <FormField label="السعر الشهري">
-          <Input type="number" min={0} value={price} onChange={(event) => setPrice(event.target.value)} />
-        </FormField>
-        <div className="flex items-end">
-          <Button type="submit" loading={creating}>
-            إضافة خطة
-          </Button>
-        </div>
-      </form>
 
       <div className="overflow-x-auto rounded-2xl border border-zinc-200 bg-white">
         <table className="w-full min-w-[64rem] text-sm">
@@ -242,20 +238,20 @@ export function AdminPlansView({ plans }: { plans: Plan[] }) {
       </div>
 
       <Dialog
-        open={Boolean(editing)}
+        open={creating || Boolean(editing)}
         onOpenChange={(open) => {
-          if (!open) setEditing(null);
+          if (!open) closeDialog();
         }}
-        title={editing ? `تعديل ${editing.name}` : "تعديل الخطة"}
-        description="السقوف تُطبَّق فوراً على المحلات المشتركة في هذه الخطة."
+        title={creating ? "إضافة خطة" : editing ? `تعديل ${editing.name}` : "الخطة"}
+        description="السقوف تُطبَّق على المحلات المشتركة في هذه الخطة. اترك حدّاً فارغاً ليبقى بلا سقف."
         size="lg"
         footer={
           <>
-            <Button variant="outline" onClick={() => setEditing(null)}>
+            <Button variant="outline" onClick={closeDialog}>
               إلغاء
             </Button>
-            <Button loading={saving} onClick={() => void saveEdit()}>
-              حفظ
+            <Button loading={saving} onClick={() => void savePlan()}>
+              {creating ? "إضافة" : "حفظ"}
             </Button>
           </>
         }
@@ -268,9 +264,25 @@ export function AdminPlansView({ plans }: { plans: Plan[] }) {
               onChange={(event) => setDraft({ ...draft, name: event.target.value })}
             />
           </FormField>
-          <FormField label="المعرّف">
-            <Input dir="ltr" value={editing?.slug ?? ""} disabled />
-          </FormField>
+          {creating ? (
+            <FormField
+              label="المعرّف"
+              htmlFor="plan-slug"
+              hint="اختياري. أحرف إنجليزية مثل gold، أو اتركه فارغاً ليُنشأ تلقائياً."
+            >
+              <Input
+                id="plan-slug"
+                dir="ltr"
+                value={draft.slug}
+                placeholder="gold"
+                onChange={(event) => setDraft({ ...draft, slug: event.target.value })}
+              />
+            </FormField>
+          ) : (
+            <FormField label="المعرّف">
+              <Input dir="ltr" value={editing?.slug ?? ""} disabled />
+            </FormField>
+          )}
           <FormField label="السعر الشهري" htmlFor="plan-monthly" required>
             <Input
               id="plan-monthly"

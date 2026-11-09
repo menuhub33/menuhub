@@ -51,6 +51,7 @@ export function CategoryForm({
   onCancel,
   onUpload,
   submitLabel,
+  orderPosition = 1,
 }: {
   category?: Category | null;
   loading?: boolean;
@@ -59,9 +60,13 @@ export function CategoryForm({
   onCancel?: () => void;
   onUpload?: (file: File) => Promise<string>;
   submitLabel?: string;
+  /** 1-based place in the current menu. */
+  orderPosition?: number;
 }) {
   const [values, setValues] = useState<CategoryFormValues>(() => fromCategory(category));
+  const [position, setPosition] = useState(String(Math.max(1, orderPosition)));
   const [nameError, setNameError] = useState<string | undefined>();
+  const [orderError, setOrderError] = useState<string | undefined>();
 
   function update<K extends keyof CategoryFormValues>(key: K, value: CategoryFormValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -73,17 +78,24 @@ export function CategoryForm({
       onSubmit={(event) => {
         event.preventDefault();
         const nameAr = values.name_ar.trim();
+        const parsedPosition = Number.parseInt(position, 10);
         if (!nameAr) {
           setNameError("الاسم العربي مطلوب");
           return;
         }
+        if (!Number.isFinite(parsedPosition) || parsedPosition < 1) {
+          setOrderError("ترتيب العرض يبدأ من 1");
+          return;
+        }
         setNameError(undefined);
+        setOrderError(undefined);
         void onSubmit({
           ...values,
           name_ar: nameAr,
           name_en: values.name_en.trim(),
           description_ar: values.description_ar.trim(),
           description_en: values.description_en.trim(),
+          sort_order: parsedPosition - 1,
         });
       }}
     >
@@ -134,14 +146,19 @@ export function CategoryForm({
         />
       </FormField>
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label="ترتيب العرض" htmlFor="sort_order" hint="الأرقام الأصغر تظهر أولًا">
+        <FormField label="ترتيب العرض" htmlFor="sort_order" hint="1 يظهر أولاً" error={orderError}>
           <Input
             id="sort_order"
             type="number"
             dir="ltr"
-            min={0}
-            value={values.sort_order}
-            onChange={(event) => update("sort_order", Number(event.target.value) || 0)}
+            min={1}
+            step={1}
+            value={position}
+            invalid={Boolean(orderError)}
+            onChange={(event) => {
+              setPosition(event.target.value);
+              if (orderError) setOrderError(undefined);
+            }}
           />
         </FormField>
         <FormField label="حالة القسم">

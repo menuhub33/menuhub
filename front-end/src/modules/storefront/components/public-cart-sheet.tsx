@@ -10,7 +10,6 @@ import { CartIcon, TrashIcon, UtensilsIcon } from "@/core/ui/icons";
 export type PublicCartItem = {
   product: ProductWithRelations;
   quantity: number;
-  extra: number;
 };
 
 export function PublicCartSheet({
@@ -31,7 +30,7 @@ export function PublicCartSheet({
   onCheckout: () => void;
 }) {
   const total = items.reduce(
-    (sum, item) => sum + (item.product.price + item.extra) * item.quantity,
+    (sum, item) => sum + item.product.price * item.quantity,
     0
   );
   const currency = items[0]?.product.currency ?? "SYP";
@@ -68,8 +67,8 @@ export function PublicCartSheet({
         <p className="py-10 text-center text-sm opacity-60">السلة فارغة</p>
       ) : (
         <div className="grid gap-3">
-          {items.map(({ product, quantity, extra }) => {
-            const unit = product.price + extra;
+          {items.map(({ product, quantity }) => {
+            const unit = product.price;
             return (
               <div
                 key={product.id}

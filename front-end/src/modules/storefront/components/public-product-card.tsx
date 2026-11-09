@@ -14,17 +14,19 @@ export function PublicProductCard({
   onClick,
   quantity = 0,
   onQuantityChange,
+  showStockCount = true,
   className,
 }: {
   product: ProductWithRelations;
   onClick?: () => void;
   quantity?: number;
   onQuantityChange?: (next: number) => void;
+  showStockCount?: boolean;
   className?: string;
 }) {
   const unavailable = isShownUnavailable(product);
   const cap = stockCap(product);
-  const remaining = stockLabel(product);
+  const remaining = showStockCount ? stockLabel(product) : null;
   const imageUrl = productPrimaryImageUrl(product);
   const oldPrice = product.old_price;
   const showOldPrice = oldPrice != null && oldPrice > product.price;

@@ -6,6 +6,7 @@ import { EmptyState } from "@/core/components/common/empty-state";
 import { ErrorState } from "@/core/components/common/error-state";
 import { Button } from "@/core/ui/button";
 import Link from "next/link";
+import { normalizeBusinessType, showsStockCount } from "@/modules/tenancy/lib/business-type";
 
 export default async function NewProductPage() {
   const tenant = await requirePermission("products.create");
@@ -33,6 +34,7 @@ export default async function NewProductPage() {
       categories={categories}
       restaurantId={tenant.restaurant.id}
       maxImages={imageCap.data ?? 4}
+      showStockCount={showsStockCount(normalizeBusinessType(tenant.restaurant.business_type))}
     />
   );
 }

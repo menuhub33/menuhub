@@ -173,8 +173,7 @@ Dashboard
 ├── الرئيسية
 ├── المنيو
 │   ├── الأقسام
-│   ├── المنتجات
-│   └── الخيارات والإضافات
+│   └── المنتجات
 │
 ├── التصميم
 ├── QR Code
@@ -292,31 +291,6 @@ Burger Classic
 وعندما يعود المنتج:
 
 متوفر
-13. الإضافات والخيارات
-
-مثلاً:
-
-البرغر
-
-الحجم:
-
-عادي
-دبل +10
-تريبل +20
-
-الإضافات:
-
-جبنة +5
-صوص +3
-بطاطا +7
-
-النظام يجب أن يسمح للمطعم بإنشاء:
-
-Option Groups
-
-و:
-
-Options
 14. تصميم المنيو
 
 يستطيع صاحب المطعم تخصيص:
@@ -662,8 +636,6 @@ restaurants
 restaurant_users
 categories
 products
-product_option_groups
-product_options
 themes
 qr_codes
 subscriptions

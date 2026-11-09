@@ -2,8 +2,6 @@ export type MenuStatus = "DRAFT" | "PUBLISHED" | "UNPUBLISHED";
 
 export type ProductStatus = "AVAILABLE" | "UNAVAILABLE" | "HIDDEN";
 
-export type OptionSelectionType = "SINGLE" | "MULTIPLE";
-
 export type Menu = {
   id: string;
   restaurant_id: string;
@@ -58,42 +56,11 @@ export type ProductImage = {
   created_at: string;
 };
 
-export type ProductOptionGroup = {
-  id: string;
-  product_id: string;
-  name_ar: string;
-  name_en: string | null;
-  selection_type: OptionSelectionType;
-  is_required: boolean;
-  min_selection: number;
-  max_selection: number | null;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-};
-
-export type ProductOption = {
-  id: string;
-  option_group_id: string;
-  name_ar: string;
-  name_en: string | null;
-  price_delta: number;
-  sort_order: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-};
-
 export type ProductWithImages = Product & {
   images?: ProductImage[];
 };
 
-export type OptionGroupWithOptions = ProductOptionGroup & {
-  options?: ProductOption[];
-};
-
 export type ProductWithRelations = ProductWithImages & {
-  option_groups?: OptionGroupWithOptions[];
   category?: Category;
 };
 

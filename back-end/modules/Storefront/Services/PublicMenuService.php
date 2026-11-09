@@ -93,8 +93,6 @@ class PublicMenuService
             ->with([
                 'products' => fn ($q) => $q->where('status', '!=', ProductStatus::Hidden->value),
                 'products.images',
-                'products.optionGroups',
-                'products.optionGroups.options' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
             ])
             ->orderBy('sort_order')->orderBy('created_at')
             ->get();

@@ -7,7 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Catalog\Models\Product;
 
 /**
- * Matches the shape consumed by the front-end (`images`, `option_groups`).
+ * Matches the shape consumed by the front-end (`images`).
  *
  * @mixin Product
  */
@@ -36,9 +36,6 @@ class ProductResource extends JsonResource
                 'sort_order' => $image->sort_order,
                 'is_primary' => $image->is_primary,
             ])->values()->all()),
-            'option_groups' => $this->whenLoaded('optionGroups', fn () => $this->optionGroups->map(
-                fn ($group) => OptionGroupResource::make($group)->resolve()
-            )->values()->all()),
             'category' => $this->whenLoaded('category', fn () => [
                 'id' => $this->category->id,
                 'name_ar' => $this->category->name_ar,

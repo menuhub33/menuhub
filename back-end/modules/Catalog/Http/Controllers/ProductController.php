@@ -15,7 +15,7 @@ use Modules\Tenancy\Models\Restaurant;
 
 class ProductController extends ApiController
 {
-    private const WITH = ['images', 'optionGroups.options', 'category:id,name_ar,name_en'];
+    private const WITH = ['images', 'category:id,name_ar,name_en'];
 
     public function __construct(private readonly ProductService $products) {}
 

@@ -64,10 +64,11 @@ export function CategoryList({
         </div>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {categories.map((category) => (
+        {categories.map((category, index) => (
           <CategoryCard
             key={category.id}
             category={category}
+            position={index + 1}
             canEdit={canEdit}
             canDelete={canDelete}
             onEdit={onEdit}

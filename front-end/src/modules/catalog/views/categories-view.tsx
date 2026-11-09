@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createCategory } from "@/modules/catalog/actions/categories";
 import { updateCategory } from "@/modules/catalog/actions/categories";
 import { updateCategoryStatus } from "@/modules/catalog/actions/categories";
@@ -35,6 +35,15 @@ export function CategoriesView({
   const [deleting, setDeleting] = useState<Category | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const ordered = useMemo(
+    () =>
+      [...categories].sort(
+        (a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at)
+      ),
+    [categories]
+  );
+  const editingIndex = editing ? ordered.findIndex((category) => category.id === editing.id) : -1;
+  const orderPosition = editingIndex >= 0 ? editingIndex + 1 : ordered.length + 1;
 
   async function save(values: CategoryFormValues) {
     setLoading(true);
@@ -87,7 +96,7 @@ export function CategoriesView({
         ]}
       />
       <CategoryList
-        categories={categories}
+        categories={ordered}
         canEdit={canEdit}
         canDelete={canDelete}
         onAdd={() => {
@@ -100,9 +109,9 @@ export function CategoriesView({
         }}
         onDelete={setDeleting}
       />
-      {canEdit && categories.length > 1 ? (
+      {canEdit && ordered.length > 1 ? (
         <CategorySortableList
-          categories={categories}
+          categories={ordered}
           onReorder={async (ids) => {
             const result = await reorderCategories(ids);
             if (result.error) toast({ title: result.error, variant: "error" });
@@ -116,6 +125,7 @@ export function CategoriesView({
         category={editing}
         loading={loading}
         error={error}
+        orderPosition={orderPosition}
         onSubmit={save}
         onUpload={async (file) => {
           const uploaded = await uploadImageFile(file, "categories");

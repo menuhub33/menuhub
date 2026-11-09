@@ -19,7 +19,6 @@ final class Permissions
         'categories.view', 'categories.create', 'categories.update', 'categories.delete',
         'products.view', 'products.create', 'products.update', 'products.delete', 'products.availability',
         'orders.view', 'orders.manage',
-        'options.manage',
         'design.update', 'qr.manage',
         'analytics.view', 'audit.view',
         'staff.manage', 'subscription.manage',
@@ -33,7 +32,6 @@ final class Permissions
         'categories.view', 'categories.create', 'categories.update', 'categories.delete',
         'products.view', 'products.create', 'products.update', 'products.delete', 'products.availability',
         'orders.view', 'orders.manage',
-        'options.manage',
         'analytics.view', 'audit.view',
         'branches.manage',
         'settings.view',
@@ -44,7 +42,6 @@ final class Permissions
         'menu.view',
         'categories.view', 'categories.create', 'categories.update',
         'products.view', 'products.create', 'products.update', 'products.availability',
-        'options.manage',
         'settings.view',
     ];
 

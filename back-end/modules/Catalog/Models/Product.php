@@ -44,11 +44,6 @@ class Product extends BaseModel
         return $this->hasMany(ProductImage::class)->orderByDesc('is_primary')->orderBy('sort_order');
     }
 
-    public function optionGroups(): HasMany
-    {
-        return $this->hasMany(OptionGroup::class)->orderBy('sort_order');
-    }
-
     public function scopeForRestaurant(Builder $query, string $restaurantId): Builder
     {
         return $query->whereHas('category.menu', fn (Builder $q) => $q->where('restaurant_id', $restaurantId));

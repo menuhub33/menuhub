@@ -28,6 +28,7 @@ export function ProductCard({
   onDuplicate,
   onToggleAvailability,
   onToggleVisibility,
+  showStockCount = true,
 }: {
   product: ProductWithImages;
   canEdit?: boolean;
@@ -38,6 +39,7 @@ export function ProductCard({
   onDuplicate?: (product: ProductWithImages) => void;
   onToggleAvailability?: (product: ProductWithImages) => void;
   onToggleVisibility?: (product: ProductWithImages) => void;
+  showStockCount?: boolean;
 }) {
   const image = getProductPrimaryImage(product);
   const showToggles = canEdit && (onToggleAvailability || onToggleVisibility);
@@ -92,7 +94,7 @@ export function ProductCard({
           <ProductStatusBadge status={product.status} />
         </div>
         <ProductPrice price={product.price} old_price={product.old_price} currency={product.currency} />
-        {stockLabel(product) ? (
+        {showStockCount && stockLabel(product) ? (
           <p className="text-xs text-zinc-500">{stockLabel(product)}</p>
         ) : null}
         {showToggles ? (

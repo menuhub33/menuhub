@@ -12,29 +12,40 @@ import { uploadImageFile } from "@/modules/media/lib/upload-client";
 import { isOpenableImageUrl } from "@/modules/media/lib/storage";
 import { PageHeader } from "@/core/components/layout/page-header";
 import { ProductForm, type ProductFormValues } from "@/modules/catalog/components/products/product-form";
-import { OptionDialog } from "@/modules/catalog/components/options/option-dialog";
-import { createOptionGroup } from "@/modules/catalog/actions/options";
-import { updateOptionGroup } from "@/modules/catalog/actions/options";
 import { useToast } from "@/core/ui/toast";
-import type { OptionGroupWithOptions, ProductWithRelations } from "@/modules/catalog/types";
-import type { Category } from "@/modules/catalog/types";
+import type { CategoryWithProducts, ProductWithRelations } from "@/modules/catalog/types";
+
+function displayPosition(
+  categories: CategoryWithProducts[],
+  categoryId?: string,
+  productId?: string
+) {
+  const category = categories.find((item) => item.id === categoryId) ?? categories[0];
+  const products = [...(category?.products ?? [])].sort(
+    (a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at)
+  );
+  if (!productId) return products.length + 1;
+  const index = products.findIndex((item) => item.id === productId);
+  return index >= 0 ? index + 1 : products.length + 1;
+}
 
 export function ProductEditorView({
   product,
   categories,
   maxImages = 4,
+  showStockCount = true,
 }: {
   product?: ProductWithRelations | null;
-  categories: Category[];
+  categories: CategoryWithProducts[];
   restaurantId: string;
   maxImages?: number;
+  showStockCount?: boolean;
 }) {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [groupOpen, setGroupOpen] = useState(false);
-  const [editingGroup, setEditingGroup] = useState<OptionGroupWithOptions | null>(null);
+  const orderPosition = displayPosition(categories, product?.category_id, product?.id);
 
   async function save(values: ProductFormValues) {
     setLoading(true);
@@ -140,52 +151,14 @@ export function ProductEditorView({
         maxImages={maxImages}
         loading={loading}
         error={error}
+        showStockCount={showStockCount}
+        orderPosition={orderPosition}
         onCancel={() => router.push("/dashboard/menu/products")}
         onSubmit={save}
-        onAddGroup={product ? () => setGroupOpen(true) : undefined}
-        onEditGroup={
-          product
-            ? (group) => {
-                setEditingGroup(group);
-                setGroupOpen(true);
-              }
-            : undefined
-        }
         onUploadImage={async (file) => {
           const uploaded = await uploadImageFile(file, "products");
           if (uploaded.error || !uploaded.data) throw new Error(uploaded.error ?? "رفع فشل");
           return uploaded.data.url;
-        }}
-      />
-      <OptionDialog
-        mode="group"
-        open={groupOpen}
-        onOpenChange={(open) => {
-          setGroupOpen(open);
-          if (!open) setEditingGroup(null);
-        }}
-        group={editingGroup}
-        onSubmit={async (values) => {
-          if (!product) return;
-          const result = editingGroup
-            ? await updateOptionGroup({ id: editingGroup.id, ...values, name_en: values.name_en || null })
-            : await createOptionGroup({
-                product_id: product.id,
-                name_ar: values.name_ar,
-                name_en: values.name_en || null,
-                selection_type: values.selection_type,
-                is_required: values.is_required,
-                min_selection: values.min_selection,
-                max_selection: values.max_selection,
-                sort_order: values.sort_order,
-              });
-          if (result.error) {
-            toast({ title: result.error, variant: "error" });
-            return;
-          }
-          toast({ title: "تم حفظ مجموعة الخيارات", variant: "success" });
-          setGroupOpen(false);
-          router.refresh();
         }}
       />
     </div>

@@ -43,5 +43,5 @@ export type PlacePublicOrderInput = {
   address?: string | null;
   latitude?: number | null;
   longitude?: number | null;
-  items: Array<{ product_id: string; quantity: number; extra?: number }>;
+  items: Array<{ product_id: string; quantity: number }>;
 };

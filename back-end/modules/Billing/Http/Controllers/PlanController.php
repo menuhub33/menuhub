@@ -4,6 +4,7 @@ namespace Modules\Billing\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Modules\Billing\Models\Plan;
 use Modules\Billing\Models\Subscription;
 use Modules\Shared\Http\Controllers\ApiController;
@@ -22,9 +23,19 @@ class PlanController extends ApiController
 
     public function store(Request $request): JsonResponse
     {
+        if ($request->input('slug') === '') {
+            $request->merge(['slug' => null]);
+        }
+
         $data = $request->validate($this->rules() + [
-            'slug' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:plans,slug'],
+            'slug' => ['nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:plans,slug'],
+        ], [
+            'name.required' => 'اسم الخطة مطلوب',
+            'slug.regex' => 'المعرّف أحرف إنجليزية صغيرة وأرقام وشرطات فقط',
+            'slug.unique' => 'هذا المعرّف مستخدم لخطة أخرى',
         ]);
+
+        $data['slug'] = $this->uniqueSlug($data['slug'] ?? null, $data['name']);
 
         return $this->created(Plan::query()->create($data)->refresh());
     }
@@ -53,6 +64,22 @@ class PlanController extends ApiController
         $plan->delete();
 
         return $this->noContent();
+    }
+
+    private function uniqueSlug(?string $slug, string $name): string
+    {
+        $base = $slug !== null && $slug !== '' ? $slug : (Str::slug($name) ?: 'plan');
+        $base = substr($base, 0, 80);
+        $candidate = $base;
+
+        for ($n = 2; Plan::query()->where('slug', $candidate)->exists(); $n++) {
+            $candidate = $base.'-'.$n;
+            if ($n > 50) {
+                return $base.'-'.Str::lower(Str::random(4));
+            }
+        }
+
+        return $candidate;
     }
 
     /** @return array<string, array<int, mixed>> */

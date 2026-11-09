@@ -4,8 +4,6 @@ namespace Modules\Catalog\Services;
 
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Models\Category;
-use Modules\Catalog\Models\Option;
-use Modules\Catalog\Models\OptionGroup;
 use Modules\Catalog\Models\Product;
 use Modules\Catalog\Models\ProductImage;
 use Modules\Shared\Contracts\EnforcesPlanLimits;
@@ -39,13 +37,15 @@ class ProductService
         $this->assertImageRoom($restaurant->id, count($data['images'] ?? []));
 
         return DB::transaction(function () use ($restaurant, $category, $data) {
+            $hasPosition = array_key_exists('sort_order', $data);
+            $position = $hasPosition ? max(0, (int) $data['sort_order']) : null;
+
             $product = Product::query()->create([
                 ...array_intersect_key($data, array_flip(self::FILLABLE)),
                 'category_id' => $category->id,
                 'currency' => $data['currency'] ?? $restaurant->currency,
                 'status' => $data['status'] ?? ProductStatus::Available->value,
-                'sort_order' => $data['sort_order']
-                    ?? (int) Product::query()->where('category_id', $category->id)->max('sort_order') + 1,
+                'sort_order' => (int) Product::query()->where('category_id', $category->id)->max('sort_order') + 1,
             ]);
 
             foreach ($data['images'] ?? [] as $index => $image) {
@@ -54,6 +54,11 @@ class ProductService
                     'sort_order' => $image['sort_order'] ?? $index,
                     'is_primary' => $image['is_primary'] ?? $index === 0,
                 ]);
+            }
+
+            if ($position !== null) {
+                Reorder::place(Product::query()->where('category_id', $category->id), $product->id, $position);
+                $product->refresh();
             }
 
             return $product;
@@ -68,7 +73,25 @@ class ProductService
         }
 
         $this->guardDiscount($data, $product);
+        $hasPosition = array_key_exists('sort_order', $data);
+        $position = $hasPosition ? max(0, (int) $data['sort_order']) : null;
+        unset($data['sort_order']);
+
+        $previousCategoryId = $product->category_id;
         $product->fill(array_intersect_key($data, array_flip(self::FILLABLE)))->save();
+
+        if ($previousCategoryId !== $product->category_id) {
+            Reorder::normalize(Product::query()->where('category_id', $previousCategoryId));
+        }
+
+        if ($hasPosition) {
+            Reorder::place(
+                Product::query()->where('category_id', $product->category_id),
+                $product->id,
+                $position
+            );
+            RestaurantContentChanged::dispatch($restaurant->id);
+        }
 
         return $product->refresh();
     }
@@ -81,7 +104,7 @@ class ProductService
     }
 
     /**
-     * Copies the product with its gallery, option groups and options.
+     * Copies the product with its gallery.
      */
     public function duplicate(Product $product, Restaurant $restaurant): Product
     {
@@ -102,18 +125,6 @@ class ProductService
                     'sort_order' => $image->sort_order,
                     'is_primary' => $image->is_primary,
                 ]);
-            }
-
-            foreach ($product->optionGroups()->with('options')->get() as $group) {
-                $newGroup = $group->replicate(['created_at', 'updated_at']);
-                $newGroup->product_id = $copy->id;
-                $newGroup->save();
-
-                foreach ($group->options as $option) {
-                    $newOption = $option->replicate(['created_at', 'updated_at']);
-                    $newOption->option_group_id = $newGroup->id;
-                    $newOption->save();
-                }
             }
 
             return $copy;
@@ -177,58 +188,6 @@ class ProductService
                     ->orderBy('sort_order')->first()?->update(['is_primary' => true]);
             }
         });
-    }
-
-    /** @param  array<string, mixed>  $data */
-    public function saveOptionGroup(Product $product, array $data, ?OptionGroup $group = null): OptionGroup
-    {
-        $group ??= new OptionGroup(['product_id' => $product->id]);
-
-        $required = (bool) ($data['is_required'] ?? $group->is_required ?? false);
-        $type = $data['selection_type'] ?? $group->selection_type?->value ?? 'SINGLE';
-        $min = (int) ($data['min_selection'] ?? $group->min_selection ?? 0);
-        $max = array_key_exists('max_selection', $data) ? $data['max_selection'] : $group->max_selection;
-
-        if ($required && $min < 1) {
-            $min = 1;
-        }
-        if ($type === 'SINGLE') {
-            $max = 1;
-            $min = min($min, 1);
-        }
-        if ($max !== null && $max < $min) {
-            throw ApiException::invalid('الحد الأقصى لا يمكن أن يقل عن الحد الأدنى');
-        }
-
-        $group->fill([
-            'name_ar' => $data['name_ar'] ?? $group->name_ar,
-            'name_en' => array_key_exists('name_en', $data) ? $data['name_en'] : $group->name_en,
-            'selection_type' => $type,
-            'is_required' => $required,
-            'min_selection' => $min,
-            'max_selection' => $max,
-            'sort_order' => $data['sort_order'] ?? $group->sort_order
-                ?? (int) OptionGroup::query()->where('product_id', $product->id)->max('sort_order') + 1,
-        ])->save();
-
-        return $group->refresh();
-    }
-
-    /** @param  array<string, mixed>  $data */
-    public function saveOption(OptionGroup $group, array $data, ?Option $option = null): Option
-    {
-        $option ??= new Option(['option_group_id' => $group->id]);
-
-        $option->fill([
-            'name_ar' => $data['name_ar'] ?? $option->name_ar,
-            'name_en' => array_key_exists('name_en', $data) ? $data['name_en'] : $option->name_en,
-            'price_delta' => $data['price_delta'] ?? $option->price_delta ?? 0,
-            'is_active' => $data['is_active'] ?? $option->is_active ?? true,
-            'sort_order' => $data['sort_order'] ?? $option->sort_order
-                ?? (int) Option::query()->where('option_group_id', $group->id)->max('sort_order') + 1,
-        ])->save();
-
-        return $option->refresh();
     }
 
     /** @param  array<string, mixed>  $data */

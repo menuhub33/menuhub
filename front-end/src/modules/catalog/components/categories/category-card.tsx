@@ -7,12 +7,14 @@ import type { Category } from "@/modules/catalog/types";
 
 export function CategoryCard({
   category,
+  position,
   canEdit,
   canDelete,
   onEdit,
   onDelete,
 }: {
   category: Category;
+  position?: number;
   canEdit?: boolean;
   canDelete?: boolean;
   onEdit?: (category: Category) => void;
@@ -54,7 +56,7 @@ export function CategoryCard({
           <Badge variant={category.is_active ? "success" : "outline"} dot>
             {category.is_active ? "نشط" : "غير نشط"}
           </Badge>
-          <span className="text-xs text-zinc-400">الترتيب: {category.sort_order}</span>
+          <span className="text-xs text-zinc-400">الترتيب: {position ?? category.sort_order + 1}</span>
         </div>
       </CardContent>
     </Card>

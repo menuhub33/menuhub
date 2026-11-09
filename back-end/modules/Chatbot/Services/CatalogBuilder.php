@@ -40,9 +40,6 @@ class CatalogBuilder
                     'old_price' => $product['old_price'],
                     'image_url' => $primary['image_url'] ?? null,
                     'category' => $category['name_ar'],
-                    'extras' => collect($product['option_groups'] ?? [])
-                        ->flatMap(fn ($g) => collect($g['options'] ?? [])->where('is_active', true)->pluck('name_ar'))
-                        ->values()->all(),
                 ];
             }
         }

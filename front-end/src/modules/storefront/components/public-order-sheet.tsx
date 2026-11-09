@@ -169,7 +169,6 @@ export function PublicOrderSheet({
       items: items.map((item) => ({
         product_id: item.product.id,
         quantity: item.quantity,
-        extra: item.extra,
       })),
     });
     setSending(false);

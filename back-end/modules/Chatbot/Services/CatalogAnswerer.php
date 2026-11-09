@@ -213,21 +213,17 @@ class CatalogAnswerer
         $matches = $this->search($catalog, $effective, 5);
         if ($matches !== []) {
             $top = $matches[0];
-            $extras = $top['extras'];
-            $extrasLine = T::looksLike($effective, '/(اضاف|خيار|حجم)/') && $extras !== []
-                ? "\nالإضافات المتوفرة لـ {$top['name_ar']}: ".implode('، ', $extras)
-                : '';
             $details = T::looksLike($effective, '/(مكون|وصف|حساسيه|سعرات|كالوري)/')
                 ? (trim((string) $top['description_ar']) ?: trim((string) $top['description_en']) ?: null)
                 : null;
 
-            if (T::looksLike($effective, '/(مكون|حساسيه|سعرات|كالوري)/') && ! $details && $extras === []) {
+            if (T::looksLike($effective, '/(مكون|حساسيه|سعرات|كالوري)/') && ! $details) {
                 return $this->unknown($catalog, "تفاصيل {$top['name_ar']}");
             }
 
             $detailLine = $details ? "\n{$details}" : '';
 
-            return ['reply' => "هذا ما وجدته في المنيو:\n".$this->lines($matches).$detailLine.$extrasLine, 'products' => $matches];
+            return ['reply' => "هذا ما وجدته في المنيو:\n".$this->lines($matches).$detailLine, 'products' => $matches];
         }
 
         if (T::looksLike($effective, '/(مكون|حساسيه|سعرات|كالوري)/')) {

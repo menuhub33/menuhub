@@ -7,12 +7,14 @@ export function PublicProductGrid({
   onProductOpen,
   quantities,
   onQuantityChange,
+  showStockCount = true,
   className,
 }: {
   products: ProductWithRelations[];
   onProductOpen?: (product: ProductWithRelations) => void;
   quantities?: Record<string, number>;
   onQuantityChange?: (productId: string, next: number) => void;
+  showStockCount?: boolean;
   className?: string;
 }) {
   const visible = products.filter((product) => product.status !== "HIDDEN");
@@ -27,6 +29,7 @@ export function PublicProductGrid({
           product={product}
           onClick={onProductOpen ? () => onProductOpen(product) : undefined}
           quantity={quantities?.[product.id] ?? 0}
+          showStockCount={showStockCount}
           onQuantityChange={
             onQuantityChange
               ? (next) => onQuantityChange(product.id, next)

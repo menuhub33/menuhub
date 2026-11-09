@@ -32,11 +32,13 @@ export function ProductTable({
   onDuplicate,
   onToggleAvailability,
   onToggleVisibility,
+  showStockCount = true,
 }: {
   products: ProductWithImages[];
   categories?: Category[];
   canEdit?: boolean;
   canDelete?: boolean;
+  showStockCount?: boolean;
   onEdit?: (product: ProductWithImages) => void;
   onDelete?: (product: ProductWithImages) => void;
   onDuplicate?: (product: ProductWithImages) => void;
@@ -106,7 +108,7 @@ export function ProductTable({
                         old_price={product.old_price}
                         currency={product.currency}
                       />
-                      {stockLabel(product) ? (
+                      {showStockCount && stockLabel(product) ? (
                         <p className="mt-1 text-xs text-zinc-500">{stockLabel(product)}</p>
                       ) : null}
                     </TableCell>
@@ -166,6 +168,7 @@ export function ProductTable({
             onEdit={onEdit}
             onDelete={onDelete}
             onDuplicate={onDuplicate}
+            showStockCount={showStockCount}
             onToggleAvailability={onToggleAvailability}
             onToggleVisibility={onToggleVisibility}
           />

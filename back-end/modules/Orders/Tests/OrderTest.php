@@ -50,14 +50,14 @@ class OrderTest extends ApiTestCase
         $id = $this->postJson($this->api("public/menus/{$restaurant->slug}/orders"), [
             'delivery_type' => 'dine_in',
             'table_number' => '4',
-            'items' => [['product_id' => $product->id, 'quantity' => 1, 'extra' => 1500]],
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
         ])->assertCreated()->json('data.id');
 
         Sanctum::actingAs($owner);
         $this->postJson($this->api("restaurants/{$restaurant->id}/orders/{$id}/reject"))
             ->assertOk()
             ->assertJsonPath('data.status', 'REJECTED')
-            ->assertJsonPath('data.items.0.extra', 1500);
+            ->assertJsonPath('data.items.0.extra', 0);
         $this->assertSame(4, $product->refresh()->stock_quantity);
         $this->postJson($this->api("restaurants/{$restaurant->id}/orders/{$id}/confirm"))->assertStatus(422);
     }

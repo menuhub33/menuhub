@@ -23,11 +23,13 @@ export function ProductsView({
   categories,
   canEdit,
   canDelete,
+  showStockCount = true,
 }: {
   products: ProductWithImages[];
   categories: Category[];
   canEdit: boolean;
   canDelete: boolean;
+  showStockCount?: boolean;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -59,9 +61,11 @@ export function ProductsView({
       .sort((a, b) => {
         if (sort === "price") return a.price - b.price;
         if (sort === "name") return a.name_ar.localeCompare(b.name_ar, "ar");
-        return a.sort_order - b.sort_order;
+        const categoryA = categories.findIndex((category) => category.id === a.category_id);
+        const categoryB = categories.findIndex((category) => category.id === b.category_id);
+        return categoryA - categoryB || a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at);
       });
-  }, [products, search, status, categoryId, highlight, sort]);
+  }, [products, categories, search, status, categoryId, highlight, sort]);
 
   return (
     <div className="grid gap-6">
@@ -127,6 +131,7 @@ export function ProductsView({
             if (result.error) toast({ title: result.error, variant: "error" });
             else router.refresh();
           }}
+          showStockCount={showStockCount}
           onToggleVisibility={async (product) => {
             const next = product.status === "HIDDEN" ? "AVAILABLE" : "HIDDEN";
             const result = await updateProductStatus(product.id, next);

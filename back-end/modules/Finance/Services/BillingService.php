@@ -51,6 +51,10 @@ class BillingService
             $nextRenewal = Calc::addMonths($startsOn, 12);
 
             $billing = $existing ?? new MenuBilling(['restaurant_id' => $restaurant->id]);
+            $notes = $billing->notes;
+            if (array_key_exists('notes', $input)) {
+                $notes = trim((string) ($input['notes'] ?? '')) ?: null;
+            }
             $billing->fill([
                 'plan_id' => $plan?->id,
                 'price' => $price,
@@ -62,7 +66,7 @@ class BillingService
                 'currency' => strtoupper((string) ($input['currency'] ?? 'SYP')),
                 'starts_on' => $startsOn,
                 'next_renewal_on' => $nextRenewal,
-                'notes' => isset($input['notes']) ? (trim($input['notes']) ?: null) : null,
+                'notes' => $notes,
             ])->save();
 
             if (! $plan) {

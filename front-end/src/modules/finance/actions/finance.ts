@@ -69,7 +69,7 @@ export async function saveMenuBilling(
         installments_count: input.installmentsCount,
         starts_on: input.startsOn,
         currency: input.currency,
-        notes: input.notes ?? null,
+        ...(input.notes !== undefined ? { notes: input.notes } : {}),
       },
     });
     return { id: billing.id };

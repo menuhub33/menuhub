@@ -9,12 +9,36 @@ import type { Restaurant } from "@/modules/tenancy/types";
 // -------------------------------------------------------------- dashboards
 
 export async function getAdminRestaurants(): Promise<
-  ActionResult<(Restaurant & { owner_name?: string | null; owner_email?: string | null })[]>
+  ActionResult<
+    (Restaurant & {
+      owner_name?: string | null;
+      owner_email?: string | null;
+      owner_password?: string | null;
+      plan_id?: string | null;
+      plan_name?: string | null;
+      billing_price?: number | null;
+      discount_type?: "NONE" | "PERCENT" | "AMOUNT" | null;
+      discount_value?: number | null;
+      installments_count?: number | null;
+      billing_starts_on?: string | null;
+    })[]
+  >
 > {
   return run(() =>
-    apiAll<Restaurant & { owner_name?: string | null; owner_email?: string | null }>(
-      "/admin/restaurants"
-    )
+    apiAll<
+      Restaurant & {
+        owner_name?: string | null;
+        owner_email?: string | null;
+        owner_password?: string | null;
+        plan_id?: string | null;
+        plan_name?: string | null;
+        billing_price?: number | null;
+        discount_type?: "NONE" | "PERCENT" | "AMOUNT" | null;
+        discount_value?: number | null;
+        installments_count?: number | null;
+        billing_starts_on?: string | null;
+      }
+    >("/admin/restaurants")
   );
 }
 

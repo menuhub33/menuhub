@@ -21,14 +21,15 @@ import { FormField } from "@/core/components/forms/form-field";
 import { Input } from "@/core/ui/input";
 import { Textarea } from "@/core/ui/textarea";
 import { useToast } from "@/core/ui/toast";
-import { formatDate } from "@/core/lib/format";
+import { formatDate, formatPrice } from "@/core/lib/format";
 import { PasswordInput } from "@/modules/auth/components/password-input";
 import {
   emptyBillingForm,
   MenuBillingFields,
   type BillingFormState,
 } from "@/modules/finance/components/menu-billing-fields";
-import { parseBillingInput, type PricedPlan } from "@/modules/finance/lib/menu-billing";
+import { netMenuPrice, parseBillingInput, type PricedPlan } from "@/modules/finance/lib/menu-billing";
+import { saveMenuBilling } from "@/modules/finance/actions/finance";
 import { BusinessTypePicker } from "@/modules/tenancy/components/restaurants/business-type-picker";
 import { setCurrentRestaurant } from "@/modules/tenancy/actions/restaurants";
 import { isRestaurantActivated } from "@/modules/tenancy/lib/restaurant-status";
@@ -41,7 +42,27 @@ type RestaurantRow = Restaurant & {
   owner_name?: string | null;
   owner_email?: string | null;
   owner_password?: string | null;
+  plan_id?: string | null;
+  plan_name?: string | null;
+  billing_price?: number | null;
+  discount_type?: "NONE" | "PERCENT" | "AMOUNT" | null;
+  discount_value?: number | null;
+  installments_count?: number | null;
+  billing_starts_on?: string | null;
 };
+
+function discountInput(restaurant: RestaurantRow): string {
+  if (restaurant.discount_type === "PERCENT") return String(restaurant.discount_value ?? 0);
+  if (
+    restaurant.discount_type === "AMOUNT" &&
+    restaurant.billing_price &&
+    restaurant.billing_price > 0 &&
+    restaurant.discount_value
+  ) {
+    return String(Math.round((restaurant.discount_value / restaurant.billing_price) * 1000) / 10);
+  }
+  return "0";
+}
 
 const STATUS_OPTIONS: { value: RestaurantStatus; label: string }[] = [
   { value: "TRIAL", label: "تجريبي" },
@@ -89,6 +110,10 @@ export function AdminRestaurantsView({
   const [editMallId, setEditMallId] = useState("private");
   const [editEmail, setEditEmail] = useState("");
   const [editPassword, setEditPassword] = useState("");
+  const [editPlanId, setEditPlanId] = useState("");
+  const [editDiscount, setEditDiscount] = useState("0");
+  const [editInstallments, setEditInstallments] = useState(1);
+  const [editStartsOn, setEditStartsOn] = useState("");
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -107,6 +132,16 @@ export function AdminRestaurantsView({
   const billingInput = parseBillingInput(billing, plans);
   const canCreate = Boolean(name.trim() && email.trim() && password.length >= 8 && "value" in billingInput);
   const canSave = Boolean(editName.trim() && editSlug.trim() && editEmail.trim());
+  const editPlan = plans.find((plan) => plan.id === editPlanId) ?? null;
+  const editDiscountNumber = editDiscount.trim() === "" ? 0 : Number(editDiscount);
+  const editNet =
+    editPlan && Number.isFinite(editDiscountNumber)
+      ? netMenuPrice(
+          editPlan.price_yearly,
+          editDiscountNumber > 0 ? "PERCENT" : "NONE",
+          editDiscountNumber
+        )
+      : null;
 
   function openEdit(restaurant: RestaurantRow) {
     setEditing(restaurant);
@@ -119,6 +154,12 @@ export function AdminRestaurantsView({
     setEditMallId(restaurant.mall_id ?? "private");
     setEditEmail(restaurant.owner_email ?? "");
     setEditPassword(restaurant.owner_password ?? "");
+    setEditPlanId(
+      restaurant.plan_id && plans.some((plan) => plan.id === restaurant.plan_id) ? restaurant.plan_id : ""
+    );
+    setEditDiscount(discountInput(restaurant));
+    setEditInstallments(restaurant.installments_count ?? 1);
+    setEditStartsOn(restaurant.billing_starts_on ?? new Date().toISOString().slice(0, 10));
   }
 
   async function createRestaurant() {
@@ -170,11 +211,42 @@ export function AdminRestaurantsView({
       owner_email: editEmail,
       owner_password: editPassword.trim() || undefined,
     });
-    setSaving(false);
     if (result.error) {
+      setSaving(false);
       toast({ title: result.error, variant: "error" });
       return;
     }
+    if (editPlanId) {
+      const plan = plans.find((item) => item.id === editPlanId);
+      const discount = editDiscount.trim() === "" ? 0 : Number(editDiscount);
+      if (!plan) {
+        setSaving(false);
+        toast({ title: "اختر خطة من القائمة", variant: "error" });
+        return;
+      }
+      if (!Number.isFinite(discount) || discount < 0 || discount > 100) {
+        setSaving(false);
+        toast({ title: "نسبة الحسم بين 0 و 100", variant: "error" });
+        return;
+      }
+      const billed = await saveMenuBilling(editing.id, {
+        planId: plan.id,
+        price: plan.price_yearly,
+        setupCost: 0,
+        annualRenewal: 0,
+        discountType: discount > 0 ? "PERCENT" : "NONE",
+        discountValue: discount,
+        installmentsCount: discount > 0 ? 1 : Math.max(1, editInstallments),
+        startsOn: editStartsOn,
+        currency: plan.currency,
+      });
+      if (billed.error) {
+        setSaving(false);
+        toast({ title: billed.error, variant: "error" });
+        return;
+      }
+    }
+    setSaving(false);
     toast({ title: "تم حفظ المحل", variant: "success" });
     setEditing(null);
     router.refresh();
@@ -280,6 +352,9 @@ export function AdminRestaurantsView({
                     <p className="text-xs text-zinc-400" dir="ltr">
                       {restaurant.slug}
                     </p>
+                    {restaurant.plan_name ? (
+                      <p className="text-xs text-zinc-500">{restaurant.plan_name}</p>
+                    ) : null}
                   </td>
                   <td className="p-3">
                     {BUSINESS_TYPE_OPTIONS.find(
@@ -473,6 +548,38 @@ export function AdminRestaurantsView({
               />
             </FormField>
           )}
+          <FormField label="الخطة" htmlFor="edit-restaurant-plan" hint="سعر السنة يُحسب من الخطة">
+            <Select
+              id="edit-restaurant-plan"
+              value={editPlanId}
+              disabled={saving}
+              placeholder="بدون تغيير"
+              onChange={setEditPlanId}
+              options={plans.map((plan) => ({
+                value: plan.id,
+                label: `${plan.name} · ${formatPrice(plan.price_yearly, plan.currency)} سنوياً`,
+              }))}
+            />
+          </FormField>
+          <FormField label="نسبة الحسم %" htmlFor="edit-restaurant-discount" hint="0 يبقي سعر الخطة كاملاً. أي حسم يلغي التقسيط.">
+            <Input
+              id="edit-restaurant-discount"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              dir="ltr"
+              disabled={saving || !editPlanId}
+              value={editDiscount}
+              onChange={(event) => setEditDiscount(event.target.value)}
+            />
+          </FormField>
+          {editPlan ? (
+            <p className="text-sm text-zinc-600">
+              سعر {editPlan.name} السنوي {formatPrice(editPlan.price_yearly, editPlan.currency)}
+              {editNet != null ? `، بعد الحسم ${formatPrice(editNet, editPlan.currency)}` : ""}.
+            </p>
+          ) : null}
           <FormField label="الحالة" htmlFor="edit-restaurant-status">
             <Select
               id="edit-restaurant-status"

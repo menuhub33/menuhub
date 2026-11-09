@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Modules\Catalog\Http\Controllers\CatalogController;
 use Modules\Catalog\Http\Controllers\CategoryController;
 use Modules\Catalog\Http\Controllers\MenuController;
-use Modules\Catalog\Http\Controllers\OptionController;
 use Modules\Catalog\Http\Controllers\ProductController;
 use Modules\Catalog\Http\Controllers\ProductImageController;
 
@@ -47,15 +46,4 @@ Route::middleware(['auth:sanctum', 'active', 'tenant', 'tenant.active'])
         Route::post('products/{product}/images', [ProductImageController::class, 'store'])->middleware('permission:products.update');
         Route::patch('product-images/{image}', [ProductImageController::class, 'update'])->middleware('permission:products.update');
         Route::delete('product-images/{image}', [ProductImageController::class, 'destroy'])->middleware('permission:products.update');
-
-        // Option groups and options
-        Route::get('products/{product}/option-groups', [OptionController::class, 'index'])->middleware('permission:products.view');
-        Route::middleware('permission:options.manage')->group(function () {
-            Route::post('products/{product}/option-groups', [OptionController::class, 'storeGroup']);
-            Route::patch('option-groups/{group}', [OptionController::class, 'updateGroup']);
-            Route::delete('option-groups/{group}', [OptionController::class, 'destroyGroup']);
-            Route::post('option-groups/{group}/options', [OptionController::class, 'storeOption']);
-            Route::patch('options/{option}', [OptionController::class, 'updateOption']);
-            Route::delete('options/{option}', [OptionController::class, 'destroyOption']);
-        });
     });

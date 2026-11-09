@@ -200,7 +200,7 @@ class OrderService
     }
 
     /**
-     * @param  list<array{product_id:string,quantity:int,extra?:float|int|string}>  $items
+     * @param  list<array{product_id:string,quantity:int}>  $items
      * @return list<array{product:Product,quantity:int,unit_price:float,extra:float,line_total:float,currency:string}>
      */
     private function lines(Restaurant $restaurant, Menu $menu, array $items): array
@@ -225,7 +225,7 @@ class OrderService
                 throw ApiException::invalid("الكمية المتبقية من {$product->name_ar} هي {$left}");
             }
 
-            $extra = round((float) ($item['extra'] ?? 0), 2);
+            $extra = 0.0;
             $unit = round((float) $product->price, 2);
             $lines[] = [
                 'product' => $product,

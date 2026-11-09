@@ -25,7 +25,7 @@ class CategoryController extends ApiController
             ->orderBy('sort_order')->orderBy('created_at');
 
         if ($request->boolean('with_products')) {
-            $query->with(['products.images', 'products.optionGroups.options']);
+            $query->with(['products.images']);
         }
 
         return $this->ok(CategoryResource::collection($query->get())->resolve());

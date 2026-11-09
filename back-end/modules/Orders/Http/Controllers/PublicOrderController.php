@@ -25,7 +25,6 @@ class PublicOrderController extends ApiController
             'items' => ['required', 'array', 'min:1', 'max:40'],
             'items.*.product_id' => ['required', 'uuid', 'distinct'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:99'],
-            'items.*.extra' => ['sometimes', 'numeric', 'min:0', 'max:9999999999'],
         ]);
 
         return $this->created(new OrderResource($this->orders->place($slug, $data)));

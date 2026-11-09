@@ -1,6 +1,6 @@
 "use client";
 
-import type { OptionGroupWithOptions, ProductWithRelations } from "@/modules/catalog/types";
+import type { ProductWithRelations } from "@/modules/catalog/types";
 import { ProductForm, type ProductFormValues } from "@/modules/catalog/components/products/product-form";
 import { Dialog } from "@/core/ui/dialog";
 import type { Category } from "@/modules/catalog/types";
@@ -10,29 +10,23 @@ export function ProductDialog({
   onOpenChange,
   product,
   categories,
-  optionGroups,
   defaultCurrency,
   defaultCategoryId,
   loading,
   error,
   onSubmit,
   onUploadImage,
-  onAddGroup,
-  onEditGroup,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: ProductWithRelations | null;
   categories: Category[];
-  optionGroups?: OptionGroupWithOptions[];
   defaultCurrency?: string;
   defaultCategoryId?: string;
   loading?: boolean;
   error?: string | null;
   onSubmit: (values: ProductFormValues) => void | Promise<void>;
   onUploadImage?: (file: File) => Promise<string>;
-  onAddGroup?: () => void;
-  onEditGroup?: (group: OptionGroupWithOptions) => void;
 }) {
   const isEdit = Boolean(product);
 
@@ -48,14 +42,11 @@ export function ProductDialog({
         key={product?.id ?? "create"}
         product={product}
         categories={categories}
-        optionGroups={optionGroups}
         defaultCurrency={defaultCurrency}
         defaultCategoryId={defaultCategoryId}
         loading={loading}
         error={error}
         onUploadImage={onUploadImage}
-        onAddGroup={onAddGroup}
-        onEditGroup={onEditGroup}
         onCancel={() => onOpenChange(false)}
         onSubmit={onSubmit}
       />

@@ -8,7 +8,7 @@ import type { Plan, Subscription, SubscriptionStatus } from "@/modules/billing/t
 
 export type CreatePlanInput = {
   name: string;
-  slug: string;
+  slug?: string;
   description?: string | null;
   price_monthly?: number;
   price_yearly?: number;
@@ -29,11 +29,20 @@ export type CreatePlanInput = {
 /** Platform administrators only (`/admin/plans`). */
 export async function createPlan(input: CreatePlanInput): Promise<ActionResult<Plan>> {
   const name = input.name?.trim();
-  const slug = input.slug?.trim().toLowerCase();
-  if (!name || !slug) return fail("اسم الخطة ورمزها مطلوبان");
+  const slug = input.slug?.trim().toLowerCase() ?? "";
+  if (!name) return fail("اسم الخطة مطلوب");
+  if (slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    return fail("المعرّف أحرف إنجليزية صغيرة وأرقام وشرطات فقط، أو اتركه فارغاً");
+  }
+
+  const { slug: _slug, ...rest } = input;
+  void _slug;
 
   return run(() =>
-    apiData<Plan>("/admin/plans", { method: "POST", body: { ...input, name, slug } })
+    apiData<Plan>("/admin/plans", {
+      method: "POST",
+      body: { ...rest, name, ...(slug ? { slug } : {}) },
+    })
   );
 }
 

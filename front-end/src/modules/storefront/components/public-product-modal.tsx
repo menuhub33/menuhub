@@ -8,7 +8,6 @@ import { cn } from "@/core/lib/cn";
 import { formatPrice } from "@/core/lib/format";
 import { PRODUCT_STATUS_LABELS } from "@/core/lib/labels";
 import type { ProductWithRelations } from "@/modules/catalog/types";
-import { PublicOptionSelector } from "@/modules/storefront/components/public-option-selector";
 import { PublicProductBadges } from "@/modules/storefront/components/public-product-badges";
 import { discountPercent } from "@/modules/catalog/lib/merchandising";
 import { isShownUnavailable, stockCap } from "@/modules/catalog/lib/stock";
@@ -40,10 +39,9 @@ export function PublicProductModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialQuantity?: number;
-  onAddToCart?: (quantity: number, extra: number) => void;
+  onAddToCart?: (quantity: number) => void;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [extra, setExtra] = useState(0);
   const [quantity, setQuantity] = useState(Math.max(1, initialQuantity));
 
   // Reset during render rather than in an effect: an effect would paint the
@@ -52,25 +50,19 @@ export function PublicProductModal({
   if (product && product.id !== shownProductId) {
     setShownProductId(product.id);
     setActiveIndex(0);
-    setExtra(0);
     setQuantity(openingQuantity(product, initialQuantity));
   }
 
   const images = useMemo(() => (product ? sortedImages(product) : []), [product]);
   const unavailable = product ? isShownUnavailable(product) : false;
   const cap = product ? stockCap(product) : undefined;
-  const groups = product?.option_groups ?? [];
   const oldPrice = product?.old_price;
   const showOldPrice = oldPrice != null && product != null && oldPrice > product.price;
-  const unit = product ? product.price + extra : 0;
-  const total = unit * quantity;
+  const total = product ? product.price * quantity : 0;
   const activeImage = images[Math.min(activeIndex, Math.max(images.length - 1, 0))];
 
   function handleOpenChange(next: boolean) {
-    if (!next) {
-      setActiveIndex(0);
-      setExtra(0);
-    }
+    if (!next) setActiveIndex(0);
     onOpenChange(next);
   }
 
@@ -87,7 +79,7 @@ export function PublicProductModal({
           type="button"
           disabled={unavailable || quantity < 1 || !onAddToCart}
           onClick={() => {
-            onAddToCart?.(quantity, extra);
+            onAddToCart?.(quantity);
             handleOpenChange(false);
           }}
           className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--mh-primary)] text-sm font-bold text-white disabled:opacity-50"
@@ -179,16 +171,6 @@ export function PublicProductModal({
           <Alert variant="warning" title={PRODUCT_STATUS_LABELS.UNAVAILABLE}>
             هذا المنتج غير متوفر حالياً ولا يمكن إضافته للسلة.
           </Alert>
-        ) : null}
-
-        {groups.length > 0 ? (
-          <PublicOptionSelector
-            key={product.id}
-            groups={groups}
-            currency={product.currency}
-            disabled={unavailable}
-            onChange={(_ids, nextExtra) => setExtra(nextExtra)}
-          />
         ) : null}
 
         <div className="grid gap-3 rounded-2xl bg-white p-4 shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/5">

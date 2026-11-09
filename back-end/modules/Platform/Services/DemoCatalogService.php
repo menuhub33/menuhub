@@ -7,8 +7,6 @@ use Modules\Billing\Models\Plan;
 use Modules\Billing\Models\Subscription;
 use Modules\Catalog\Models\Category;
 use Modules\Catalog\Models\Menu;
-use Modules\Catalog\Models\Option;
-use Modules\Catalog\Models\OptionGroup;
 use Modules\Catalog\Models\Product;
 use Modules\Catalog\Models\ProductImage;
 use Modules\Operations\Models\Branch;
@@ -106,57 +104,6 @@ class DemoCatalogService
             'sort_order' => 0,
             'is_primary' => true,
         ]);
-
-        $sort = 0;
-        foreach ($data['opts'] as $spec) {
-            [$kind, $arg] = array_pad(explode(':', $spec, 2), 2, null);
-
-            match ($kind) {
-                'size' => $this->group($product, 'الحجم', 'Size', 'SINGLE', true, 1, 1, $sort++, [
-                    ['وسط', 'Medium', 0], ['كبير', 'Large', 8000],
-                ]),
-                'addons' => $this->group($product, 'إضافات', 'Extras', 'MULTIPLE', false, 0, 3, $sort++, [
-                    ['صوص ثوم', 'Garlic sauce', 0], ['صوص باربكيو', 'BBQ sauce', 0], ['جبنة إضافية', 'Extra cheese', 3000],
-                ]),
-                'color' => $this->group($product, 'اللون', 'Color', 'SINGLE', true, 1, 1, $sort++, [
-                    ['أبيض لؤلؤي', 'Pearl white', 0], ['أسود معدني', 'Metallic black', 400],
-                    ['رمادي تيتانيوم', 'Titanium gray', 500], ['أزرق ليلي', 'Midnight blue', 700],
-                ]),
-                'trim' => $this->group($product, 'فئة التجهيز', 'Trim', 'SINGLE', true, 1, 1, $sort++, [
-                    ['ستاندرد', 'Standard', 0], ['فل أوبشن', 'Full option', (int) $arg],
-                ]),
-                'extras' => $this->group($product, 'إضافات', 'Extras', 'MULTIPLE', false, 0, 4, $sort++, [
-                    ['فتحة سقف', 'Sunroof', 600], ['مقاعد جلد', 'Leather seats', 800],
-                    ['فحص ميكانيك شامل', 'Full inspection', 150], ['تأمين لسنة', 'One-year insurance', 400],
-                ]),
-            };
-        }
-    }
-
-    /** @param  list<array{0:string,1:string,2:int}>  $options */
-    private function group(Product $product, string $ar, string $en, string $type, bool $required, int $min, int $max, int $sort, array $options): void
-    {
-        $group = OptionGroup::query()->create([
-            'product_id' => $product->id,
-            'name_ar' => $ar,
-            'name_en' => $en,
-            'selection_type' => $type,
-            'is_required' => $required,
-            'min_selection' => $min,
-            'max_selection' => $max,
-            'sort_order' => $sort,
-        ]);
-
-        foreach ($options as $i => [$optionAr, $optionEn, $delta]) {
-            Option::query()->create([
-                'option_group_id' => $group->id,
-                'name_ar' => $optionAr,
-                'name_en' => $optionEn,
-                'price_delta' => $delta,
-                'sort_order' => $i,
-                'is_active' => true,
-            ]);
-        }
     }
 
     private function ensureSubscription(Restaurant $restaurant): void

@@ -31,7 +31,7 @@ class CatalogController extends ApiController
             : ($menus->firstWhere('is_default', true) ?? $menus->first());
 
         $categories = $menu
-            ? $menu->categories()->with(['products.images', 'products.optionGroups.options'])->get()
+            ? $menu->categories()->with(['products.images'])->get()
             : collect();
 
         return $this->ok([

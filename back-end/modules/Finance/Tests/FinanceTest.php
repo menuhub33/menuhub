@@ -224,6 +224,10 @@ class FinanceTest extends ApiTestCase
             ->assertJsonPath('data.discount_value', 10);
 
         $this->assertSame('SYP', $restaurant->refresh()->currency);
+        $this->getJson($this->api('admin/restaurants'))
+            ->assertOk()
+            ->assertJsonPath('data.0.plan_id', $pro->id)
+            ->assertJsonPath('data.0.discount_value', 10);
         $this->assertSame(
             $pro->id,
             \Modules\Billing\Models\Subscription::query()->where('restaurant_id', $restaurant->id)->value('plan_id')

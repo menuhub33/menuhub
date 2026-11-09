@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { cn } from "@/core/lib/cn";
 import { hasDiscount } from "@/modules/catalog/lib/merchandising";
 import { stockCap } from "@/modules/catalog/lib/stock";
+import { normalizeBusinessType, showsStockCount } from "@/modules/tenancy/lib/business-type";
 import type { CategoryWithProducts, ProductWithRelations } from "@/modules/catalog/types";
 import type { PublicMenuData } from "@/modules/storefront/types";
 import { PublicMenuBottomNav, type PublicMenuTab } from "@/modules/storefront/components/public-menu-bottom-nav";
@@ -88,9 +89,7 @@ function productsForView(
     ? scoped.filter((product) => productMatches(product, query))
     : scoped;
 
-  if (selectedId !== ALL_CATEGORIES_ID) return matched;
-
-  return [...matched].sort((a, b) => Number(b.is_featured) - Number(a.is_featured));
+  return matched;
 }
 
 export function PublicMenu({
@@ -116,7 +115,6 @@ export function PublicMenu({
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState(ALL_CATEGORIES_ID);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [extras, setExtras] = useState<Record<string, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
   const [complaintOpen, setComplaintOpen] = useState(false);
@@ -171,9 +169,8 @@ export function PublicMenu({
         .map((product) => ({
           product,
           quantity: quantities[product.id] ?? 0,
-          extra: extras[product.id] ?? 0,
         })),
-    [categories, quantities, extras]
+    [categories, quantities]
   );
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -181,6 +178,7 @@ export function PublicMenu({
   if (loading || !data) return <MenuLoading />;
 
   const theme = data.theme ?? FALLBACK_THEME;
+  const showStockCount = showsStockCount(normalizeBusinessType(data.restaurant.business_type));
 
   function setQuantity(productId: string, next: number) {
     const product = categories
@@ -349,6 +347,7 @@ export function PublicMenu({
           ) : (
             <PublicProductGrid
               products={displayedProducts}
+              showStockCount={showStockCount}
               onProductOpen={(product) => {
                 setOpenProduct(product);
                 onProductOpen?.(product);
@@ -449,10 +448,9 @@ export function PublicMenu({
         onOpenChange={(open) => {
           if (!open) setOpenProduct(null);
         }}
-        onAddToCart={(quantity, extra) => {
+        onAddToCart={(quantity) => {
           if (!openProduct) return;
           setQuantity(openProduct.id, quantity);
-          setExtras((current) => ({ ...current, [openProduct.id]: extra }));
         }}
       />
 

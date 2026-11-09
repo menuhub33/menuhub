@@ -35,21 +35,16 @@ final class DemoData
         return $rows;
     }
 
-    /** @param  list<string>  $opts */
-    private static function p(string $ar, string $en, string $desc, int $price, string $file, int $sort, ?int $old = null, bool $featured = false, array $opts = []): array
+    private static function p(string $ar, string $en, string $desc, int $price, string $file, int $sort, ?int $old = null, bool $featured = false): array
     {
         return [
             'name_ar' => $ar, 'name_en' => $en, 'description_ar' => $desc, 'price' => $price,
             'old_price' => $old, 'file' => $file, 'sort_order' => $sort, 'is_featured' => $featured,
-            'opts' => $opts,
         ];
     }
 
     private static function restaurantMenu(): array
     {
-        $addons = ['addons'];
-        $size = ['size'];
-
         return [
             'restaurant' => [
                 'name' => 'بيت الشام',
@@ -92,16 +87,16 @@ final class DemoData
                     self::p('رقائق جبنة', 'Cheese rolls', 'عجينة مقرمشة محشوة جبنة مع صوص غارلك.', 18000, 'cheese-rolls.jpg', 3),
                 ]],
                 ['name_ar' => 'المشاوي', 'name_en' => 'Grills', 'image' => 'mixed-grill.jpg', 'products' => [
-                    self::p('مشكل مشاوي', 'Mixed grill', 'كباب، شيش، وكفتة مع أرز وفحم.', 75000, 'mixed-grill.jpg', 0, 85000, true, $addons),
-                    self::p('شيش طاووق', 'Shish tawook', 'صدور دجاج متبّلة مشوية على الفحم.', 52000, 'shish-tawook.jpg', 1, null, true, $addons),
-                    self::p('كباب حلبي', 'Aleppo kebab', 'كباب لحم غنم مع بهارات حلبية.', 58000, 'kebab.jpg', 2, null, false, $addons),
-                    self::p('أجنحة دجاج', 'Chicken wings', 'أجنحة مقرمشة بصوص حار أو باربكيو.', 38000, 'wings.jpg', 3, null, false, $addons),
+                    self::p('مشكل مشاوي', 'Mixed grill', 'كباب، شيش، وكفتة مع أرز وفحم.', 75000, 'mixed-grill.jpg', 0, 85000, true),
+                    self::p('شيش طاووق', 'Shish tawook', 'صدور دجاج متبّلة مشوية على الفحم.', 52000, 'shish-tawook.jpg', 1, null, true),
+                    self::p('كباب حلبي', 'Aleppo kebab', 'كباب لحم غنم مع بهارات حلبية.', 58000, 'kebab.jpg', 2, null, false),
+                    self::p('أجنحة دجاج', 'Chicken wings', 'أجنحة مقرمشة بصوص حار أو باربكيو.', 38000, 'wings.jpg', 3, null, false),
                 ]],
                 ['name_ar' => 'البيتزا', 'name_en' => 'Pizza', 'image' => 'pizza-margherita.jpg', 'products' => [
-                    self::p('بيتزا مارغريتا', 'Margherita', 'صلصة طماطم، موزاريلا، وريحان.', 38000, 'pizza-margherita.jpg', 0, 45000, true, $size),
-                    self::p('بيتزا بيبروني', 'Pepperoni', 'بيبروني، موزاريلا، وصلصة حارة خفيفة.', 48000, 'pizza-pepperoni.jpg', 1, null, false, $size),
-                    self::p('بيتزا أربعة أجبان', 'Quattro formaggi', 'خليط أجبان غني على عجينة ذهبية.', 52000, 'pizza-four-cheese.jpg', 2, null, false, $size),
-                    self::p('بيتزا دجاج باربكيو', 'BBQ chicken', 'دجاج، بصل، صوص باربكيو وجبنة.', 50000, 'pizza-chicken.jpg', 3, null, false, $size),
+                    self::p('بيتزا مارغريتا', 'Margherita', 'صلصة طماطم، موزاريلا، وريحان.', 38000, 'pizza-margherita.jpg', 0, 45000, true),
+                    self::p('بيتزا بيبروني', 'Pepperoni', 'بيبروني، موزاريلا، وصلصة حارة خفيفة.', 48000, 'pizza-pepperoni.jpg', 1, null, false),
+                    self::p('بيتزا أربعة أجبان', 'Quattro formaggi', 'خليط أجبان غني على عجينة ذهبية.', 52000, 'pizza-four-cheese.jpg', 2, null, false),
+                    self::p('بيتزا دجاج باربكيو', 'BBQ chicken', 'دجاج، بصل، صوص باربكيو وجبنة.', 50000, 'pizza-chicken.jpg', 3, null, false),
                 ]],
                 ['name_ar' => 'المشروبات', 'name_en' => 'Drinks', 'image' => 'orange-juice.jpg', 'products' => [
                     self::p('عصير برتقال طازج', 'Fresh orange', 'برتقال معصور يومياً.', 12000, 'orange-juice.jpg', 0),
@@ -121,7 +116,9 @@ final class DemoData
 
     private static function car(string $ar, string $en, string $desc, int $price, string $file, int $sort, int $trim, ?int $old = null, bool $featured = false): array
     {
-        return self::p($ar, $en, $desc, $price, $file, $sort, $old, $featured, ['color', "trim:{$trim}", 'extras']);
+        unset($trim);
+
+        return self::p($ar, $en, $desc, $price, $file, $sort, $old, $featured);
     }
 
     private static function carsShowroom(): array

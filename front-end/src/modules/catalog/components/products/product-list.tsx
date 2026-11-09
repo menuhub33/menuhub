@@ -49,8 +49,10 @@ export function ProductList({
   onDuplicate,
   onToggleAvailability,
   onToggleVisibility,
+  showStockCount = true,
 }: {
   products: ProductWithImages[];
+  showStockCount?: boolean;
   loading?: boolean;
   error?: string | null;
   search?: string;
@@ -152,6 +154,7 @@ export function ProductList({
               onEdit={onEdit}
               onDelete={onDelete}
               onDuplicate={onDuplicate}
+              showStockCount={showStockCount}
               onToggleAvailability={onToggleAvailability}
               onToggleVisibility={onToggleVisibility}
             />

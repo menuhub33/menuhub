@@ -8,7 +8,7 @@ use Modules\Shared\Tests\ApiTestCase;
 
 class CatalogTest extends ApiTestCase
 {
-    public function test_owner_can_create_a_product_with_options(): void
+    public function test_owner_can_create_a_product(): void
     {
         [$owner, $restaurant] = $this->makeRestaurant();
         $category = $this->makeCategory($restaurant);
@@ -20,14 +20,8 @@ class CatalogTest extends ApiTestCase
             'price' => 25000,
         ])->assertCreated()->assertJsonPath('data.price', 25000)->json('data.id');
 
-        $this->postJson($this->api("restaurants/{$restaurant->id}/products/{$id}/option-groups"), [
-            'name_ar' => 'الحجم',
-            'selection_type' => 'SINGLE',
-            'options' => [['name_ar' => 'كبير', 'price_delta' => 5000]],
-        ])->assertCreated();
-
         $this->getJson($this->api("restaurants/{$restaurant->id}/products/{$id}"))
-            ->assertOk()->assertJsonPath('data.option_groups.0.options.0.name_ar', 'كبير');
+            ->assertOk()->assertJsonPath('data.name_ar', 'برغر');
     }
 
     /** The URL restaurant id must always match the resource: no cross-tenant id guessing. */
@@ -158,5 +152,39 @@ class CatalogTest extends ApiTestCase
 
         $this->postJson($this->api("restaurants/{$restaurant->id}/menus/{$menu->id}/publish"))->assertOk();
         $this->assertSame('PUBLISHED', $restaurant->refresh()->menu_status->value);
+    }
+
+    public function test_sort_order_moves_a_category_and_a_product_to_that_position(): void
+    {
+        [$owner, $restaurant] = $this->makeRestaurant();
+        $first = $this->makeCategory($restaurant, 'أول');
+        $second = $this->makeCategory($restaurant, 'ثان');
+        $third = $this->makeCategory($restaurant, 'ثالث');
+        $productA = $this->makeProduct($first, ['name_ar' => 'أ']);
+        $productB = $this->makeProduct($first, ['name_ar' => 'ب']);
+        $productC = $this->makeProduct($first, ['name_ar' => 'ج']);
+        Sanctum::actingAs($owner);
+
+        $this->patchJson($this->api("restaurants/{$restaurant->id}/categories/{$third->id}"), [
+            'sort_order' => 0,
+        ])->assertOk();
+
+        $categoryIds = array_column(
+            $this->getJson($this->api("restaurants/{$restaurant->id}/categories?with_products=1"))
+                ->assertOk()
+                ->json('data'),
+            'id'
+        );
+        $this->assertSame([$third->id, $first->id, $second->id], $categoryIds);
+
+        $this->patchJson($this->api("restaurants/{$restaurant->id}/products/{$productC->id}"), [
+            'sort_order' => 0,
+        ])->assertOk();
+
+        $categories = $this->getJson($this->api("restaurants/{$restaurant->id}/categories?with_products=1"))
+            ->assertOk()
+            ->json('data');
+        $products = collect($categories)->firstWhere('id', $first->id)['products'];
+        $this->assertSame([$productC->id, $productA->id, $productB->id], array_column($products, 'id'));
     }
 }

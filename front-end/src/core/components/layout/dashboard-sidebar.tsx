@@ -43,7 +43,6 @@ export const DEFAULT_DASHBOARD_NAV: NavItem[] = [
     children: [
       { href: "/dashboard/menu/categories", label: "الأقسام" },
       { href: "/dashboard/menu/products", label: "المنتجات" },
-      { href: "/dashboard/menu/options", label: "الإضافات" },
     ],
   },
   { href: "/dashboard/orders", label: "الطلبات", icon: "orders", permission: "orders.view" },

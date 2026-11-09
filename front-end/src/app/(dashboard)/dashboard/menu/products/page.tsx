@@ -3,6 +3,7 @@ import { ProductsView } from "@/modules/catalog/views/products-view";
 import { requirePermission } from "@/core/auth/authorization";
 import { hasPermission } from "@/core/auth/permissions";
 import { ErrorState } from "@/core/components/common/error-state";
+import { normalizeBusinessType, showsStockCount } from "@/modules/tenancy/lib/business-type";
 
 export default async function ProductsPage() {
   const tenant = await requirePermission("products.view");
@@ -17,6 +18,7 @@ export default async function ProductsPage() {
       categories={categories}
       canEdit={hasPermission(tenant.role, "products.update")}
       canDelete={hasPermission(tenant.role, "products.delete")}
+      showStockCount={showsStockCount(normalizeBusinessType(tenant.restaurant.business_type))}
     />
   );
 }

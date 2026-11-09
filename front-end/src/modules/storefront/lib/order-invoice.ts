@@ -40,7 +40,7 @@ export function buildWhatsAppInvoice({
         : copy.pickup;
   const currency = items[0]?.product.currency ?? "SYP";
   const total = items.reduce(
-    (sum, item) => sum + (item.product.price + item.extra) * item.quantity,
+    (sum, item) => sum + item.product.price * item.quantity,
     0
   );
   const when = new Intl.DateTimeFormat("ar", {
@@ -71,7 +71,7 @@ export function buildWhatsAppInvoice({
   lines.push("", `${copy.itemsLabel}:`, "──────────────");
 
   items.forEach((item, index) => {
-    const unit = item.product.price + item.extra;
+    const unit = item.product.price;
     const lineTotal = unit * item.quantity;
     lines.push(
       `${index + 1}) ${item.product.name_ar}`,

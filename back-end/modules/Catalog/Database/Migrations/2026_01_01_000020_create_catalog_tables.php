@@ -66,40 +66,10 @@ return new class extends Migration
 
             $table->index('product_id');
         });
-
-        Schema::create('product_option_groups', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('product_id')->constrained('products')->cascadeOnDelete();
-            $table->string('name_ar', 150);
-            $table->string('name_en', 150)->nullable();
-            $table->string('selection_type', 20)->default('SINGLE');
-            $table->boolean('is_required')->default(false);
-            $table->integer('min_selection')->default(0);
-            $table->integer('max_selection')->nullable();
-            $table->integer('sort_order')->default(0);
-            $table->timestamps();
-
-            $table->index('product_id');
-        });
-
-        Schema::create('product_options', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('option_group_id')->constrained('product_option_groups')->cascadeOnDelete();
-            $table->string('name_ar', 150);
-            $table->string('name_en', 150)->nullable();
-            $table->decimal('price_delta', 12, 2)->default(0);
-            $table->integer('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-
-            $table->index('option_group_id');
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('product_options');
-        Schema::dropIfExists('product_option_groups');
         Schema::dropIfExists('product_images');
         Schema::dropIfExists('products');
         Schema::dropIfExists('categories');

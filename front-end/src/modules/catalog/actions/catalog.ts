@@ -6,7 +6,6 @@ import type {
   CategoryWithProducts,
   Menu,
   MenuWithCategories,
-  OptionGroupWithOptions,
   ProductWithRelations,
 } from "@/modules/catalog/types";
 
@@ -28,7 +27,7 @@ export async function getDefaultMenu(
   return run(async () => (await loadCatalog(restaurantId)).menu);
 }
 
-/** The default menu with its categories, products, images and option groups. */
+/** The default menu with its categories, products and images. */
 export async function getMenuCatalog(
   restaurantId: string
 ): Promise<ActionResult<MenuWithCategories | null>> {
@@ -45,7 +44,6 @@ export async function getMenuCatalog(
           products: (products ?? []).map((product) => ({
             ...product,
             images: product.images ?? [],
-            option_groups: product.option_groups ?? [],
             category: parent,
           })),
         };
@@ -61,25 +59,6 @@ export async function getRestaurantProducts(
   if (catalog.error) return { data: null, error: catalog.error };
   return {
     data: catalog.data?.categories?.flatMap((category) => category.products ?? []) ?? [],
-    error: null,
-  };
-}
-
-export async function getRestaurantOptionGroups(
-  restaurantId: string
-): Promise<
-  ActionResult<Array<OptionGroupWithOptions & { product: ProductWithRelations }>>
-> {
-  const catalog = await getMenuCatalog(restaurantId);
-  if (catalog.error) return { data: null, error: catalog.error };
-
-  return {
-    data:
-      catalog.data?.categories?.flatMap((category) =>
-        (category.products ?? []).flatMap((product) =>
-          (product.option_groups ?? []).map((group) => ({ ...group, product }))
-        )
-      ) ?? [],
     error: null,
   };
 }

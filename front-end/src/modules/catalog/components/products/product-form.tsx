@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { FormField } from "@/core/components/forms/form-field";
 import { PRODUCT_STATUS_LABELS } from "@/core/lib/labels";
 import { MENU_CURRENCIES } from "@/core/lib/format";
-import type { OptionGroupWithOptions, ProductWithRelations } from "@/modules/catalog/types";
+import type { ProductWithRelations } from "@/modules/catalog/types";
 import { ProductGallery, type ProductGalleryItem } from "@/modules/catalog/components/products/product-gallery";
 import { ProductPrice } from "@/modules/catalog/components/products/product-price";
 import { ProductStatusBadge } from "@/modules/catalog/components/products/product-status-badge";
@@ -13,7 +13,7 @@ import { ContentImage } from "@/core/ui/content-image";
 import { Button } from "@/core/ui/button";
 import { Card } from "@/core/ui/card";
 import { Checkbox } from "@/core/ui/checkbox";
-import { ImageIcon, PencilIcon, PlusIcon, StarIcon } from "@/core/ui/icons";
+import { ImageIcon, StarIcon } from "@/core/ui/icons";
 import { Input } from "@/core/ui/input";
 import { Select } from "@/core/ui/select";
 import { Textarea } from "@/core/ui/textarea";
@@ -61,7 +61,7 @@ const STATUS_OPTIONS: { value: ProductStatus; label: string }[] = [
   { value: "HIDDEN", label: PRODUCT_STATUS_LABELS.HIDDEN },
 ];
 
-function emptyDraft(currency: string, categoryId: string): Draft {
+function emptyDraft(currency: string, categoryId: string, orderPosition: number): Draft {
   return {
     name_ar: "",
     name_en: "",
@@ -74,7 +74,7 @@ function emptyDraft(currency: string, categoryId: string): Draft {
     status: "AVAILABLE",
     is_featured: false,
     stock_quantity: "",
-    sort_order: "0",
+    sort_order: String(Math.max(1, orderPosition)),
     images: [],
   };
 }
@@ -82,9 +82,10 @@ function emptyDraft(currency: string, categoryId: string): Draft {
 function fromProduct(
   product: ProductWithRelations | null | undefined,
   defaultCurrency: string,
-  defaultCategoryId: string
+  defaultCategoryId: string,
+  orderPosition: number
 ): Draft {
-  if (!product) return emptyDraft(defaultCurrency, defaultCategoryId);
+  if (!product) return emptyDraft(defaultCurrency, defaultCategoryId, orderPosition);
   return {
     name_ar: product.name_ar,
     name_en: product.name_en ?? "",
@@ -97,7 +98,7 @@ function fromProduct(
     status: product.status,
     is_featured: product.is_featured,
     stock_quantity: product.stock_quantity != null ? String(product.stock_quantity) : "",
-    sort_order: String(product.sort_order),
+    sort_order: String(Math.max(1, orderPosition)),
     images: (product.images ?? []).map((image) => ({
       id: image.id,
       image_url: image.image_url,
@@ -122,7 +123,6 @@ function toNullableText(value: string): string | null {
 export function ProductForm({
   product,
   categories,
-  optionGroups,
   defaultCurrency = "SYP",
   defaultCategoryId,
   maxImages,
@@ -131,12 +131,12 @@ export function ProductForm({
   onSubmit,
   onCancel,
   onUploadImage,
-  onAddGroup,
-  onEditGroup,
+  showStockCount = true,
+  orderPosition = 1,
 }: {
   product?: ProductWithRelations | null;
   categories: Category[];
-  optionGroups?: OptionGroupWithOptions[];
+  showStockCount?: boolean;
   defaultCurrency?: string;
   defaultCategoryId?: string;
   maxImages?: number;
@@ -145,16 +145,15 @@ export function ProductForm({
   onSubmit: (values: ProductFormValues) => void | Promise<void>;
   onCancel?: () => void;
   onUploadImage?: (file: File) => Promise<string>;
-  onAddGroup?: () => void;
-  onEditGroup?: (group: OptionGroupWithOptions) => void;
+  /** 1-based place among products in the same section. */
+  orderPosition?: number;
 }) {
   const initialCategory = defaultCategoryId ?? categories[0]?.id ?? "";
   const [values, setValues] = useState<Draft>(() =>
-    fromProduct(product, defaultCurrency, initialCategory)
+    fromProduct(product, defaultCurrency, initialCategory, orderPosition)
   );
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
 
-  const groups = optionGroups ?? product?.option_groups ?? [];
   const primaryImage = useMemo(
     () => values.images.find((image) => image.is_primary) ?? values.images[0],
     [values.images]
@@ -215,8 +214,10 @@ export function ProductForm({
       }
     }
 
-    const sortOrder = Number.parseInt(values.sort_order || "0", 10);
-    if (!Number.isFinite(sortOrder)) nextErrors.sort_order = "ترتيب العرض يجب أن يكون رقمًا";
+    const sortPosition = Number.parseInt(values.sort_order, 10);
+    if (!Number.isFinite(sortPosition) || sortPosition < 1) {
+      nextErrors.sort_order = "ترتيب العرض يبدأ من 1";
+    }
 
     let stockQuantity: number | null = null;
     if (values.stock_quantity.trim()) {
@@ -243,7 +244,7 @@ export function ProductForm({
       status: values.status,
       is_featured: values.is_featured,
       stock_quantity: stockQuantity,
-      sort_order: Number.isFinite(sortOrder) ? sortOrder : 0,
+      sort_order: Number.isFinite(sortPosition) ? sortPosition - 1 : 0,
       images: values.images,
     };
   }
@@ -364,27 +365,35 @@ export function ProductForm({
               options={STATUS_OPTIONS}
             />
           </FormField>
+          {showStockCount ? (
+            <FormField
+              label="الكمية المتوفرة"
+              htmlFor="stock_quantity"
+              hint="فارغ يعني بدون حد. الصفر يظهر غير متوفر في المنيو"
+              error={fieldErrors.stock_quantity}
+            >
+              <Input
+                id="stock_quantity"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                step={1}
+                value={values.stock_quantity}
+                invalid={Boolean(fieldErrors.stock_quantity)}
+                onChange={(event) => update("stock_quantity", event.target.value)}
+              />
+            </FormField>
+          ) : null}
           <FormField
-            label="الكمية المتوفرة"
-            htmlFor="stock_quantity"
-            hint="فارغ يعني بدون حد. الصفر يظهر غير متوفر في المنيو"
-            error={fieldErrors.stock_quantity}
+            label="ترتيب العرض"
+            htmlFor="sort_order"
+            hint="1 يظهر أولاً داخل القسم"
+            error={fieldErrors.sort_order}
           >
-            <Input
-              id="stock_quantity"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              step={1}
-              value={values.stock_quantity}
-              invalid={Boolean(fieldErrors.stock_quantity)}
-              onChange={(event) => update("stock_quantity", event.target.value)}
-            />
-          </FormField>
-          <FormField label="ترتيب العرض" htmlFor="sort_order" error={fieldErrors.sort_order}>
             <Input
               id="sort_order"
               type="number"
+              min={1}
               step={1}
               value={values.sort_order}
               invalid={Boolean(fieldErrors.sort_order)}
@@ -416,48 +425,6 @@ export function ProductForm({
             onChange={(images) => update("images", images)}
           />
         </div>
-
-        <section className="grid gap-3 rounded-2xl border border-zinc-200 p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-semibold text-zinc-900">مجموعات الخيارات</h3>
-              <p className="text-xs text-zinc-500">الحجم والإضافات والاختيارات المرتبطة بالمنتج</p>
-            </div>
-            {onAddGroup ? (
-              <Button type="button" variant="outline" size="sm" onClick={onAddGroup}>
-                <PlusIcon className="size-4" />
-                إضافة مجموعة
-              </Button>
-            ) : null}
-          </div>
-          {groups.length === 0 ? (
-            <p className="text-sm text-zinc-500">لا توجد مجموعات خيارات لهذا المنتج.</p>
-          ) : (
-            <ul className="grid gap-2">
-              {groups.map((group) => (
-                <li
-                  key={group.id}
-                  className="flex items-center justify-between gap-2 rounded-xl bg-zinc-50 px-3 py-2"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-zinc-900">{group.name_ar}</p>
-                    <p className="text-xs text-zinc-500">
-                      {group.selection_type === "SINGLE" ? "اختيار واحد" : "اختيار متعدد"}
-                      {group.is_required ? " · مطلوب" : ""}
-                      {group.options?.length ? ` · ${group.options.length} خيارات` : ""}
-                    </p>
-                  </div>
-                  {onEditGroup ? (
-                    <Button type="button" variant="ghost" size="sm" onClick={() => onEditGroup(group)}>
-                      <PencilIcon className="size-4" />
-                      تعديل
-                    </Button>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
 
         <div className="flex flex-wrap justify-end gap-2">
           {onCancel ? (
@@ -521,7 +488,7 @@ export function ProductForm({
             ) : (
               <p className="text-sm text-zinc-400">السعر</p>
             )}
-            {previewStockLabel ? (
+            {showStockCount && previewStockLabel ? (
               <p className="text-xs text-zinc-500">{previewStockLabel}</p>
             ) : null}
           </div>
