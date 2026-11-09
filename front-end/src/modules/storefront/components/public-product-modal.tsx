@@ -5,11 +5,10 @@ import { Alert } from "@/core/ui/alert";
 import { ContentImage } from "@/core/ui/content-image";
 import { ImageIcon, CartIcon, XIcon } from "@/core/ui/icons";
 import { cn } from "@/core/lib/cn";
-import { formatPrice } from "@/core/lib/format";
+import { currencySymbol, formatAmount, formatPrice } from "@/core/lib/format";
 import { PRODUCT_STATUS_LABELS } from "@/core/lib/labels";
 import type { ProductWithRelations } from "@/modules/catalog/types";
 import { PublicProductBadges } from "@/modules/storefront/components/public-product-badges";
-import { discountPercent } from "@/modules/catalog/lib/merchandising";
 import { isShownUnavailable, stockCap } from "@/modules/catalog/lib/stock";
 import { PublicQtyStepper } from "@/modules/storefront/components/public-qty-stepper";
 import { PublicSheet } from "@/modules/storefront/components/public-sheet";
@@ -102,7 +101,7 @@ export function PublicProductModal({
           >
             <XIcon className="size-4" />
           </button>
-          <PublicProductBadges product={product} className="absolute bottom-3 start-3 z-10" />
+          <PublicProductBadges product={product} className="absolute top-3 end-3 z-10" />
           {activeImage ? (
             <ContentImage
               src={activeImage.image_url}
@@ -155,17 +154,14 @@ export function PublicProductModal({
           ) : null}
           {unitPrice != null ? (
             <div className="mt-2 flex flex-wrap items-baseline gap-2">
-              <span className="text-lg font-bold text-[var(--mh-primary)]">
-                {formatPrice(unitPrice, product.currency)}
+              <span className="text-lg font-bold text-zinc-900" dir="ltr">
+                {currencySymbol(product.currency)}
+                {formatAmount(unitPrice)}
               </span>
               {showOldPrice && oldPrice != null ? (
-                <span className="text-sm line-through opacity-50">
-                  {formatPrice(oldPrice, product.currency)}
-                </span>
-              ) : null}
-              {discountPercent(unitPrice, oldPrice) != null ? (
-                <span className="rounded-md bg-rose-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
-                  حسم {discountPercent(unitPrice, oldPrice)}%
+                <span className="text-sm text-zinc-400 line-through" dir="ltr">
+                  {currencySymbol(product.currency)}
+                  {formatAmount(oldPrice)}
                 </span>
               ) : null}
             </div>

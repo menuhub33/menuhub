@@ -1,6 +1,5 @@
 import { cn } from "@/core/lib/cn";
-import { formatPrice } from "@/core/lib/format";
-import { PRODUCT_STATUS_LABELS } from "@/core/lib/labels";
+import { currencySymbol, formatAmount } from "@/core/lib/format";
 import type { ProductWithRelations } from "@/modules/catalog/types";
 import { productPrimaryImageUrl } from "@/modules/storefront/components/product-image";
 import { PublicProductBadges } from "@/modules/storefront/components/public-product-badges";
@@ -28,9 +27,10 @@ export function PublicProductCard({
   const cap = stockCap(product);
   const remaining = showStockCount ? stockLabel(product) : null;
   const imageUrl = productPrimaryImageUrl(product);
+  const price = product.price;
   const oldPrice = product.old_price;
-  const priced = product.price != null;
-  const showOldPrice = priced && oldPrice != null && oldPrice > product.price;
+  const priced = price != null;
+  const showOldPrice = price != null && oldPrice != null && oldPrice > price;
 
   return (
     <article
@@ -47,59 +47,54 @@ export function PublicProductCard({
         className="block w-full text-start disabled:cursor-default"
         aria-label={product.name_ar}
       >
-        <div className="relative aspect-square overflow-hidden bg-[var(--mh-text)]/8">
+        <div className="relative aspect-square overflow-hidden bg-white">
           {imageUrl ? (
             <ContentImage
               src={imageUrl}
               alt=""
               sizes="(max-width: 768px) 46vw, 240px"
-              className="size-full object-cover"
+              className="size-full object-contain p-3"
             />
           ) : (
-            <span className="flex size-full items-center justify-center">
+            <span className="flex size-full items-center justify-center bg-[var(--mh-text)]/8">
               <ImageIcon className="size-8 opacity-35" />
             </span>
           )}
-          <PublicProductBadges product={product} className="absolute top-2 start-2" />
-          {unavailable ? (
-            <span className="absolute inset-0 flex items-center justify-center bg-[var(--mh-bg)]/60 text-[11px] font-medium">
-              {PRODUCT_STATUS_LABELS.UNAVAILABLE}
-            </span>
-          ) : null}
+          <PublicProductBadges product={product} className="absolute top-2.5 start-2.5" />
         </div>
-        <h3 className="line-clamp-2 min-h-10 px-2.5 pt-2.5 text-center text-sm font-bold leading-snug">
+        <h3 className="line-clamp-2 min-h-10 px-3 pt-3 text-start text-sm font-bold leading-snug text-zinc-900">
           {product.name_ar}
         </h3>
       </button>
-      {priced || (remaining && !unavailable) ? (
-        <div className="flex items-center justify-between gap-1 px-2.5 pt-1 pb-2.5">
-          <div className="min-w-0">
-            {product.price != null ? (
-              <p className="truncate text-sm font-bold text-[var(--mh-primary)]">
-                {formatPrice(product.price, product.currency)}
-              </p>
-            ) : null}
-            {showOldPrice && oldPrice != null ? (
-              <p className="text-[10px] line-through opacity-45">
-                {formatPrice(oldPrice, product.currency)}
-              </p>
-            ) : null}
-            {remaining && !unavailable ? (
-              <p className="text-[10px] text-zinc-500">{remaining}</p>
-            ) : null}
-          </div>
-          {onQuantityChange && priced ? (
-            <PublicQtyStepper
-              value={quantity}
-              onChange={onQuantityChange}
-              max={cap}
-              disabled={unavailable}
-            />
+      <div className="flex items-end justify-between gap-2 px-3 pt-1 pb-3">
+        <div className="min-w-0">
+          {price != null ? (
+            <p className="flex flex-wrap items-baseline gap-1.5">
+              <span className="text-sm font-bold text-zinc-900" dir="ltr">
+                {currencySymbol(product.currency)}
+                {formatAmount(price)}
+              </span>
+              {showOldPrice && oldPrice != null ? (
+                <span className="text-xs text-zinc-400 line-through" dir="ltr">
+                  {currencySymbol(product.currency)}
+                  {formatAmount(oldPrice)}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
+          {remaining && !unavailable ? (
+            <p className="text-[10px] text-zinc-500">{remaining}</p>
           ) : null}
         </div>
-      ) : (
-        <div className="pb-2.5" />
-      )}
+        {onQuantityChange && priced ? (
+          <PublicQtyStepper
+            value={quantity}
+            onChange={onQuantityChange}
+            max={cap}
+            disabled={unavailable}
+          />
+        ) : null}
+      </div>
     </article>
   );
 }

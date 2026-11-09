@@ -15,7 +15,7 @@ export function PublicProductBadges({
   return (
     <div className={cn("flex flex-wrap gap-1", className)}>
       {discount != null ? (
-        <span className="rounded-md bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+        <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
           حسم {discount}%
         </span>
       ) : null}
