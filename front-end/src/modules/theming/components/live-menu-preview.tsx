@@ -1,4 +1,5 @@
 import { cn } from "@/core/lib/cn";
+import { DASHBOARD_FONT_FAMILY } from "@/core/lib/font";
 import { formatPrice } from "@/core/lib/format";
 import type { CategoryWithProducts } from "@/modules/catalog/types";
 import type { RestaurantTheme } from "@/modules/theming/types";
@@ -88,7 +89,7 @@ export function LiveMenuPreview({
         ...cssVars,
         backgroundColor: "var(--mh-background)",
         color: "var(--mh-text)",
-        fontFamily: theme.font_family ?? "inherit",
+        fontFamily: DASHBOARD_FONT_FAMILY,
       }}
     >
       {theme.custom_css ? (

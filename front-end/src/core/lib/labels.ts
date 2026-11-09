@@ -69,12 +69,3 @@ export const SOCIAL_PLATFORMS = [
   { value: "snapchat", label: "سناب شات" },
   { value: "website", label: "موقع إلكتروني" },
 ] as const;
-
-export const FONT_OPTIONS = [
-  { value: "Expo Arabic", label: "إكسبو عربي" },
-  { value: "Cairo", label: "القاهرة" },
-  { value: "Tajawal", label: "تجوال" },
-  { value: "Almarai", label: "المراعي" },
-  { value: "IBM Plex Sans Arabic", label: "IBM Plex Arabic" },
-  { value: "Noto Naskh Arabic", label: "نوتو نسخ" },
-] as const;

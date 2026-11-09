@@ -32,6 +32,7 @@ import {
 } from "@/modules/chatbot/lib/menu-chat";
 import type { RestaurantTheme } from "@/modules/theming/types";
 import type { CSSProperties } from "react";
+import { DASHBOARD_FONT_FAMILY } from "@/core/lib/font";
 import { MENU_BACKGROUND } from "@/modules/theming/lib/menu-background";
 
 type MenuCollection = "featured" | "discount";
@@ -266,7 +267,7 @@ export function PublicMenu({
           ["--mh-secondary"]: theme.secondary_color,
           ["--mh-bg"]: MENU_BACKGROUND,
           ["--mh-text"]: theme.text_color,
-          fontFamily: theme.font_family ?? undefined,
+          fontFamily: DASHBOARD_FONT_FAMILY,
         } as CSSProperties
       }
     >

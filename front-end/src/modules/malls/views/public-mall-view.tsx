@@ -3,6 +3,7 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { cn } from "@/core/lib/cn";
+import { DASHBOARD_FONT_FAMILY } from "@/core/lib/font";
 import { ContentImage } from "@/core/ui/content-image";
 import { ImageIcon } from "@/core/ui/icons";
 import { BUSINESS_TYPE_LABELS } from "@/modules/tenancy/lib/business-type";
@@ -106,7 +107,7 @@ export function PublicMallView({
           ["--mh-secondary"]: theme.secondary_color,
           ["--mh-bg"]: MENU_BACKGROUND,
           ["--mh-text"]: theme.text_color,
-          fontFamily: theme.font_family ?? undefined,
+          fontFamily: DASHBOARD_FONT_FAMILY,
         } as CSSProperties
       }
     >

@@ -3,12 +3,10 @@
 import { cn } from "@/core/lib/cn";
 import { FormField } from "@/core/components/forms/form-field";
 import { ColorPicker } from "@/modules/theming/components/color-picker";
-import { FontSelector } from "@/modules/theming/components/font-selector";
 import { LiveMenuPreview } from "@/modules/theming/components/live-menu-preview";
 import type { CategoryWithProducts } from "@/modules/catalog/types";
 import { Alert } from "@/core/ui/alert";
 import { Button } from "@/core/ui/button";
-import { Textarea } from "@/core/ui/textarea";
 import type { RestaurantTheme } from "@/modules/theming/types";
 
 export type ThemeCustomizerValues = Pick<
@@ -85,21 +83,6 @@ export function ThemeCustomizer({
             onChange={(text_color) => patch({ text_color })}
           />
         </div>
-        <FontSelector
-          value={value.font_family}
-          onChange={(font_family) => patch({ font_family })}
-        />
-        <FormField label="CSS مخصص" htmlFor="theme-custom-css">
-          <Textarea
-            id="theme-custom-css"
-            dir="ltr"
-            rows={6}
-            value={value.custom_css ?? ""}
-            placeholder=".mh-live-preview { }"
-            onChange={(event) => patch({ custom_css: event.target.value || null })}
-            className="font-mono text-xs"
-          />
-        </FormField>
         {onSave ? (
           <div className="flex justify-end">
             <Button type="submit" loading={saving}>

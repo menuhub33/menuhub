@@ -1,4 +1,5 @@
 import { cn } from "@/core/lib/cn";
+import { DASHBOARD_FONT_FAMILY } from "@/core/lib/font";
 import { MENU_BACKGROUND } from "@/modules/theming/lib/menu-background";
 import type { RestaurantTheme } from "@/modules/theming/types";
 
@@ -34,7 +35,7 @@ export function ThemePreview({
         style={{
           backgroundColor: MENU_BACKGROUND,
           color: theme.text_color,
-          fontFamily: theme.font_family ?? "inherit",
+          fontFamily: DASHBOARD_FONT_FAMILY,
         }}
       >
         <div
