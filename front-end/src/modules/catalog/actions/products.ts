@@ -11,7 +11,7 @@ export type CreateProductInput = {
   name_en?: string | null;
   description_ar?: string | null;
   description_en?: string | null;
-  price: number;
+  price?: number | null;
   old_price?: number | null;
   currency?: string;
   sort_order?: number;
@@ -24,8 +24,10 @@ export async function createProduct(
 ): Promise<ActionResult<Product>> {
   const nameAr = input.name_ar?.trim();
   if (!input.category_id || !nameAr) return fail("التصنيف والاسم العربي مطلوبان");
-  if (input.price == null || input.price < 0) return fail("السعر يجب أن يكون صفراً أو أكبر");
-  if (input.old_price != null && input.old_price <= input.price) {
+  if (input.price != null && (!Number.isFinite(input.price) || input.price < 0)) {
+    return fail("السعر يجب أن يكون صفراً أو أكبر");
+  }
+  if (input.old_price != null && (input.price == null || input.old_price <= input.price)) {
     return fail("السعر قبل الحسم يجب أن يكون أكبر من السعر الحالي");
   }
   if (
@@ -51,7 +53,7 @@ export type UpdateProductInput = {
   name_en?: string | null;
   description_ar?: string | null;
   description_en?: string | null;
-  price?: number;
+  price?: number | null;
   old_price?: number | null;
   currency?: string;
   sort_order?: number;
@@ -68,8 +70,15 @@ export async function updateProduct(
   if (changes.name_ar !== undefined && !changes.name_ar.trim()) {
     return fail("الاسم العربي مطلوب");
   }
-  if (changes.price !== undefined && changes.price < 0) {
+  if (changes.price != null && (!Number.isFinite(changes.price) || changes.price < 0)) {
     return fail("السعر يجب أن يكون صفراً أو أكبر");
+  }
+  if (
+    changes.old_price != null &&
+    changes.price !== undefined &&
+    (changes.price == null || changes.old_price <= changes.price)
+  ) {
+    return fail("السعر قبل الحسم يجب أن يكون أكبر من السعر الحالي");
   }
   if (
     changes.stock_quantity != null &&

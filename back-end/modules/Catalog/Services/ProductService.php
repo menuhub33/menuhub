@@ -32,6 +32,7 @@ class ProductService
     public function create(Restaurant $restaurant, array $data): Product
     {
         $category = $this->categoryOf($restaurant, $data['category_id']);
+        $data = $this->normalizePrice($data);
         $this->guardDiscount($data);
         $this->limits->creating($restaurant->id, EnforcesPlanLimits::PRODUCTS);
         $this->assertImageRoom($restaurant->id, count($data['images'] ?? []));
@@ -72,6 +73,7 @@ class ProductService
             $data['category_id'] = $this->categoryOf($restaurant, $data['category_id'])->id;
         }
 
+        $data = $this->normalizePrice($data);
         $this->guardDiscount($data, $product);
         $hasPosition = array_key_exists('sort_order', $data);
         $position = $hasPosition ? max(0, (int) $data['sort_order']) : null;
@@ -190,6 +192,27 @@ class ProductService
         });
     }
 
+    /**
+     * An empty selling price is stored as null and drops a blank previous price,
+     * so the menu does not keep a discount on a product that has no price.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normalizePrice(array $data): array
+    {
+        if (! array_key_exists('price', $data) || ($data['price'] !== null && $data['price'] !== '')) {
+            return $data;
+        }
+
+        $data['price'] = null;
+        if (! array_key_exists('old_price', $data) || $data['old_price'] === null || $data['old_price'] === '') {
+            $data['old_price'] = null;
+        }
+
+        return $data;
+    }
+
     /** @param  array<string, mixed>  $data */
     private function guardDiscount(array $data, ?Product $existing = null): void
     {
@@ -199,6 +222,10 @@ class ProductService
 
         $price = array_key_exists('price', $data) ? $data['price'] : $existing?->price;
         $old = array_key_exists('old_price', $data) ? $data['old_price'] : $existing?->old_price;
+
+        if ($old !== null && $old !== '' && ($price === null || $price === '')) {
+            throw ApiException::invalid('لا يمكن تحديد سعر قبل الحسم بدون سعر حالي', 'INVALID_DISCOUNT');
+        }
 
         if ($old === null || $old === '' || $price === null || $price === '') {
             return;

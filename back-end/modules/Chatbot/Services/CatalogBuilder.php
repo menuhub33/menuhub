@@ -33,7 +33,7 @@ class CatalogBuilder
                     'name_en' => $product['name_en'],
                     'description_ar' => $product['description_ar'],
                     'description_en' => $product['description_en'],
-                    'price' => (float) $product['price'],
+                    'price' => $product['price'] === null ? null : (float) $product['price'],
                     'currency' => $product['currency'],
                     'status' => $this->availability($product),
                     'is_featured' => (bool) $product['is_featured'],

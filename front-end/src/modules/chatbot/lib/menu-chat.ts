@@ -11,7 +11,7 @@ export type MenuChatProduct = {
   name_en: string | null;
   description_ar: string | null;
   description_en: string | null;
-  price: number;
+  price: number | null;
   currency: string;
   status: ProductStatus;
   is_featured: boolean;

@@ -59,7 +59,12 @@ export function ProductsView({
               .includes(query)
       )
       .sort((a, b) => {
-        if (sort === "price") return a.price - b.price;
+        if (sort === "price") {
+          if (a.price == null && b.price == null) return 0;
+          if (a.price == null) return 1;
+          if (b.price == null) return -1;
+          return a.price - b.price;
+        }
         if (sort === "name") return a.name_ar.localeCompare(b.name_ar, "ar");
         const categoryA = categories.findIndex((category) => category.id === a.category_id);
         const categoryB = categories.findIndex((category) => category.id === b.category_id);

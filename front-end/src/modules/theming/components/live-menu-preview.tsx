@@ -17,7 +17,7 @@ export type LiveMenuPreviewTheme = Pick<
 
 export type LiveMenuPreviewItem = {
   name: string;
-  price?: number;
+  price?: number | null;
   currency?: string;
 };
 

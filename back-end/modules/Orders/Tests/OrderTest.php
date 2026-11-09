@@ -155,6 +155,20 @@ class OrderTest extends ApiTestCase
             ->assertJsonPath('data.0.id', $id);
     }
 
+    public function test_a_product_without_a_price_cannot_be_ordered(): void
+    {
+        [, $restaurant] = $this->makeRestaurant();
+        $product = $this->makeProduct($this->makeCategory($restaurant), [
+            'price' => null,
+            'name_ar' => 'معاينة',
+        ]);
+
+        $this->postJson($this->api("public/menus/{$restaurant->slug}/orders"), [
+            'delivery_type' => 'pickup',
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        ])->assertStatus(422);
+    }
+
     public function test_product_stock_can_be_saved_and_zero_is_returned_to_the_menu(): void
     {
         [$owner, $restaurant] = $this->makeRestaurant();

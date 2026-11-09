@@ -225,6 +225,10 @@ class OrderService
                 throw ApiException::invalid("الكمية المتبقية من {$product->name_ar} هي {$left}");
             }
 
+            if ($product->price === null) {
+                throw ApiException::invalid('أحد المنتجات بدون سعر ولا يمكن طلبه');
+            }
+
             $extra = 0.0;
             $unit = round((float) $product->price, 2);
             $lines[] = [

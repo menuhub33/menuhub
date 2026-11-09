@@ -36,7 +36,7 @@ export type Product = {
   name_en: string | null;
   description_ar: string | null;
   description_en: string | null;
-  price: number;
+  price: number | null;
   old_price: number | null;
   currency: string;
   sort_order: number;

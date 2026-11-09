@@ -216,10 +216,13 @@ export function PublicMenuChat({
                       )}
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-semibold">{product.name_ar}</span>
-                        <span className="text-xs opacity-70">
-                          {formatPrice(product.price, product.currency)}
-                          {product.status === "UNAVAILABLE" ? " · غير متوفر" : ""}
-                        </span>
+                        {product.price != null || product.status === "UNAVAILABLE" ? (
+                          <span className="text-xs opacity-70">
+                            {product.price != null ? formatPrice(product.price, product.currency) : null}
+                            {product.price != null && product.status === "UNAVAILABLE" ? " · " : ""}
+                            {product.status === "UNAVAILABLE" ? "غير متوفر" : ""}
+                          </span>
+                        ) : null}
                       </span>
                     </button>
                   ))}

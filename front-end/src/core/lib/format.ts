@@ -7,6 +7,15 @@ const CURRENCY_AR: Record<string, string> = {
   TRY: "₺",
 };
 
+const CURRENCY_SYMBOL: Record<string, string> = {
+  SYP: "ل.س",
+  USD: "$",
+  EUR: "€",
+  SAR: "ر.س",
+  AED: "د.إ",
+  TRY: "₺",
+};
+
 export const MENU_CURRENCIES = [
   { value: "SYP", label: "ليرة سورية" },
   { value: "USD", label: "دولار" },
@@ -30,13 +39,17 @@ export function currencyLabel(currency: string): string {
   return CURRENCY_AR[currency] ?? currency;
 }
 
+export function currencySymbol(currency: string): string {
+  return CURRENCY_SYMBOL[currency] ?? currencyLabel(currency);
+}
+
 export function formatPrice(price: number, currency = "SYP"): string {
   const formatted = new Intl.NumberFormat("ar-SY-u-nu-latn", {
     maximumFractionDigits: 2,
     minimumFractionDigits: Number.isInteger(price) ? 0 : 2,
   }).format(price);
 
-  return `${formatted} ${currencyLabel(currency)}`;
+  return `${formatted} ${currencySymbol(currency)}`;
 }
 
 export function formatDate(iso: string): string {

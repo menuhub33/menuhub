@@ -8,11 +8,15 @@ export function ProductPrice({
   currency = "SYP",
   className,
 }: {
-  price: number;
+  price: number | null;
   old_price?: number | null;
   currency?: string;
   className?: string;
 }) {
+  if (price == null) {
+    return <span className={cn("text-sm text-zinc-400", className)}>بدون سعر</span>;
+  }
+
   const discount = discountPercent(price, old_price);
 
   return (

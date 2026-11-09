@@ -99,8 +99,13 @@ export function OnboardingWizard({
       if (step === 6) {
         const categoryId = sessionStorage.getItem("mh-first-category");
         if (!categoryId) throw new Error("أنشئ قسماً أولاً");
-        const price = Number(productPrice);
-        if (!productName.trim() || Number.isNaN(price)) throw new Error("أدخل اسم المنتج وسعراً صالحاً");
+        if (!productName.trim()) throw new Error("أدخل اسم المنتج");
+        const trimmedPrice = productPrice.trim();
+        let price: number | null = null;
+        if (trimmedPrice) {
+          price = Number(trimmedPrice);
+          if (!Number.isFinite(price) || price < 0) throw new Error("أدخل سعراً صالحاً أو اتركه فارغاً");
+        }
         const result = await createProduct({
           category_id: categoryId,
           name_ar: productName,
@@ -221,8 +226,8 @@ export function OnboardingWizard({
             <FormField label="اسم المنتج" htmlFor="product" required>
               <Input id="product" value={productName} onChange={(event) => setProductName(event.target.value)} />
             </FormField>
-            <FormField label="السعر" htmlFor="price" required>
-              <Input id="price" type="number" min={0} value={productPrice} onChange={(event) => setProductPrice(event.target.value)} />
+            <FormField label="السعر" htmlFor="price" hint="اتركه فارغاً إذا لا تريد إظهار السعر">
+              <Input id="price" type="number" min={0} value={productPrice} onChange={(event) => setProductPrice(event.target.value)} placeholder="اختياري" />
             </FormField>
           </div>
         ) : null}

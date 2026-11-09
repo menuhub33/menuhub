@@ -22,7 +22,7 @@ class ProductResource extends JsonResource
             'name_en' => $this->name_en,
             'description_ar' => $this->description_ar,
             'description_en' => $this->description_en,
-            'price' => (float) $this->price,
+            'price' => $this->price === null ? null : (float) $this->price,
             'old_price' => $this->old_price === null ? null : (float) $this->old_price,
             'currency' => $this->currency,
             'sort_order' => $this->sort_order,

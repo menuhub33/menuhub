@@ -112,7 +112,7 @@ class ProductController extends ApiController
             'name_en' => ['nullable', 'string', 'max:200'],
             'description_ar' => ['nullable', 'string', 'max:5000'],
             'description_en' => ['nullable', 'string', 'max:5000'],
-            'price' => [...$required, 'numeric', 'min:0', 'max:9999999999'],
+            'price' => [$partial ? 'sometimes' : 'nullable', 'nullable', 'numeric', 'min:0', 'max:9999999999'],
             'old_price' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             'currency' => ['sometimes', Rule::in(config('menuhub.currencies'))],
             'sort_order' => ['sometimes', 'integer', 'min:0'],

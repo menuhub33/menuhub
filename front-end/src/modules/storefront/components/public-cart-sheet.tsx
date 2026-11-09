@@ -30,7 +30,7 @@ export function PublicCartSheet({
   onCheckout: () => void;
 }) {
   const total = items.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
+    (sum, item) => sum + (item.product.price ?? 0) * item.quantity,
     0
   );
   const currency = items[0]?.product.currency ?? "SYP";
@@ -68,7 +68,7 @@ export function PublicCartSheet({
       ) : (
         <div className="grid gap-3">
           {items.map(({ product, quantity }) => {
-            const unit = product.price;
+            const unit = product.price ?? 0;
             return (
               <div
                 key={product.id}

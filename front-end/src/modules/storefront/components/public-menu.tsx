@@ -165,7 +165,7 @@ export function PublicMenu({
     () =>
       categories
         .flatMap((category) => category.products ?? [])
-        .filter((product) => (quantities[product.id] ?? 0) > 0)
+        .filter((product) => product.price != null && (quantities[product.id] ?? 0) > 0)
         .map((product) => ({
           product,
           quantity: quantities[product.id] ?? 0,
@@ -184,6 +184,7 @@ export function PublicMenu({
     const product = categories
       .flatMap((category) => category.products ?? [])
       .find((item) => item.id === productId);
+    if (next > 0 && product?.price == null) return;
     const cap = product ? stockCap(product) : undefined;
     const limited = cap == null ? next : Math.min(next, cap);
     setQuantities((current) => {

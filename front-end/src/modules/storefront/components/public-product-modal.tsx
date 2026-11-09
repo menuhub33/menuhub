@@ -57,8 +57,9 @@ export function PublicProductModal({
   const unavailable = product ? isShownUnavailable(product) : false;
   const cap = product ? stockCap(product) : undefined;
   const oldPrice = product?.old_price;
-  const showOldPrice = oldPrice != null && product != null && oldPrice > product.price;
-  const total = product ? product.price * quantity : 0;
+  const unitPrice = product?.price ?? null;
+  const showOldPrice = unitPrice != null && oldPrice != null && oldPrice > unitPrice;
+  const total = unitPrice != null ? unitPrice * quantity : 0;
   const activeImage = images[Math.min(activeIndex, Math.max(images.length - 1, 0))];
 
   function handleOpenChange(next: boolean) {
@@ -75,18 +76,20 @@ export function PublicProductModal({
       hideHeader
       size="lg"
       footer={
-        <button
-          type="button"
-          disabled={unavailable || quantity < 1 || !onAddToCart}
-          onClick={() => {
-            onAddToCart?.(quantity);
-            handleOpenChange(false);
-          }}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--mh-primary)] text-sm font-bold text-white disabled:opacity-50"
-        >
-          <CartIcon className="size-5" />
-          أضف للسلة
-        </button>
+        unitPrice != null ? (
+          <button
+            type="button"
+            disabled={unavailable || quantity < 1 || !onAddToCart}
+            onClick={() => {
+              onAddToCart?.(quantity);
+              handleOpenChange(false);
+            }}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--mh-primary)] text-sm font-bold text-white disabled:opacity-50"
+          >
+            <CartIcon className="size-5" />
+            أضف للسلة
+          </button>
+        ) : undefined
       }
     >
       <div className="grid gap-4">
@@ -150,21 +153,23 @@ export function PublicProductModal({
               {product.description_en}
             </p>
           ) : null}
-          <div className="mt-2 flex flex-wrap items-baseline gap-2">
-            <span className="text-lg font-bold text-[var(--mh-primary)]">
-              {formatPrice(product.price, product.currency)}
-            </span>
-            {showOldPrice && oldPrice != null ? (
-              <span className="text-sm line-through opacity-50">
-                {formatPrice(oldPrice, product.currency)}
+          {unitPrice != null ? (
+            <div className="mt-2 flex flex-wrap items-baseline gap-2">
+              <span className="text-lg font-bold text-[var(--mh-primary)]">
+                {formatPrice(unitPrice, product.currency)}
               </span>
-            ) : null}
-            {discountPercent(product.price, oldPrice) != null ? (
-              <span className="rounded-md bg-rose-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
-                حسم {discountPercent(product.price, oldPrice)}%
-              </span>
-            ) : null}
-          </div>
+              {showOldPrice && oldPrice != null ? (
+                <span className="text-sm line-through opacity-50">
+                  {formatPrice(oldPrice, product.currency)}
+                </span>
+              ) : null}
+              {discountPercent(unitPrice, oldPrice) != null ? (
+                <span className="rounded-md bg-rose-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
+                  حسم {discountPercent(unitPrice, oldPrice)}%
+                </span>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         {unavailable ? (
@@ -173,6 +178,7 @@ export function PublicProductModal({
           </Alert>
         ) : null}
 
+        {unitPrice != null ? (
         <div className="grid gap-3 rounded-2xl bg-white p-4 shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/5">
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm font-bold">الكمية</span>
@@ -191,6 +197,7 @@ export function PublicProductModal({
             </span>
           </div>
         </div>
+        ) : null}
       </div>
       </div>
     </PublicSheet>

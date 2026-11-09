@@ -111,6 +111,37 @@ class CatalogTest extends ApiTestCase
             ->assertJsonPath('code', 'PRODUCT_IMAGE_LIMIT');
     }
 
+    public function test_product_price_can_be_left_empty(): void
+    {
+        [$owner, $restaurant] = $this->makeRestaurant();
+        $category = $this->makeCategory($restaurant);
+        Sanctum::actingAs($owner);
+        $path = $this->api("restaurants/{$restaurant->id}/products");
+
+        $id = $this->postJson($path, [
+            'category_id' => $category->id,
+            'name_ar' => 'استشارة',
+        ])->assertCreated()
+            ->assertJsonPath('data.price', null)
+            ->json('data.id');
+
+        $this->patchJson($path.'/'.$id, [
+            'price' => 5000,
+            'old_price' => 7000,
+        ])->assertOk()->assertJsonPath('data.price', 5000);
+
+        $this->patchJson($path.'/'.$id, ['price' => null])
+            ->assertOk()
+            ->assertJsonPath('data.price', null)
+            ->assertJsonPath('data.old_price', null);
+
+        $this->postJson($path, [
+            'category_id' => $category->id,
+            'name_ar' => 'حسم بلا سعر',
+            'old_price' => 100,
+        ])->assertStatus(422)->assertJsonPath('code', 'INVALID_DISCOUNT');
+    }
+
     public function test_product_can_be_featured_and_discounted(): void
     {
         [$owner, $restaurant] = $this->makeRestaurant();

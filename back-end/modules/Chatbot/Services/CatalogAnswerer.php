@@ -16,7 +16,7 @@ class CatalogAnswerer
 {
     public const SUGGESTIONS = ['ما هي الأقسام؟', 'أرخص الأصناف', 'هل التوصيل متاح؟', 'كيف أطلب؟'];
 
-    private const CURRENCY_LABELS = ['SYP' => 'ل.س', 'USD' => 'دولار', 'EUR' => 'يورو', 'SAR' => 'ر.س', 'AED' => 'د.إ', 'TRY' => '₺'];
+    private const CURRENCY_LABELS = ['SYP' => 'ل.س', 'USD' => '$', 'EUR' => '€', 'SAR' => 'ر.س', 'AED' => 'د.إ', 'TRY' => '₺'];
 
     /** @param  array<string, mixed>  $catalog */
     public function answer(array $catalog, string $question, ?string $previousUserQuestion = null): array
@@ -146,6 +146,7 @@ class CatalogAnswerer
 
         if (T::looksLike($effective, '/(اغلى|اغلي|اعلى سعر)/')) {
             $products = collect($this->visible($catalog))->where('status', 'AVAILABLE')
+                ->filter(fn ($p) => $p['price'] !== null)
                 ->sortByDesc('price')->take(5)->values()->all();
 
             if ($products === []) {
@@ -339,7 +340,7 @@ class CatalogAnswerer
             }
         }
 
-        usort($scored, fn ($a, $b) => [$b['score'], $a['product']['price']] <=> [$a['score'], $b['product']['price']]);
+        usort($scored, fn ($a, $b) => [$b['score'], $a['product']['price'] ?? PHP_FLOAT_MAX] <=> [$a['score'], $b['product']['price'] ?? PHP_FLOAT_MAX]);
 
         return array_map(fn ($row) => $row['product'], array_slice($scored, 0, $limit));
     }
@@ -359,6 +360,7 @@ class CatalogAnswerer
     private function cheapest(array $catalog, int $limit = 5): array
     {
         return collect($this->visible($catalog))->where('status', 'AVAILABLE')
+            ->filter(fn ($p) => $p['price'] !== null)
             ->sortBy('price')->take($limit)->values()->all();
     }
 
@@ -380,7 +382,7 @@ class CatalogAnswerer
     {
         $picked = array_values(array_filter(
             $this->visible($catalog),
-            fn ($p) => $p['status'] === 'AVAILABLE' && $p['old_price'] !== null && $p['old_price'] > $p['price'],
+            fn ($p) => $p['status'] === 'AVAILABLE' && $p['price'] !== null && $p['old_price'] !== null && $p['old_price'] > $p['price'],
         ));
 
         return array_slice($picked, 0, $limit);
@@ -410,7 +412,7 @@ class CatalogAnswerer
         return implode("\n", array_map(function ($p) {
             $status = $p['status'] === 'UNAVAILABLE' ? ' — غير متوفر حالياً' : '';
             $notes = [];
-            if ($p['old_price'] !== null && $p['old_price'] > $p['price']) {
+            if ($p['price'] !== null && $p['old_price'] !== null && $p['old_price'] > $p['price']) {
                 $percent = (int) round((($p['old_price'] - $p['price']) / $p['old_price']) * 100);
                 $notes[] = "حسم {$percent}% بدلاً من ".$this->price($p['old_price'], $p['currency']);
             }
@@ -418,8 +420,9 @@ class CatalogAnswerer
                 $notes[] = 'مميز';
             }
             $extra = $notes === [] ? '' : ' ('.implode('، ', $notes).')';
+            $amount = $p['price'] === null ? 'بدون سعر' : $this->price((float) $p['price'], $p['currency']);
 
-            return "• {$p['name_ar']} — ".$this->price($p['price'], $p['currency']).$extra.$status;
+            return "• {$p['name_ar']} — {$amount}".$extra.$status;
         }, $products));
     }
 

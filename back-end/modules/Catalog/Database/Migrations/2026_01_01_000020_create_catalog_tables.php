@@ -45,7 +45,7 @@ return new class extends Migration
             $table->string('name_en', 200)->nullable();
             $table->text('description_ar')->nullable();
             $table->text('description_en')->nullable();
-            $table->decimal('price', 12, 2);
+            $table->decimal('price', 12, 2)->nullable();
             $table->decimal('old_price', 12, 2)->nullable();
             $table->string('currency', 10)->default('SYP');
             $table->integer('sort_order')->default(0);

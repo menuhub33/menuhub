@@ -29,7 +29,8 @@ export function PublicProductCard({
   const remaining = showStockCount ? stockLabel(product) : null;
   const imageUrl = productPrimaryImageUrl(product);
   const oldPrice = product.old_price;
-  const showOldPrice = oldPrice != null && oldPrice > product.price;
+  const priced = product.price != null;
+  const showOldPrice = priced && oldPrice != null && oldPrice > product.price;
 
   return (
     <article
@@ -70,29 +71,35 @@ export function PublicProductCard({
           {product.name_ar}
         </h3>
       </button>
-      <div className="flex items-center justify-between gap-1 px-2.5 pt-1 pb-2.5">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-bold text-[var(--mh-primary)]">
-            {formatPrice(product.price, product.currency)}
-          </p>
-          {showOldPrice ? (
-            <p className="text-[10px] line-through opacity-45">
-              {formatPrice(oldPrice, product.currency)}
-            </p>
-          ) : null}
-          {remaining && !unavailable ? (
-            <p className="text-[10px] text-zinc-500">{remaining}</p>
+      {priced || (remaining && !unavailable) ? (
+        <div className="flex items-center justify-between gap-1 px-2.5 pt-1 pb-2.5">
+          <div className="min-w-0">
+            {product.price != null ? (
+              <p className="truncate text-sm font-bold text-[var(--mh-primary)]">
+                {formatPrice(product.price, product.currency)}
+              </p>
+            ) : null}
+            {showOldPrice && oldPrice != null ? (
+              <p className="text-[10px] line-through opacity-45">
+                {formatPrice(oldPrice, product.currency)}
+              </p>
+            ) : null}
+            {remaining && !unavailable ? (
+              <p className="text-[10px] text-zinc-500">{remaining}</p>
+            ) : null}
+          </div>
+          {onQuantityChange && priced ? (
+            <PublicQtyStepper
+              value={quantity}
+              onChange={onQuantityChange}
+              max={cap}
+              disabled={unavailable}
+            />
           ) : null}
         </div>
-        {onQuantityChange ? (
-          <PublicQtyStepper
-            value={quantity}
-            onChange={onQuantityChange}
-            max={cap}
-            disabled={unavailable}
-          />
-        ) : null}
-      </div>
+      ) : (
+        <div className="pb-2.5" />
+      )}
     </article>
   );
 }

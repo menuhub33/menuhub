@@ -45,7 +45,7 @@ export function MenuPreview({
                         >
                           <span className="truncate text-zinc-800">{product.name_ar}</span>
                           <span className="shrink-0 font-medium text-teal-800">
-                            {formatPrice(product.price, product.currency)}
+                            {product.price != null ? formatPrice(product.price, product.currency) : "بدون سعر"}
                           </span>
                         </li>
                       ))}

@@ -26,7 +26,7 @@ export type ProductFormValues = {
   name_en: string | null;
   description_ar: string | null;
   description_en: string | null;
-  price: number;
+  price: number | null;
   old_price: number | null;
   currency: string;
   category_id: string;
@@ -91,7 +91,7 @@ function fromProduct(
     name_en: product.name_en ?? "",
     description_ar: product.description_ar ?? "",
     description_en: product.description_en ?? "",
-    price: String(product.price),
+    price: product.price != null ? String(product.price) : "",
     old_price: product.old_price != null ? String(product.old_price) : "",
     currency: product.currency,
     category_id: product.category_id,
@@ -158,7 +158,9 @@ export function ProductForm({
     () => values.images.find((image) => image.is_primary) ?? values.images[0],
     [values.images]
   );
-  const previewPrice = Number(values.price);
+  const parsedPreviewPrice = parseAmount(values.price);
+  const previewPrice =
+    parsedPreviewPrice != null && !Number.isNaN(parsedPreviewPrice) ? parsedPreviewPrice : null;
   const previewOldPrice = parseAmount(values.old_price);
   const previewStock = /^\d+$/.test(values.stock_quantity.trim())
     ? Number.parseInt(values.stock_quantity.trim(), 10)
@@ -198,16 +200,24 @@ export function ProductForm({
 
     if (!values.category_id) nextErrors.category_id = "التصنيف مطلوب";
 
-    const price = parseAmount(values.price);
-    if (price == null) nextErrors.price = "السعر مطلوب";
-    else if (Number.isNaN(price) || price < 0) nextErrors.price = "أدخل سعرًا صالحًا (0 أو أكثر)";
+    const parsedPrice = parseAmount(values.price);
+    let price: number | null = null;
+    if (values.price.trim()) {
+      if (parsedPrice == null || Number.isNaN(parsedPrice) || parsedPrice < 0) {
+        nextErrors.price = "أدخل سعرًا صالحًا (0 أو أكثر)";
+      } else {
+        price = parsedPrice;
+      }
+    }
 
     let oldPrice: number | null = null;
     if (values.old_price.trim()) {
       const parsed = parseAmount(values.old_price);
       if (parsed == null || Number.isNaN(parsed) || parsed < 0) {
         nextErrors.old_price = "السعر السابق غير صالح";
-      } else if (price != null && !Number.isNaN(price) && parsed <= price) {
+      } else if (price == null) {
+        nextErrors.old_price = "حدّد السعر الحالي أولاً";
+      } else if (parsed <= price) {
         nextErrors.old_price = "يجب أن يكون أكبر من السعر الحالي ليظهر الحسم";
       } else {
         oldPrice = parsed;
@@ -230,7 +240,7 @@ export function ProductForm({
     }
 
     setFieldErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0 || price == null || Number.isNaN(price)) return null;
+    if (Object.keys(nextErrors).length > 0) return null;
 
     return {
       name_ar: nameAr,
@@ -300,7 +310,12 @@ export function ProductForm({
         </FormField>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="السعر" htmlFor="price" required error={fieldErrors.price}>
+          <FormField
+            label="السعر"
+            htmlFor="price"
+            hint="اتركه فارغاً إذا لا تريد إظهار السعر في المنيو"
+            error={fieldErrors.price}
+          >
             <div className="grid grid-cols-[minmax(0,1fr)_11rem] gap-2">
               <Input
                 id="price"
@@ -311,7 +326,7 @@ export function ProductForm({
                 value={values.price}
                 invalid={Boolean(fieldErrors.price)}
                 onChange={(event) => update("price", event.target.value)}
-                required
+                placeholder="اختياري"
               />
               <Select
                 id="currency"
@@ -479,15 +494,11 @@ export function ProductForm({
               </div>
               <ProductStatusBadge status={previewStatus} />
             </div>
-            {Number.isFinite(previewPrice) && values.price !== "" ? (
-              <ProductPrice
-                price={previewPrice}
-                old_price={previewOldPrice != null && !Number.isNaN(previewOldPrice) ? previewOldPrice : null}
-                currency={values.currency}
-              />
-            ) : (
-              <p className="text-sm text-zinc-400">السعر</p>
-            )}
+            <ProductPrice
+              price={previewPrice}
+              old_price={previewOldPrice != null && !Number.isNaN(previewOldPrice) ? previewOldPrice : null}
+              currency={values.currency}
+            />
             {showStockCount && previewStockLabel ? (
               <p className="text-xs text-zinc-500">{previewStockLabel}</p>
             ) : null}
