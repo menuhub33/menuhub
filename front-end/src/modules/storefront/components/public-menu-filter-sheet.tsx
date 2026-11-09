@@ -12,12 +12,16 @@ export type MenuFilters = {
   min: string;
   max: string;
   sort: MenuSort;
+  featured: boolean;
+  discounted: boolean;
 };
 
 export const EMPTY_MENU_FILTERS: MenuFilters = {
   min: "",
   max: "",
   sort: "name",
+  featured: false,
+  discounted: false,
 };
 
 const SORT_OPTIONS: { value: MenuSort; label: string }[] = [
@@ -91,6 +95,19 @@ export function PublicMenuFilterSheet({
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-2">
+          <FilterToggle
+            label="المميز"
+            checked={draft.featured}
+            onChange={(featured) => setDraft((current) => ({ ...current, featured }))}
+          />
+          <FilterToggle
+            label="الحسومات"
+            checked={draft.discounted}
+            onChange={(discounted) => setDraft((current) => ({ ...current, discounted }))}
+          />
+        </div>
+
         <div className="grid gap-2">
           <p className="text-sm font-bold">ترتيب حسب</p>
           <div className="relative">
@@ -162,6 +179,32 @@ export function PublicMenuFilterSheet({
         </div>
       </div>
     </PublicSheet>
+  );
+}
+
+function FilterToggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={checked}
+      onClick={() => onChange(!checked)}
+      className={cn(
+        "h-11 rounded-xl border text-sm font-bold",
+        checked
+          ? "border-[var(--mh-primary)] bg-[var(--mh-primary)] text-white"
+          : "border-zinc-200 bg-white"
+      )}
+    >
+      {label}
+    </button>
   );
 }
 

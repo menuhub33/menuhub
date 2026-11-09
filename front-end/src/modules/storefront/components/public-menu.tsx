@@ -13,12 +13,11 @@ import { OrderComplaintSheet } from "@/modules/storefront/components/order-compl
 import { PublicMenuHero } from "@/modules/storefront/components/public-menu-hero";
 import {
   ALL_CATEGORIES_ID,
-  FEATURED_SECTION_ID,
-  OFFER_SECTION_ID,
   PublicMenuNavigation,
 } from "@/modules/storefront/components/public-menu-navigation";
 import { PublicMenuSearch } from "@/modules/storefront/components/public-menu-search";
 import {
+  EMPTY_MENU_FILTERS,
   PublicMenuFilterSheet,
   type MenuFilters,
 } from "@/modules/storefront/components/public-menu-filter-sheet";
@@ -38,8 +37,6 @@ import type { RestaurantTheme } from "@/modules/theming/types";
 import type { CSSProperties } from "react";
 import { DASHBOARD_FONT_FAMILY } from "@/core/lib/font";
 import { MENU_BACKGROUND } from "@/modules/theming/lib/menu-background";
-
-type MenuCollection = "featured" | "discount";
 
 const FALLBACK_THEME: Pick<
   RestaurantTheme,
@@ -102,6 +99,8 @@ function applyMenuFilters(products: ProductWithRelations[], filters: MenuFilters
   const min = filters.min.trim() === "" ? null : Number(filters.min);
   const max = filters.max.trim() === "" ? null : Number(filters.max);
   const bounded = products.filter((product) => {
+    if (filters.featured && !product.is_featured) return false;
+    if (filters.discounted && !hasDiscount(product)) return false;
     if (min != null && Number.isFinite(min) && (product.price == null || product.price < min)) return false;
     if (max != null && Number.isFinite(max) && (product.price == null || product.price > max)) return false;
     return true;
@@ -147,7 +146,6 @@ export function PublicMenu({
   const [complaintOpen, setComplaintOpen] = useState(false);
   const [openProduct, setOpenProduct] = useState<ProductWithRelations | null>(null);
   const [navTab, setNavTab] = useState<PublicMenuTab>("home");
-  const [collection, setCollection] = useState<MenuCollection | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<MenuFilters | null>(null);
 
@@ -175,25 +173,22 @@ export function PublicMenu({
   );
 
   const selectedCategory =
-    collection || selectedCategoryId === ALL_CATEGORIES_ID
+    selectedCategoryId === ALL_CATEGORIES_ID
       ? null
       : categories.find((category) => category.id === selectedCategoryId);
 
-  const displayedProducts = useMemo(() => {
-    const scoped =
-      collection === "featured"
-        ? products.filter((product) => product.is_featured)
-        : collection === "discount"
-          ? products.filter((product) => hasDiscount(product))
-          : products;
-    return applyMenuFilters(scoped, filters);
-  }, [products, collection, filters]);
+  const displayedProducts = useMemo(
+    () => applyMenuFilters(products, filters),
+    [products, filters]
+  );
 
-  const sectionTitle = collection === "featured"
-    ? "منتجات مميزة"
-    : collection === "discount"
-      ? "حسومات"
-      : (selectedCategory?.name_ar ?? "الأصناف الشائعة");
+  const sectionTitle = filters?.featured && filters.discounted
+    ? "مميز وحسومات"
+    : filters?.featured
+      ? "منتجات مميزة"
+      : filters?.discounted
+        ? "حسومات"
+        : (selectedCategory?.name_ar ?? "الأصناف الشائعة");
   const cartItems = useMemo(
     () =>
       categories
@@ -234,8 +229,20 @@ export function PublicMenu({
     setQuantities({});
   }
 
-  function selectCollection(next: MenuCollection) {
-    setCollection((current) => (current === next ? null : next));
+  function showOffers() {
+    setFilters((current) => {
+      const next = {
+        ...(current ?? EMPTY_MENU_FILTERS),
+        discounted: !(current?.discounted ?? false),
+      };
+      const idle =
+        !next.featured &&
+        !next.discounted &&
+        next.min.trim() === "" &&
+        next.max.trim() === "" &&
+        next.sort === "name";
+      return idle ? null : next;
+    });
     setSelectedCategoryId(ALL_CATEGORIES_ID);
     setNavTab("home");
     setCartOpen(false);
@@ -250,7 +257,7 @@ export function PublicMenu({
 
   function goHome() {
     setSelectedCategoryId(ALL_CATEGORIES_ID);
-    setCollection(null);
+    setFilters(null);
     setNavTab("home");
     setCartOpen(false);
     setOrderOpen(false);
@@ -305,7 +312,7 @@ export function PublicMenu({
           restaurant={data.restaurant}
           featuredProducts={featuredProducts}
           hasOffers={discountedProducts.length > 0}
-          onOffers={() => selectCollection("discount")}
+          onOffers={showOffers}
           onShare={onShare}
           shareUrl={shareUrl}
         />
@@ -324,27 +331,12 @@ export function PublicMenu({
         <div className="mt-5">
           <PublicMenuNavigation
             categories={categories}
-            sections={[
-              ...(featuredProducts.length > 0
-                ? [{ id: FEATURED_SECTION_ID, label: "مميز" }]
-                : []),
-              ...(discountedProducts.length > 0
-                ? [{ id: OFFER_SECTION_ID, label: "حسومات" }]
-                : []),
-            ]}
             selectedId={
-              collection === "featured" || collection === "discount"
-                ? collection
-                : categories.some((category) => category.id === selectedCategoryId)
-                  ? selectedCategoryId
-                  : ALL_CATEGORIES_ID
+              categories.some((category) => category.id === selectedCategoryId)
+                ? selectedCategoryId
+                : ALL_CATEGORIES_ID
             }
             onSelect={(id) => {
-              if (id === FEATURED_SECTION_ID || id === OFFER_SECTION_ID) {
-                selectCollection(id);
-                return;
-              }
-              setCollection(null);
               setSelectedCategoryId(id);
               setNavTab(id === ALL_CATEGORIES_ID ? "home" : "categories");
               setCartOpen(false);
@@ -365,9 +357,7 @@ export function PublicMenu({
             <p className="py-12 text-center text-sm opacity-60">
               {searchQuery.trim() || filters
                 ? "لا توجد نتائج مطابقة"
-                : collection
-                  ? "لا توجد أصناف في هذه المجموعة."
-                  : selectedCategory
+                : selectedCategory
                     ? "لا توجد منتجات في هذا القسم بعد."
                     : "لا توجد أصناف في هذا المنيو"}
             </p>
@@ -471,7 +461,7 @@ export function PublicMenu({
       <PublicMenuFilterSheet
         open={filterOpen}
         onOpenChange={setFilterOpen}
-        value={filters ?? { min: "", max: "", sort: "name" }}
+        value={filters ?? EMPTY_MENU_FILTERS}
         currency={data.restaurant.currency || "SYP"}
         onApply={setFilters}
         onClear={() => setFilters(null)}
