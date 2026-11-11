@@ -1,8 +1,9 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect } from "react";
 import { ToastProvider } from "@/core/ui/toast";
 import { publicMenuHost, publicMenuUrl } from "@/core/config";
+import { stripReloadParam } from "@/core/lib/reload";
 
 const RequestOriginContext = createContext({ host: "", protocol: "" });
 
@@ -15,6 +16,10 @@ export function Providers({
   host: string;
   protocol: string;
 }) {
+  useEffect(() => {
+    stripReloadParam();
+  }, []);
+
   return (
     <RequestOriginContext.Provider value={{ host, protocol }}>
       <ToastProvider>{children}</ToastProvider>
