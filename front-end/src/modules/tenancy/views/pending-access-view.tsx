@@ -14,12 +14,12 @@ export function PendingAccessView({
     <div className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-4 text-center">
       <BrandMark href="/" className="mb-2 w-52" imageClassName="h-auto" />
       <h1 className="mt-3 text-2xl font-bold text-zinc-900">
-        {restaurant ? "المطعم بانتظار التفعيل" : "لا يمكن إنشاء الموقع من هنا"}
+        {restaurant ? "النشاط بانتظار التفعيل" : "لا يمكن إنشاء الموقع من هنا"}
       </h1>
       <p className="mt-3 text-sm leading-7 text-zinc-600">
         {restaurant
-          ? `تم إنشاء مطعم ${restaurant.name}، لكن لوحة التحكم والمنيو العامة لا تعملان حتى يفعّله مدير المنصة.`
-          : "إنشاء المواقع وتفعيل المطاعم يتم فقط من لوحة تحكم الإدارة. بعد تسجيل حسابك، ينشئ المدير المطعم ويربطه بحسابك ثم يفعّله."}
+          ? `تم إنشاء نشاط ${restaurant.name}، لكن لوحة التحكم والمنيو العامة لا تعملان حتى يفعّله مدير المنصة.`
+          : "إنشاء المواقع وتفعيلها يتم فقط من لوحة تحكم الإدارة، لمركز تجاري أو مطعم أو كافيه. بعد تسجيل حسابك، ينشئ المدير النشاط ويربطه بحسابك ثم يفعّله."}
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
         <Link href="/">

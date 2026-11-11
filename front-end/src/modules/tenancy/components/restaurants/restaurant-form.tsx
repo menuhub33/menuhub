@@ -105,7 +105,7 @@ export function RestaurantForm({
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label="اسم المطعم" htmlFor="name" required>
+        <FormField label="اسم النشاط" htmlFor="name" required hint="مركز تجاري أو مطعم أو كافيه">
           <Input
             id="name"
             value={values.name}
@@ -182,7 +182,7 @@ export function RestaurantForm({
       </div>
       <div className="flex justify-end">
         <Button type="submit" loading={loading}>
-          حفظ المطعم
+          حفظ النشاط
         </Button>
       </div>
     </form>

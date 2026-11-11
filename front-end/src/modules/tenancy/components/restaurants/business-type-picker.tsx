@@ -26,7 +26,7 @@ export function BusinessTypePicker({
       <div>
         <h2 className="text-base font-bold text-zinc-900">نوع النشاط</h2>
         <p className="mt-1 text-sm text-zinc-500">
-          يحدده الأدمن فقط. يظهر في المنيو العام: تناول في المكان للمطاعم والكافيهات، أو الاستلام من المحل للمتاجر.
+          يحدده الأدمن فقط. المنيو لمركز تجاري أو مطعم أو كافيه: تناول في المكان للمطاعم والكافيهات، أو الاستلام من المركز التجاري.
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">

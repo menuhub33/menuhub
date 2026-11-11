@@ -64,7 +64,7 @@ const EVENTS_PAGE_SIZE = 200;
 export async function getAnalyticsEvent(
   input: GetAnalyticsEventInput
 ): Promise<ActionResult<AnalyticsEvent[]>> {
-  if (!input.restaurant_id) return fail("معرّف المطعم مطلوب");
+  if (!input.restaurant_id) return fail("معرّف النشاط مطلوب");
   const limit = Math.min(input.limit ?? 1000, 5000);
 
   return run(async () => {
@@ -104,6 +104,6 @@ export type DashboardStats = {
 export async function getDashboardStats(
   restaurantId: string
 ): Promise<ActionResult<DashboardStats>> {
-  if (!restaurantId) return fail("معرّف المطعم مطلوب");
+  if (!restaurantId) return fail("معرّف النشاط مطلوب");
   return run(() => apiData<DashboardStats>(`/restaurants/${restaurantId}/dashboard`));
 }

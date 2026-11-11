@@ -27,7 +27,7 @@ class PublicEventController extends ApiController
         $restaurant = Restaurant::query()->where('slug', strtolower($slug))->first();
 
         if (! $restaurant || ! $restaurant->isOperational()) {
-            throw new ApiException('المطعم غير متاح', 404);
+            throw new ApiException('النشاط غير متاح', 404);
         }
 
         $data = $request->validate([

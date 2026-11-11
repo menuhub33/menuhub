@@ -11,7 +11,7 @@ export type GetQrCodeInput = {
 export async function getQrCode(
   input: GetQrCodeInput
 ): Promise<ActionResult<QrCode[]>> {
-  if (!input.restaurant_id) return fail("معرّف المطعم مطلوب");
+  if (!input.restaurant_id) return fail("معرّف النشاط مطلوب");
   return run(() => apiData<QrCode[]>(`/restaurants/${input.restaurant_id}/qr-codes`));
 }
 
@@ -30,7 +30,7 @@ export async function createQrCode(
   input: CreateQrCodeInput
 ): Promise<ActionResult<QrCode>> {
   const { restaurant_id: restaurantId, ...body } = input;
-  if (!restaurantId) return fail("معرّف المطعم مطلوب");
+  if (!restaurantId) return fail("معرّف النشاط مطلوب");
   if (!body.name?.trim()) return fail("اسم الرمز مطلوب");
 
   return run(() =>

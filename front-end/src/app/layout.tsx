@@ -13,10 +13,10 @@ const expoArabic = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "MenuHub — منيو إلكترونية للمطاعم",
+    default: "MenuHub — منيو للمراكز التجارية والمطاعم والكافيهات",
     template: "%s | MenuHub",
   },
-  description: "أنشئ منيو مطعمك الإلكترونية خلال دقائق مع رابط خاص ورمز QR ولوحة تحكم سهلة.",
+  description: "أنشئ منيو إلكترونية لمركز تجاري أو مطعم أو كافيه خلال دقائق، مع رابط خاص ورمز QR ولوحة تحكم سهلة.",
   icons: {
     icon: "/menuhub-mark.png",
     apple: "/menuhub-mark.png",

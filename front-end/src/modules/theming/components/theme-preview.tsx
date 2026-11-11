@@ -19,7 +19,7 @@ export function ThemePreview({
   productName?: string;
   className?: string;
 }) {
-  const title = restaurantName?.trim() || "اسم المطعم";
+  const title = restaurantName?.trim() || "اسم النشاط";
   const category = categoryName?.trim() || "اسم القسم";
   const product = productName?.trim() || "اسم المنتج";
 

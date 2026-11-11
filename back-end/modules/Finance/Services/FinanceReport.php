@@ -58,7 +58,7 @@ class FinanceReport
             unset($bucket);
 
             $contracts[] = array_merge($billing->toArray(), [
-                'restaurant_name' => $billing->restaurant?->name ?? 'مطعم',
+                'restaurant_name' => $billing->restaurant?->name ?? 'نشاط',
                 'net_price' => $net,
                 'profit' => $profit,
             ]);

@@ -36,10 +36,10 @@ export async function updateRestaurant(
 ): Promise<ActionResult<Restaurant>> {
   const { id, menu_status: _ignored, ...changes } = input;
   void _ignored;
-  if (!id) return fail("معرّف المطعم مطلوب");
+  if (!id) return fail("معرّف النشاط مطلوب");
 
   if (changes.name !== undefined && !changes.name.trim()) {
-    return fail("اسم المطعم مطلوب");
+    return fail("اسم النشاط مطلوب");
   }
 
   // Nothing but `menu_status` was sent: the API call would be a no-op.
@@ -58,7 +58,7 @@ export async function setCurrentRestaurant(
 ): Promise<ActionResult<{ success: true }>> {
   const memberships = await getMemberships();
   if (!memberships.some((item) => item.restaurant.id === restaurantId)) {
-    return fail("غير مصرح لك بالوصول إلى هذا المطعم");
+    return fail("غير مصرح لك بالوصول إلى هذا النشاط");
   }
 
   (await cookies()).set(RESTAURANT_COOKIE, restaurantId, {

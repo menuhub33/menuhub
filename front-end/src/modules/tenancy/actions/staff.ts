@@ -41,7 +41,7 @@ function toStaffMember(restaurantId: string, item: ApiStaff): StaffMember {
 export async function getStaff(
   restaurantId: string
 ): Promise<ActionResult<StaffMember[]>> {
-  if (!restaurantId) return fail("معرّف المطعم مطلوب");
+  if (!restaurantId) return fail("معرّف النشاط مطلوب");
 
   return run(async () => {
     const rows = await apiData<ApiStaff[]>(`/restaurants/${restaurantId}/staff`);
@@ -62,7 +62,7 @@ export async function inviteStaff(
   input: InviteStaffInput
 ): Promise<ActionResult<{ success: true }>> {
   const email = input.email?.trim().toLowerCase();
-  if (!input.restaurant_id || !email) return fail("البريد والمطعم مطلوبان");
+  if (!input.restaurant_id || !email) return fail("البريد والنشاط مطلوبان");
   if (input.role === "OWNER") return fail("لا يمكن إضافة مالك آخر");
 
   return run(async () => {

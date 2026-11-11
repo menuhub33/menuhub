@@ -109,7 +109,7 @@ export function QrCodeGenerator({
         id={logoId}
         checked={logoEnabled}
         onCheckedChange={setLogoEnabled}
-        label="إظهار شعار المطعم داخل الرمز"
+        label="إظهار الشعار داخل الرمز"
       />
       <div className="flex justify-end">
         <Button type="submit" loading={loading} disabled={!name.trim()}>

@@ -293,7 +293,7 @@ class CatalogAnswerer
 
         return [
             'delivery' => 'التوصيل',
-            'pickup' => $businessType === 'SHOP' ? 'الاستلام من المحل' : 'الاستلام',
+            'pickup' => $businessType === 'SHOP' ? 'الاستلام من المركز' : 'الاستلام',
             'dineIn' => $businessType === 'SHOP' ? null : "تناول في {$venue}",
         ];
     }

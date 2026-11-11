@@ -35,7 +35,7 @@ export function RestaurantSettings({
     <div className="grid gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>بيانات المطعم</CardTitle>
+          <CardTitle>بيانات النشاط</CardTitle>
         </CardHeader>
         <CardContent>
           <RestaurantForm
@@ -64,14 +64,14 @@ export function RestaurantSettings({
           </CardHeader>
           <CardContent>
             <ConfirmAction
-              title="حذف المطعم نهائيًا؟"
+              title="حذف النشاط نهائيًا؟"
               description="سيتم حذف المنيو والمنتجات والبيانات المرتبطة. لا يمكن التراجع."
-              confirmLabel="حذف المطعم"
+              confirmLabel="حذف النشاط"
               onConfirm={() => onDelete?.()}
             >
               {(open) => (
                 <Button variant="danger" onClick={open}>
-                  حذف المطعم
+                  حذف النشاط
                 </Button>
               )}
             </ConfirmAction>

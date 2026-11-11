@@ -47,7 +47,7 @@ export async function placePublicOrder(
   input: PlacePublicOrderInput
 ): Promise<ActionResult<Pick<ShopOrder, "id" | "number">>> {
   const normalized = slug.trim().toLowerCase();
-  if (!normalized) return { data: null, error: "المطعم غير محدد" };
+  if (!normalized) return { data: null, error: "النشاط غير محدد" };
   if (input.items.length === 0) return { data: null, error: "السلة فارغة." };
   return run(() =>
     apiData<Pick<ShopOrder, "id" | "number">>(`/public/menus/${encodeURIComponent(normalized)}/orders`, {
@@ -72,7 +72,7 @@ export async function reportProductComplaint(input: {
   const slug = input.slug.trim().toLowerCase();
   const productName = input.productName.trim();
   const description = input.description.trim();
-  if (!slug) return { data: null, error: "المطعم غير محدد" };
+  if (!slug) return { data: null, error: "النشاط غير محدد" };
   if (!productName || !description) return { data: null, error: "اكتب اسم المنتج وشرح المشكلة" };
   return run(() =>
     apiData<PublicComplaint>(`/public/menus/${encodeURIComponent(slug)}/complaints`, {

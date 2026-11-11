@@ -185,7 +185,7 @@ class AdminRestaurantController extends ApiController
     {
         $owner = $restaurant->owner();
         if (! $owner) {
-            throw ApiException::invalid('لا يوجد مالك لهذا المطعم', 'OWNER_NOT_FOUND');
+            throw ApiException::invalid('لا يوجد مالك لهذا النشاط', 'OWNER_NOT_FOUND');
         }
 
         $account = $request->validate([

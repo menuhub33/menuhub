@@ -12,7 +12,7 @@ export default async function CategoriesPage() {
   const menu = await getDefaultMenu(tenant.restaurant.id);
   if (menu.error) return <ErrorState description={menu.error} />;
   if (!menu.data) {
-    return <EmptyState title="لا توجد قائمة بعد" description="أكمل إعداد المطعم لإنشاء المنيو الافتراضي." />;
+    return <EmptyState title="لا توجد قائمة بعد" description="أكمل إعداد النشاط لإنشاء المنيو الافتراضي." />;
   }
   const categories = await getCategory({ menu_id: menu.data.id });
   if (categories.error) return <ErrorState description={categories.error} />;

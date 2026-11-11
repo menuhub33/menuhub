@@ -284,17 +284,17 @@ export function AdminRestaurantsView({
         description={
           lockedMall
             ? `منيوهات ${lockedMall.name}.`
-            : "أنشئ منيو تابع لمول أو منيو محل خاص، ثم فعّله ليظهر للزوار."
+            : "أنشئ منيو لمركز تجاري أو مطعم أو كافيه، تابعة لمول أو مستقلة، ثم فعّلها لتظهر للزوار."
         }
         actions={
           <div className="flex flex-wrap gap-2">
             {lockedMall ? null : (
               <>
                 <Button variant="outline" loading={seeding === "restaurant"} onClick={() => void createDemoMenu()}>
-                  تجهيز منيو المطعم
+                  تجهيز منيو مطعم
                 </Button>
                 <Button variant="outline" loading={seeding === "cars"} onClick={() => void createDemoCarsMenu()}>
-                  تجهيز منيو السيارات
+                  تجهيز منيو مركز تجاري
                 </Button>
               </>
             )}

@@ -40,7 +40,7 @@ function menuArrival(slug: string): "link" | "qr" | null {
 const MESSAGES: Record<string, { title: string; description: string }> = {
   NOT_FOUND: {
     title: "المنيو غير موجود",
-    description: "تعذر العثور على هذا المطعم.",
+    description: "تعذر العثور على هذا النشاط.",
   },
   DRAFT: {
     title: "المنيو قيد الإعداد",
@@ -48,19 +48,19 @@ const MESSAGES: Record<string, { title: string; description: string }> = {
   },
   UNPUBLISHED: {
     title: "المنيو غير منشور",
-    description: "قام المطعم بإلغاء نشر المنيو مؤقتاً.",
+    description: "تم إلغاء نشر المنيو مؤقتاً.",
   },
   SUSPENDED: {
     title: "الحساب معلّق",
-    description: "تم تعليق هذا المطعم من قبل إدارة المنصة.",
+    description: "تم تعليق هذا النشاط من قبل إدارة المنصة.",
   },
   EXPIRED: {
     title: "انتهى الاشتراك",
-    description: "انتهت صلاحية اشتراك هذا المطعم.",
+    description: "انتهت صلاحية اشتراك هذا النشاط.",
   },
   CANCELLED: {
     title: "الاشتراك ملغى",
-    description: "تم إلغاء اشتراك هذا المطعم.",
+    description: "تم إلغاء اشتراك هذا النشاط.",
   },
 };
 

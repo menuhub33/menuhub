@@ -65,9 +65,9 @@ export function RegisterForm() {
         <Input id="phone" dir="ltr" value={phone} onChange={(event) => setPhone(event.target.value)} />
       </FormField>
       <FormField
-        label="اسم المطعم"
+        label="اسم النشاط"
         htmlFor="restaurant_name"
-        hint="اختياري. الإدارة هي من تنشئ الموقع وتفعّله."
+        hint="مركز تجاري أو مطعم أو كافيه. اختياري. الإدارة هي من تنشئ الموقع وتفعّله."
       >
         <Input
           id="restaurant_name"

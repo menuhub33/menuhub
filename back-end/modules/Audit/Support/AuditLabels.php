@@ -8,7 +8,7 @@ namespace Modules\Audit\Support;
 final class AuditLabels
 {
     private const ENTITIES = [
-        'restaurant' => 'بيانات المطعم',
+        'restaurant' => 'بيانات النشاط',
         'menu' => 'المنيو',
         'category' => 'قسم',
         'product' => 'منتج',

@@ -11,7 +11,7 @@ export function isVenueBusiness(type: BusinessType) {
   return type === "RESTAURANT" || type === "CAFE";
 }
 
-/** Remaining stock is a shop concern. Restaurants and cafes do not show a product count. */
+/** Remaining stock is a commercial-center concern. Restaurants and cafes do not show a product count. */
 export function showsStockCount(type: BusinessType) {
   return !isVenueBusiness(type);
 }
@@ -21,7 +21,7 @@ export function orderTypeCopy(type: BusinessType) {
   return {
     sectionTitle: type === "SHOP" ? "طريقة الطلب" : "نوع الطلب",
     delivery: "التوصيل",
-    pickup: type === "SHOP" ? "الاستلام من المحل" : "الاستلام",
+    pickup: type === "SHOP" ? "الاستلام من المركز" : "الاستلام",
     dineIn: type === "SHOP" ? null : (`تناول في ${venue}` as const),
     tableLabel: "رقم الطاولة",
     itemsLabel: type === "SHOP" ? "المنتجات" : "الأصناف",
@@ -31,16 +31,16 @@ export function orderTypeCopy(type: BusinessType) {
 export const BUSINESS_TYPE_OPTIONS: Array<{ value: BusinessType; label: string; hint: string }> = [
   { value: "RESTAURANT", label: "مطعم", hint: "يظهر خيار التناول في المطعم ورقم الطاولة" },
   { value: "CAFE", label: "كافيه", hint: "يظهر خيار التناول في الكافيه ورقم الطاولة" },
-  { value: "SHOP", label: "محل تجاري", hint: "للمحلات (قطع موبايل، غسالات، وغيرها) بدون تناول في المكان" },
+  { value: "SHOP", label: "مركز تجاري", hint: "للمراكز التجارية (معارض، محلات، وغيرها) بدون تناول في المكان" },
 ];
 
 export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   RESTAURANT: "مطعم",
   CAFE: "كافيه",
-  SHOP: "محل تجاري",
+  SHOP: "مركز تجاري",
 };
 
 export function dashboardIntro(type: BusinessType): string {
-  const place = type === "CAFE" ? "كافيهك" : type === "SHOP" ? "محلك" : "مطعمك";
+  const place = type === "CAFE" ? "كافيهك" : type === "SHOP" ? "مركزك التجاري" : "مطعمك";
   return `هذه نظرة سريعة على منيو ${place} اليوم.`;
 }

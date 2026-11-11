@@ -50,7 +50,7 @@ export function OnboardingWizard({
   const [loading, setLoading] = useState(false);
 
   const steps = useMemo(
-    () => ["المطعم", "الرابط", "التصميم", "الشعار", "القسم", "المنتج", "النشر"],
+    () => ["النشاط", "الرابط", "التصميم", "الشعار", "القسم", "المنتج", "النشر"],
     []
   );
 
@@ -137,7 +137,7 @@ export function OnboardingWizard({
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-10">
       <BrandMark href="/" className="mx-auto mb-4 w-52" imageClassName="h-auto" />
-      <h1 className="mb-6 text-center text-2xl font-bold">إعداد مطعمك</h1>
+      <h1 className="mb-6 text-center text-2xl font-bold">إعداد نشاطك</h1>
       {canOpenDashboard ? (
         <p className="-mt-4 mb-6 text-center text-sm">
           <Link href="/dashboard" className="text-teal-700 hover:underline">
@@ -157,10 +157,10 @@ export function OnboardingWizard({
       <div className="mt-4 rounded-3xl border border-zinc-200 bg-white p-6">
         {step === 1 ? (
           <div className="grid gap-4">
-            <FormField label="اسم المطعم" htmlFor="name" required>
+            <FormField label="اسم النشاط" htmlFor="name" required hint="مركز تجاري أو مطعم أو كافيه">
               <Input id="name" value={name} onChange={(event) => setName(event.target.value)} />
             </FormField>
-            <FormField label="وصف المطعم" htmlFor="description">
+            <FormField label="وصف النشاط" htmlFor="description">
               <Textarea id="description" value={description} onChange={(event) => setDescription(event.target.value)} />
             </FormField>
           </div>
@@ -218,7 +218,7 @@ export function OnboardingWizard({
           </FormField>
         ) : null}
         {step === 5 ? (
-          <FormField label="اسم أول قسم" htmlFor="category" hint="مثال: البرغر">
+          <FormField label="اسم أول قسم" htmlFor="category" hint="مثال: البرغر أو القهوة أو الأجهزة">
             <Input id="category" value={categoryName} onChange={(event) => setCategoryName(event.target.value)} />
           </FormField>
         ) : null}
@@ -234,7 +234,7 @@ export function OnboardingWizard({
         ) : null}
         {step === 7 ? (
           <p className="text-sm leading-7 text-zinc-600">
-            جاهز للنشر؟ سيظهر المنيو للزبائن على الرابط الخاص بمطعمك. يمكنك تعديل كل شيء لاحقاً من لوحة التحكم.
+            جاهز للنشر؟ سيظهر المنيو للزبائن على الرابط الخاص بنشاطك. يمكنك تعديل كل شيء لاحقاً من لوحة التحكم.
           </p>
         ) : null}
         <div className="mt-6 flex justify-between gap-2">

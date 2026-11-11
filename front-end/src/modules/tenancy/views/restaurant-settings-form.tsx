@@ -76,7 +76,7 @@ export function RestaurantSettingsForm({ restaurant }: { restaurant: Restaurant 
   return (
     <form onSubmit={save} className="grid max-w-2xl gap-4">
       {error ? <Alert variant="error">{error}</Alert> : null}
-      <FormField label="الاسم" htmlFor="name" required hint="اسم المطعم أو الكافيه أو المحل">
+      <FormField label="الاسم" htmlFor="name" required hint="اسم المركز التجاري أو المطعم أو الكافيه">
         <Input id="name" value={name} onChange={(event) => setName(event.target.value)} required />
       </FormField>
       <FormField label="الوصف" htmlFor="description">

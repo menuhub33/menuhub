@@ -36,7 +36,7 @@ export function RemoveStaffDialog({
         onOpenChange={onOpenChange}
         size="sm"
         title="تعذر إزالة المالك"
-        description={`لا يمكن إزالة ${name} لأنه المالك الوحيد للمطعم. عيّن مالكاً آخر أولاً.`}
+        description={`لا يمكن إزالة ${name} لأنه المالك الوحيد للنشاط. عيّن مالكاً آخر أولاً.`}
         footer={
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             حسناً
@@ -47,8 +47,8 @@ export function RemoveStaffDialog({
   }
 
   const description = isOwner
-    ? `تحذير: ${name} مالك المطعم (${RESTAURANT_ROLE_LABELS.OWNER}). إزالته قد تمنع إدارة المطعم إذا لم يبقَ مالك نشط آخر.`
-    : `سيتم إزالة ${name} من فريق المطعم ولن يتمكن من الوصول إلى لوحة التحكم.`;
+    ? `تحذير: ${name} مالك النشاط (${RESTAURANT_ROLE_LABELS.OWNER}). إزالته قد تمنع إدارة النشاط إذا لم يبقَ مالك نشط آخر.`
+    : `سيتم إزالة ${name} من فريق النشاط ولن يتمكن من الوصول إلى لوحة التحكم.`;
 
   return (
     <ConfirmDialog

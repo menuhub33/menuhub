@@ -71,7 +71,7 @@ export async function adminSetRestaurantStatus(
   id: string,
   status: Restaurant["status"]
 ): Promise<ActionResult<Restaurant>> {
-  if (!id) return fail("معرّف المطعم مطلوب");
+  if (!id) return fail("معرّف النشاط مطلوب");
   return run(() =>
     apiData<Restaurant>(`/admin/restaurants/${id}/status`, { method: "PUT", body: { status } })
   );
@@ -81,7 +81,7 @@ export async function adminSetRestaurantBusinessType(
   id: string,
   businessType: Restaurant["business_type"]
 ): Promise<ActionResult<Restaurant>> {
-  if (!id) return fail("معرّف المطعم مطلوب");
+  if (!id) return fail("معرّف النشاط مطلوب");
   return run(() =>
     apiData<Restaurant>(`/admin/restaurants/${id}/business-type`, {
       method: "PUT",
@@ -94,7 +94,7 @@ export async function adminChangeRestaurantPlan(
   restaurantId: string,
   planId: string
 ): Promise<ActionResult<{ success: true }>> {
-  if (!restaurantId || !planId) return fail("المطعم والخطة مطلوبان");
+  if (!restaurantId || !planId) return fail("النشاط والخطة مطلوبان");
   return run(async () => {
     await apiData(`/admin/restaurants/${restaurantId}/plan`, {
       method: "PUT",
@@ -107,7 +107,7 @@ export async function adminChangeRestaurantPlan(
 export async function adminDeleteRestaurant(
   id: string
 ): Promise<ActionResult<{ success: true }>> {
-  if (!id) return fail("معرّف المطعم مطلوب");
+  if (!id) return fail("معرّف النشاط مطلوب");
   return run(async () => {
     await apiData(`/admin/restaurants/${id}`, { method: "DELETE" });
     return { success: true as const };
@@ -128,7 +128,7 @@ export async function adminCreateRestaurant(input: {
   const name = input.name?.trim();
   const email = input.email?.trim().toLowerCase();
   if (!name || !email || !input.password) {
-    return fail("اسم المطعم وبريد المالك وكلمة المرور مطلوبة");
+    return fail("اسم النشاط وبريد المالك وكلمة المرور مطلوبة");
   }
   if (input.password.length < 8) return fail("كلمة المرور يجب أن تكون 8 أحرف على الأقل");
 
@@ -176,7 +176,7 @@ export async function adminUpdateRestaurant(input: {
   owner_password?: string;
 }): Promise<ActionResult<Restaurant>> {
   const { id, ...changes } = input;
-  if (!id) return fail("معرّف المطعم مطلوب");
+  if (!id) return fail("معرّف النشاط مطلوب");
   const email = changes.owner_email?.trim().toLowerCase();
   if (changes.owner_email !== undefined && !email) return fail("بريد المالك مطلوب");
   if (changes.owner_password && changes.owner_password.length < 8) {

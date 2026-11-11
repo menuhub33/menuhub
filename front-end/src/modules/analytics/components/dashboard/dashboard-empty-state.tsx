@@ -6,11 +6,11 @@ export function DashboardEmptyState({ onCreate }: { onCreate?: () => void }) {
   return (
     <EmptyState
       icon={<BuildingIcon className="size-7" />}
-      title="ابدأ مطعمك الأول"
-      description="أنشئ مطعمًا لتبدأ بناء المنيو الرقمي ورمز QR الخاص بك."
+      title="ابدأ نشاطك الأول"
+      description="أنشئ مركزاً تجارياً أو مطعماً أو كافيه لتبدأ بناء المنيو الرقمي ورمز QR الخاص بك."
       action={
         onCreate ? (
-          <Button onClick={onCreate}>إنشاء مطعم</Button>
+          <Button onClick={onCreate}>إنشاء نشاط</Button>
         ) : null
       }
     />

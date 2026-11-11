@@ -83,7 +83,7 @@ export const getActiveMembership = cache(async (): Promise<Membership | null> =>
 /** Id of the active restaurant, for actions that act on the current tenant. */
 export async function requireTenantId(): Promise<string> {
   const membership = await getActiveMembership();
-  if (!membership) throw new ApiError("لا يوجد مطعم محدد لحسابك", 400, "NO_RESTAURANT");
+  if (!membership) throw new ApiError("لا يوجد نشاط محدد لحسابك", 400, "NO_RESTAURANT");
   return membership.restaurant.id;
 }
 

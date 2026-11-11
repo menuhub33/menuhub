@@ -43,7 +43,7 @@ export function LiveMenuPreview({
   categories?: CategoryWithProducts[];
   className?: string;
 }) {
-  const title = restaurantName?.trim() || "اسم المطعم";
+  const title = restaurantName?.trim() || "اسم النشاط";
   const fallbackCategory = categoryName?.trim() || "اسم القسم";
   const fallbackProduct = productName?.trim() || "اسم المنتج";
 

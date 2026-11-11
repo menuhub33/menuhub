@@ -7,7 +7,7 @@ import type { SocialLink } from "@/modules/operations/types";
 export async function getSocialLink(
   restaurantId: string
 ): Promise<ActionResult<SocialLink[]>> {
-  if (!restaurantId) return fail("معرّف المطعم مطلوب");
+  if (!restaurantId) return fail("معرّف النشاط مطلوب");
   return run(() => apiData<SocialLink[]>(`/restaurants/${restaurantId}/social-links`));
 }
 
@@ -22,7 +22,7 @@ export async function createSocialLink(
   input: CreateSocialLinkInput
 ): Promise<ActionResult<SocialLink>> {
   const { restaurant_id: restaurantId, ...body } = input;
-  if (!restaurantId) return fail("معرّف المطعم مطلوب");
+  if (!restaurantId) return fail("معرّف النشاط مطلوب");
   if (!body.platform || !body.url?.trim()) return fail("المنصة والرابط مطلوبان");
 
   return run(() =>

@@ -12,7 +12,7 @@ export type GetBusinessHoursInput = {
 export async function getBusinessHours(
   input: GetBusinessHoursInput
 ): Promise<ActionResult<BusinessHours[]>> {
-  if (!input.restaurant_id) return fail("معرّف المطعم مطلوب");
+  if (!input.restaurant_id) return fail("معرّف النشاط مطلوب");
 
   return run(() =>
     apiData<BusinessHours[]>(`/restaurants/${input.restaurant_id}/business-hours`, {
@@ -34,7 +34,7 @@ export async function saveBusinessHours(input: {
   branch_id?: string | null;
   hours: BusinessHoursDay[];
 }): Promise<ActionResult<BusinessHours[]>> {
-  if (!input.restaurant_id) return fail("معرّف المطعم مطلوب");
+  if (!input.restaurant_id) return fail("معرّف النشاط مطلوب");
   if (input.hours.length === 0) return fail("حدد يوماً واحداً على الأقل");
 
   return run(() =>

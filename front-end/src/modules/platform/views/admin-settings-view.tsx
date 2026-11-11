@@ -54,7 +54,7 @@ export function AdminSettingsView({ items }: { items: ReservedSubdomain[] }) {
     <div className="grid gap-4">
       <PageHeader
         title="إعدادات المنصة"
-        description="النطاقات الفرعية المحجوزة لا يمكن استخدامها كرابط لمطعم."
+        description="النطاقات الفرعية المحجوزة لا يمكن استخدامها كرابط لمركز تجاري أو مطعم أو كافيه."
       />
       <form onSubmit={createSlug} className="flex flex-col gap-2 sm:flex-row">
         <Input

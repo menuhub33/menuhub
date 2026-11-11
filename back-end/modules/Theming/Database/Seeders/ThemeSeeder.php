@@ -14,7 +14,7 @@ class ThemeSeeder extends Seeder
             ['Classic', 'classic', 'تصميم كلاسيكي', false],
             ['Elegant', 'elegant', 'تصميم أنيق', true],
             ['Minimal', 'minimal', 'تصميم بسيط', false],
-            ['Fast Food', 'fast-food', 'تصميم مناسب للمطاعم السريعة', true],
+            ['Fast Food', 'fast-food', 'تصميم مناسب للوجبات السريعة', true],
             ['Coffee', 'coffee', 'تصميم مناسب للمقاهي', true],
         ];
 

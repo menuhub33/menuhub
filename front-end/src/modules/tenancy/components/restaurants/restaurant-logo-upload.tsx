@@ -13,7 +13,7 @@ export function RestaurantLogoUpload({
 }) {
   return (
     <div>
-      <p className="mb-2 text-sm font-medium text-zinc-800">شعار المطعم</p>
+      <p className="mb-2 text-sm font-medium text-zinc-800">شعار النشاط</p>
       <ImageUpload
         value={value}
         onUpload={onUpload}

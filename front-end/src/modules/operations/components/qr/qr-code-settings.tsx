@@ -65,7 +65,7 @@ export function QrCodeSettings({
         id={logoId}
         checked={value.logo_enabled}
         onCheckedChange={(logo_enabled) => patch({ logo_enabled })}
-        label="إظهار شعار المطعم داخل الرمز"
+        label="إظهار الشعار داخل الرمز"
       />
       {onSave ? (
         <div className="flex justify-end">

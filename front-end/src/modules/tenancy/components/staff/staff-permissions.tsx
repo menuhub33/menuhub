@@ -39,8 +39,8 @@ const PERMISSIONS: Array<{
   },
   {
     key: "delete_restaurant",
-    label: "حذف المطعم",
-    hint: "حذف المطعم وكل بياناته بشكل نهائي",
+    label: "حذف النشاط",
+    hint: "حذف النشاط وكل بياناته بشكل نهائي",
     granted: { OWNER: true, MANAGER: false, EDITOR: false },
   },
 ];

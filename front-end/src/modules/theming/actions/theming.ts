@@ -12,7 +12,7 @@ export async function getTheme(): Promise<ActionResult<Theme[]>> {
 export async function getRestaurantTheme(
   restaurantId: string
 ): Promise<ActionResult<RestaurantTheme | null>> {
-  if (!restaurantId) return fail("معرّف المطعم مطلوب");
+  if (!restaurantId) return fail("معرّف النشاط مطلوب");
   return run(() => apiData<RestaurantTheme>(`/restaurants/${restaurantId}/theme`));
 }
 
@@ -31,7 +31,7 @@ export async function updateRestaurantTheme(
   input: UpdateRestaurantThemeInput
 ): Promise<ActionResult<RestaurantTheme>> {
   const { restaurant_id: restaurantId, ...changes } = input;
-  if (!restaurantId) return fail("معرّف المطعم مطلوب");
+  if (!restaurantId) return fail("معرّف النشاط مطلوب");
 
   return run(() =>
     apiData<RestaurantTheme>(`/restaurants/${restaurantId}/theme`, {
