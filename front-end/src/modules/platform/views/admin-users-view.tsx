@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import {
   adminCreateUser,
   adminDeleteUser,
@@ -34,7 +34,6 @@ export function AdminUsersView({
   users: Profile[];
   currentUserId: string;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [query, setQuery] = useState("");
   const [creating, setCreating] = useState(false);
@@ -87,7 +86,7 @@ export function AdminUsersView({
     setPassword("");
     setPhone("");
     setRole("USER");
-    router.refresh();
+    reloadPage();
   }
 
   async function saveUser() {
@@ -106,7 +105,7 @@ export function AdminUsersView({
     }
     toast({ title: "تم حفظ المستخدم", variant: "success" });
     setEditing(null);
-    router.refresh();
+    reloadPage();
   }
 
   return (
@@ -161,7 +160,7 @@ export function AdminUsersView({
                         onClick={async () => {
                           const result = await adminSetUserActive(user.id, !user.is_active);
                           if (result.error) toast({ title: result.error, variant: "error" });
-                          else router.refresh();
+                          else reloadPage();
                         }}
                       >
                         {user.is_active ? "تعليق" : "تفعيل"}
@@ -274,7 +273,7 @@ export function AdminUsersView({
           else {
             setDeleting(null);
             toast({ title: "تم حذف المستخدم", variant: "success" });
-            router.refresh();
+            reloadPage();
           }
         }}
       />

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { logout } from "@/modules/auth/actions/auth";
 import { markAllNotificationsRead } from "@/modules/notifications/actions/notifications";
@@ -96,7 +97,6 @@ export function AdminShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   // The drawer is "open for" one pathname, so it closes itself on navigation.
   const [openFor, setOpenFor] = useState<string | null>(null);
   const open = openFor === pathname;
@@ -110,8 +110,7 @@ export function AdminShell({
   async function handleLogout() {
     setLoggingOut(true);
     await logout();
-    router.push("/login");
-    router.refresh();
+    reloadPage("/login");
   }
 
   const footer = (
@@ -160,7 +159,7 @@ export function AdminShell({
               notifications={notifications}
               onMarkAllRead={async () => {
                 await markAllNotificationsRead({ audience: "mall" });
-                router.refresh();
+                reloadPage();
               }}
             />
           </div>

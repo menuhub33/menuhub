@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { reloadPage } from "@/core/lib/reload";
 import { useRouter } from "next/navigation";
 import { deleteProduct } from "@/modules/catalog/actions/products";
 import { duplicateProduct } from "@/modules/catalog/actions/products";
@@ -134,14 +135,14 @@ export function ProductsView({
             const next = product.status === "AVAILABLE" ? "UNAVAILABLE" : "AVAILABLE";
             const result = await updateProductStatus(product.id, next);
             if (result.error) toast({ title: result.error, variant: "error" });
-            else router.refresh();
+            else reloadPage();
           }}
           showStockCount={showStockCount}
           onToggleVisibility={async (product) => {
             const next = product.status === "HIDDEN" ? "AVAILABLE" : "HIDDEN";
             const result = await updateProductStatus(product.id, next);
             if (result.error) toast({ title: result.error, variant: "error" });
-            else router.refresh();
+            else reloadPage();
           }}
         />
       <DeleteProductDialog
@@ -157,7 +158,7 @@ export function ProductsView({
           else {
             toast({ title: "تم حذف المنتج", variant: "success" });
             setDeleting(null);
-            router.refresh();
+            reloadPage();
           }
         }}
       />
@@ -174,7 +175,7 @@ export function ProductsView({
           else {
             toast({ title: "تم نسخ المنتج بنجاح", variant: "success" });
             setDuplicating(null);
-            router.refresh();
+            reloadPage();
           }
         }}
       />

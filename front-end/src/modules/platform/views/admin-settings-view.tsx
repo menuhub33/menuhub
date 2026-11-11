@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { createReservedSubdomain } from "@/modules/platform/actions/reserved-subdomains";
 import { deleteReservedSubdomain } from "@/modules/platform/actions/reserved-subdomains";
 import { updateReservedSubdomain } from "@/modules/platform/actions/reserved-subdomains";
@@ -15,7 +15,6 @@ import { useToast } from "@/core/ui/toast";
 import type { ReservedSubdomain } from "@/modules/tenancy/types";
 
 export function AdminSettingsView({ items }: { items: ReservedSubdomain[] }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [slug, setSlug] = useState("");
   const [saving, setSaving] = useState(false);
@@ -34,7 +33,7 @@ export function AdminSettingsView({ items }: { items: ReservedSubdomain[] }) {
     }
     setSlug("");
     toast({ title: "تم حجز النطاق", variant: "success" });
-    router.refresh();
+    reloadPage();
   }
 
   async function saveEdit() {
@@ -48,7 +47,7 @@ export function AdminSettingsView({ items }: { items: ReservedSubdomain[] }) {
     }
     setEditing(null);
     toast({ title: "تم تحديث النطاق", variant: "success" });
-    router.refresh();
+    reloadPage();
   }
 
   return (
@@ -154,7 +153,7 @@ export function AdminSettingsView({ items }: { items: ReservedSubdomain[] }) {
           else {
             setDeleting(null);
             toast({ title: "تم حذف النطاق", variant: "success" });
-            router.refresh();
+            reloadPage();
           }
         }}
       />

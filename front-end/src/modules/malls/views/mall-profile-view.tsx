@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { PageHeader } from "@/core/components/layout/page-header";
 import { FormField } from "@/core/components/forms/form-field";
 import { Button } from "@/core/ui/button";
@@ -12,7 +12,6 @@ import { updateMyMall } from "@/modules/malls/actions/malls";
 import type { Mall, MallStatus } from "@/modules/malls/types";
 
 export function MallProfileView({ mall }: { mall: Mall }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<MallStatus>(mall.status);
@@ -28,7 +27,7 @@ export function MallProfileView({ mall }: { mall: Mall }) {
       return;
     }
     toast({ title: "تم حفظ بطاقة المول", variant: "success" });
-    router.refresh();
+    reloadPage();
   }
 
   return (

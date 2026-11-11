@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { changeEmail, changePassword } from "@/modules/auth/actions/auth";
 import { updateProfile } from "@/modules/auth/actions/profile";
 import { PasswordInput } from "@/modules/auth/components/password-input";
@@ -27,7 +27,6 @@ export function SettingsView({
   canManageRestaurant: boolean;
   initialTab?: string;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const tabFromUrl = () => {
     if (initialTab === "restaurant" && canManageRestaurant) return "restaurant";
@@ -86,7 +85,7 @@ export function SettingsView({
             if (result.error) toast({ title: result.error, variant: "error" });
             else {
               toast({ title: "تم حفظ الحساب", variant: "success" });
-              router.refresh();
+              reloadPage();
             }
           }}
         >
@@ -119,7 +118,7 @@ export function SettingsView({
                   : "تم تحديث البريد. أكّد الرابط الذي وصلك",
                 variant: "success",
               });
-              router.refresh();
+              reloadPage();
             }}
           >
             <div>

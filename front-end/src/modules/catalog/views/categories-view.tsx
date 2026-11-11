@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { useMemo, useState } from "react";
 import { createCategory } from "@/modules/catalog/actions/categories";
 import { updateCategory } from "@/modules/catalog/actions/categories";
@@ -28,7 +28,6 @@ export function CategoriesView({
   canEdit: boolean;
   canDelete: boolean;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
@@ -81,7 +80,7 @@ export function CategoriesView({
     });
     setOpen(false);
     setEditing(null);
-    router.refresh();
+    reloadPage();
   }
 
   return (
@@ -115,7 +114,7 @@ export function CategoriesView({
           onReorder={async (ids) => {
             const result = await reorderCategories(ids);
             if (result.error) toast({ title: result.error, variant: "error" });
-            else router.refresh();
+            else reloadPage();
           }}
         />
       ) : null}
@@ -148,7 +147,7 @@ export function CategoriesView({
           else {
             toast({ title: "تم حذف القسم", variant: "success" });
             setDeleting(null);
-            router.refresh();
+            reloadPage();
           }
         }}
       />

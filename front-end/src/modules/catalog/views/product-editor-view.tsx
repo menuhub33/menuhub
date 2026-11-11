@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { useState } from "react";
 import { createProduct } from "@/modules/catalog/actions/products";
 import { updateProduct } from "@/modules/catalog/actions/products";
@@ -131,8 +132,7 @@ export function ProductEditorView({
       title: product ? "تم حفظ المنتج" : "تم إضافة المنتج بنجاح",
       variant: "success",
     });
-    router.push("/dashboard/menu/products");
-    router.refresh();
+    reloadPage("/dashboard/menu/products");
   }
 
   return (

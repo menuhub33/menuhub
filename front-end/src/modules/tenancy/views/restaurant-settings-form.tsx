@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
+import { ContentImage } from "@/core/ui/content-image";
 import { updateRestaurant } from "@/modules/tenancy/actions/restaurants";
 import { uploadImageFile } from "@/modules/media/lib/upload-client";
 import { PageHeader } from "@/core/components/layout/page-header";
@@ -15,7 +16,6 @@ import { useToast } from "@/core/ui/toast";
 import type { Restaurant } from "@/modules/tenancy/types";
 
 export function RestaurantSettingsForm({ restaurant }: { restaurant: Restaurant }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [name, setName] = useState(restaurant.name);
   const [description, setDescription] = useState(restaurant.description ?? "");
@@ -55,7 +55,7 @@ export function RestaurantSettingsForm({ restaurant }: { restaurant: Restaurant 
       return;
     }
     toast({ title: "تم حفظ بيانات النشاط", variant: "success" });
-    router.refresh();
+    reloadPage();
   }
 
   async function upload(kind: "logo_url" | "cover_image_url", file: File) {
@@ -65,9 +65,12 @@ export function RestaurantSettingsForm({ restaurant }: { restaurant: Restaurant 
       toast({ title: uploaded.error ?? "تعذر الرفع", variant: "error" });
       return;
     }
-    await updateRestaurant({ id: restaurant.id, [kind]: uploaded.data.url });
-    toast({ title: "تم تحديث الصورة", variant: "success" });
-    router.refresh();
+    const saved = await updateRestaurant({ id: restaurant.id, [kind]: uploaded.data.url });
+    if (saved.error) {
+      toast({ title: saved.error, variant: "error" });
+      return;
+    }
+    reloadPage();
   }
 
   return (
@@ -164,12 +167,18 @@ export function RestaurantSettingsForm({ restaurant }: { restaurant: Restaurant 
         </FormField>
       </div>
       <FormField label="الشعار">
+        {restaurant.logo_url ? (
+          <ContentImage src={restaurant.logo_url} alt="الشعار" className="mb-3 size-24 rounded-2xl object-cover" />
+        ) : null}
         <Input type="file" accept="image/*" onChange={(event) => {
           const file = event.target.files?.[0];
           if (file) void upload("logo_url", file);
         }} />
       </FormField>
       <FormField label="صورة الغلاف">
+        {restaurant.cover_image_url ? (
+          <ContentImage src={restaurant.cover_image_url} alt="الغلاف" className="mb-3 h-32 w-full rounded-2xl object-cover" />
+        ) : null}
         <Input type="file" accept="image/*" onChange={(event) => {
           const file = event.target.files?.[0];
           if (file) void upload("cover_image_url", file);

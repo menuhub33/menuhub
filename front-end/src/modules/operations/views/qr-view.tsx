@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { reloadPage } from "@/core/lib/reload";
 import { createQrCode } from "@/modules/operations/actions/qr-codes";
 import { PageHeader } from "@/core/components/layout/page-header";
 import { QrCodeCard } from "@/modules/operations/components/qr/qr-code-card";
 import { QrCodeGenerator, type QrGenerateValues } from "@/modules/operations/components/qr/qr-code-generator";
 import { useToast } from "@/core/ui/toast";
-import { useRouter } from "next/navigation";
 import { usePublicMenuUrl } from "@/core/providers";
 import type { Menu } from "@/modules/catalog/types";
 import type { QrCode } from "@/modules/operations/types";
@@ -21,7 +21,6 @@ export function QrView({
   menus: Menu[];
   codes: QrCode[];
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const url = usePublicMenuUrl(restaurant.slug);
@@ -40,7 +39,7 @@ export function QrView({
     if (result.error) toast({ title: result.error, variant: "error" });
     else {
       toast({ title: "تم إنشاء رمز QR", variant: "success" });
-      router.refresh();
+      reloadPage();
     }
   }
 

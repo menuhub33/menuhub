@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { reloadPage } from "@/core/lib/reload";
 import { useRouter } from "next/navigation";
 import {
   adminCreateRestaurant,
@@ -185,7 +186,7 @@ export function AdminRestaurantsView({
       setBusinessType("RESTAURANT");
       setAffiliation("private");
       setBilling(emptyBillingForm(plans[0]?.id ?? ""));
-      router.refresh();
+      reloadPage();
     } catch (error) {
       toast({
         title: error instanceof Error ? error.message : "تعذر إنشاء المحل",
@@ -249,7 +250,7 @@ export function AdminRestaurantsView({
     setSaving(false);
     toast({ title: "تم حفظ المحل", variant: "success" });
     setEditing(null);
-    router.refresh();
+    reloadPage();
   }
 
   async function createDemoMenu() {
@@ -261,7 +262,7 @@ export function AdminRestaurantsView({
       return;
     }
     toast({ title: "تم تجهيز منيو بيت الشام التجريبي", variant: "success" });
-    router.refresh();
+    reloadPage();
   }
 
   async function createDemoCarsMenu() {
@@ -273,7 +274,7 @@ export function AdminRestaurantsView({
       return;
     }
     toast({ title: "تم تجهيز منيو أوتو الشام التجريبي", variant: "success" });
-    router.refresh();
+    reloadPage();
   }
 
   return (
@@ -402,7 +403,7 @@ export function AdminRestaurantsView({
                               title: nextStatus === "ACTIVE" ? "تم تفعيل المحل" : "تم تعليق المحل",
                               variant: "success",
                             });
-                            router.refresh();
+                            reloadPage();
                           }
                         }}
                       >
@@ -435,7 +436,7 @@ export function AdminRestaurantsView({
           else {
             setDeleting(null);
             toast({ title: "تم حذف المحل", variant: "success" });
-            router.refresh();
+            reloadPage();
           }
         }}
       />

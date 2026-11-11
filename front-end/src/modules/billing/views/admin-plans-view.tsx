@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { createPlan, updatePlan, updatePlanStatus } from "@/modules/billing/actions/billing";
 import { formatLimit, formatStorageLimit } from "@/modules/billing/components/plan-card";
 import { PageHeader } from "@/core/components/layout/page-header";
@@ -84,7 +84,6 @@ function readLimit(value: string, max?: number): number | null | "invalid" {
 }
 
 export function AdminPlansView({ plans }: { plans: Plan[] }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [editing, setEditing] = useState<Plan | null>(null);
   const [creating, setCreating] = useState(false);
@@ -159,7 +158,7 @@ export function AdminPlansView({ plans }: { plans: Plan[] }) {
     }
     closeDialog();
     toast({ title: creating ? "أُضيفت الخطة" : "تم حفظ الخطة", variant: "success" });
-    router.refresh();
+    reloadPage();
   }
 
   return (
@@ -223,7 +222,7 @@ export function AdminPlansView({ plans }: { plans: Plan[] }) {
                         onClick={async () => {
                           const result = await updatePlanStatus(plan.id, !plan.is_active);
                           if (result.error) toast({ title: result.error, variant: "error" });
-                          else router.refresh();
+                          else reloadPage();
                         }}
                       >
                         {plan.is_active ? "إيقاف" : "تفعيل"}

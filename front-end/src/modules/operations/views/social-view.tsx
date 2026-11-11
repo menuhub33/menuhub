@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { createSocialLink } from "@/modules/operations/actions/social-links";
 import { updateSocialLink } from "@/modules/operations/actions/social-links";
 import { updateSocialLinkStatus } from "@/modules/operations/actions/social-links";
@@ -26,7 +26,6 @@ export function SocialView({
   restaurantId: string;
   links: SocialLink[];
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [platform, setPlatform] = useState("whatsapp");
   const [url, setUrl] = useState("");
@@ -46,7 +45,7 @@ export function SocialView({
               title: isWhatsApp ? "تم إضافة رقم واتساب" : "تم إضافة الرابط",
               variant: "success",
             });
-            router.refresh();
+            reloadPage();
           }
         }}
       >
@@ -97,7 +96,7 @@ export function SocialView({
                   url: event.target.value,
                 });
                 if (result.error) toast({ title: result.error, variant: "error" });
-                else router.refresh();
+                else reloadPage();
               }}
             />
             <Button
@@ -105,7 +104,7 @@ export function SocialView({
               size="sm"
               onClick={async () => {
                 await updateSocialLinkStatus(link.id, restaurantId, !link.is_active);
-                router.refresh();
+                reloadPage();
               }}
             >
               {link.is_active ? "إخفاء" : "إظهار"}

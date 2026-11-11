@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { reloadPage } from "@/core/lib/reload";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/core/components/layout/page-header";
 import { Button } from "@/core/ui/button";
@@ -73,7 +74,7 @@ export function AdminMallsView({ malls }: { malls: Mall[] }) {
     setManagerName("");
     setManagerEmail("");
     setManagerPassword("");
-    router.refresh();
+    reloadPage();
   }
 
   async function saveMall() {
@@ -96,7 +97,7 @@ export function AdminMallsView({ malls }: { malls: Mall[] }) {
     }
     toast({ title: "تم حفظ المول", variant: "success" });
     setEditing(null);
-    router.refresh();
+    reloadPage();
   }
 
   return (
@@ -262,7 +263,7 @@ export function AdminMallsView({ malls }: { malls: Mall[] }) {
           else {
             setDeleting(null);
             toast({ title: "تم حذف المول", variant: "success" });
-            router.refresh();
+            reloadPage();
           }
         }}
       />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import {
   deleteMenuBilling,
   saveMenuBilling,
@@ -48,7 +48,6 @@ export function AdminFinanceView({
   plans?: PricedPlan[];
   mallName?: string | null;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("ALL");
@@ -118,7 +117,7 @@ export function AdminFinanceView({
     setCreating(false);
     setEditing(null);
     setForm(emptyBillingForm(plans[0]?.id ?? ""));
-    router.refresh();
+    reloadPage();
   }
 
   return (
@@ -324,7 +323,7 @@ export function AdminFinanceView({
                   if (result.error) toast({ title: result.error, variant: "error" });
                   else {
                     setPayments(null);
-                    router.refresh();
+                    reloadPage();
                   }
                 }}
               >
@@ -353,7 +352,7 @@ export function AdminFinanceView({
           else {
             setDeleting(null);
             toast({ title: "تم حذف العقد", variant: "success" });
-            router.refresh();
+            reloadPage();
           }
         }}
       />

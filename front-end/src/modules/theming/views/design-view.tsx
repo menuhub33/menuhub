@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { updateRestaurantTheme } from "@/modules/theming/actions/theming";
 import { createRestaurantTheme } from "@/modules/theming/actions/theming";
 import { updateRestaurant } from "@/modules/tenancy/actions/restaurants";
@@ -35,7 +35,6 @@ export function DesignView({
   current: RestaurantTheme | null;
   categories: CategoryWithProducts[];
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [value, setValue] = useState<ThemeCustomizerValues>(current ?? DEFAULT_THEME);
   const [saving, setSaving] = useState(false);
@@ -58,7 +57,7 @@ export function DesignView({
     if (result.error) toast({ title: result.error, variant: "error" });
     else {
       toast({ title: "تم حفظ التصميم", variant: "success" });
-      router.refresh();
+      reloadPage();
     }
   }
 
@@ -110,7 +109,7 @@ export function DesignView({
       }
       if (isLogo) setLogoUrl(uploaded.data.url);
       toast({ title: "تم تحديث الصورة", variant: "success" });
-      router.refresh();
+      reloadPage();
       if (isLogo) await matchLogo(file);
     } finally {
       if (isLogo) setUploadingLogo(false);

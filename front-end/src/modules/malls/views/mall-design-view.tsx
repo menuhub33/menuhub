@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { PageHeader } from "@/core/components/layout/page-header";
 import { FormField } from "@/core/components/forms/form-field";
 import { Button } from "@/core/ui/button";
@@ -31,7 +31,6 @@ export function MallDesignView({
   theme: MallTheme | null;
   scope: "mine" | "admin";
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [value, setValue] = useState<ThemeCustomizerValues>(theme ?? DEFAULT_THEME);
   const [saving, setSaving] = useState(false);
@@ -47,7 +46,7 @@ export function MallDesignView({
     if (result.error) toast({ title: result.error, variant: "error" });
     else {
       toast({ title: "تم حفظ التصميم", variant: "success" });
-      router.refresh();
+      reloadPage();
     }
   }
 
@@ -116,7 +115,7 @@ export function MallDesignView({
       }
       if (isLogo) setLogoUrl(uploaded.data.url);
       toast({ title: "تم تحديث الصورة", variant: "success" });
-      router.refresh();
+      reloadPage();
       if (isLogo) await matchLogo(file);
     } finally {
       if (isLogo) setUploadingLogo(false);

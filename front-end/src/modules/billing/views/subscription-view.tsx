@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { updateSubscription } from "@/modules/billing/actions/billing";
 import { updateSubscriptionStatus } from "@/modules/billing/actions/billing";
 import { PageHeader } from "@/core/components/layout/page-header";
@@ -28,7 +28,6 @@ export function SubscriptionView({
   payments: Payment[];
   invoices: Invoice[];
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
@@ -51,7 +50,7 @@ export function SubscriptionView({
           if (result.error) toast({ title: result.error, variant: "error" });
           else {
             toast({ title: "تم إلغاء الاشتراك", variant: "success" });
-            router.refresh();
+            reloadPage();
           }
         }}
       />
@@ -78,7 +77,7 @@ export function SubscriptionView({
           else {
             toast({ title: "تم تحديث الخطة", variant: "success" });
             setOpen(false);
-            router.refresh();
+            reloadPage();
           }
         }}
       />

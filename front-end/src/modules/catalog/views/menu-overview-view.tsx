@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { useState } from "react";
 import { updateMenuStatus } from "@/modules/catalog/actions/menus";
 import { updateRestaurant } from "@/modules/tenancy/actions/restaurants";
@@ -28,7 +28,6 @@ export function MenuOverviewView({
   productCount: number;
   canPublish: boolean;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const url = usePublicMenuUrl(restaurant.slug);
@@ -48,7 +47,7 @@ export function MenuOverviewView({
       variant: "success",
     });
     setOpen(false);
-    router.refresh();
+    reloadPage();
   }
 
   async function copy() {

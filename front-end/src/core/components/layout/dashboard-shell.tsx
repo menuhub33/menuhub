@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { useMemo, useState } from "react";
 import { logout } from "@/modules/auth/actions/auth";
 import { markAllNotificationsRead } from "@/modules/notifications/actions/notifications";
@@ -67,12 +68,11 @@ export function DashboardShell({
           onProfile={() => router.push("/dashboard/settings")}
           onLogout={async () => {
             await logout();
-            router.push("/login");
-            router.refresh();
+            reloadPage("/login");
           }}
           onMarkAllRead={async () => {
             await markAllNotificationsRead({ audience: "shop", restaurantId: restaurant.id });
-            router.refresh();
+            reloadPage();
           }}
         />
         <div className="flex items-center gap-3 border-b border-zinc-100 bg-white px-4 py-2 lg:hidden">

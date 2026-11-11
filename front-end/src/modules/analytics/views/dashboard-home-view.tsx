@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { updateMenuStatus } from "@/modules/catalog/actions/menus";
 import { updateRestaurant } from "@/modules/tenancy/actions/restaurants";
 import { DashboardOverview } from "@/modules/analytics/components/dashboard/dashboard-overview";
@@ -33,7 +33,6 @@ export function DashboardHomeView({
   monthViews: number;
   canPublish: boolean;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const url = usePublicMenuUrl(restaurant.slug);
 
@@ -48,7 +47,7 @@ export function DashboardHomeView({
       return;
     }
     toast({ title: "تم نشر المنيو بنجاح", variant: "success" });
-    router.refresh();
+    reloadPage();
   }
 
   async function unpublish() {
@@ -62,7 +61,7 @@ export function DashboardHomeView({
       return;
     }
     toast({ title: "تم إلغاء نشر المنيو", variant: "success" });
-    router.refresh();
+    reloadPage();
   }
 
   return (

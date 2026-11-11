@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { setCurrentRestaurant } from "@/modules/tenancy/actions/restaurants";
 import { Select } from "@/core/ui/select";
 import type { Restaurant } from "@/modules/tenancy/types";
@@ -12,7 +12,6 @@ export function RestaurantSwitcher({
   restaurants: Pick<Restaurant, "id" | "name">[];
   currentId: string;
 }) {
-  const router = useRouter();
   if (restaurants.length < 2) return null;
 
   return (
@@ -21,7 +20,7 @@ export function RestaurantSwitcher({
         value={currentId}
         onChange={async (value) => {
           await setCurrentRestaurant(value);
-          router.refresh();
+          reloadPage();
         }}
         options={restaurants.map((restaurant) => ({
           value: restaurant.id,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { inviteStaff, removeStaff } from "@/modules/tenancy/actions/staff";
 import { updateRestaurantUser } from "@/modules/tenancy/actions/staff";
 import { StaffList } from "@/modules/tenancy/components/staff/staff-list";
@@ -18,7 +18,6 @@ export function StaffView({
   members: StaffMember[];
   currentUserId: string;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
 
   return (
@@ -45,7 +44,7 @@ export function StaffView({
           if (result.error) toast({ title: result.error, variant: "error" });
           else {
             toast({ title: "تمت إضافة الموظف", variant: "success" });
-            router.refresh();
+            reloadPage();
           }
         }}
         onEdit={async (member, values) => {
@@ -55,14 +54,14 @@ export function StaffView({
             role: values.role === "OWNER" ? member.role : values.role,
           });
           if (result.error) toast({ title: result.error, variant: "error" });
-          else router.refresh();
+          else reloadPage();
         }}
         onRemove={async (member) => {
           const result = await removeStaff({ id: member.id, restaurant_id: restaurantId });
           if (result.error) toast({ title: result.error, variant: "error" });
           else {
             toast({ title: "تم إزالة الموظف", variant: "success" });
-            router.refresh();
+            reloadPage();
           }
         }}
       />

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { useState } from "react";
 import { PageHeader } from "@/core/components/layout/page-header";
 import { EmptyState } from "@/core/components/common/empty-state";
@@ -61,7 +61,6 @@ export function OrdersView({
   canManage: boolean;
   businessType: BusinessType;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const copy = orderTypeCopy(normalizeBusinessType(businessType));
@@ -78,7 +77,7 @@ export function OrdersView({
       title: action === "confirm" ? "تم تأكيد الطلب وخصم الكميات" : "تم رفض الطلب",
       variant: "success",
     });
-    router.refresh();
+    reloadPage();
   }
 
   return (

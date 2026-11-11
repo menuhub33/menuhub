@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { reloadPage } from "@/core/lib/reload";
 import { saveBusinessHours } from "@/modules/operations/actions/business-hours";
 import { RestaurantPageShell } from "@/modules/tenancy/views/restaurant-settings-form";
 import { Button } from "@/core/ui/button";
@@ -39,7 +39,6 @@ export function HoursView({
   restaurantId: string;
   hours: BusinessHours[];
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [schedule, setSchedule] = useState<DayState[]>(() => initialSchedule(hours));
@@ -62,7 +61,7 @@ export function HoursView({
       return;
     }
     toast({ title: "تم حفظ ساعات العمل" });
-    router.refresh();
+    reloadPage();
   }
 
   return (
