@@ -310,7 +310,7 @@ class CatalogAnswerer
         foreach ($this->visible($catalog) as $product) {
             $hay = T::normalize(implode(' ', array_filter([
                 $product['name_ar'], $product['name_en'], $product['description_ar'],
-                $product['description_en'], $product['category'], ...$product['extras'],
+                $product['description_en'], $product['category'], ...($product['extras'] ?? []),
             ])));
             $name = T::normalize($product['name_ar']);
             $score = 0;

@@ -60,7 +60,8 @@ class ChatService
             $lines[] = "- {$category}:";
             foreach (array_slice(array_filter($catalog['products'], fn ($p) => $p['category'] === $category), 0, 20) as $p) {
                 $status = $p['status'] === 'UNAVAILABLE' ? ' غير متوفر' : '';
-                $extras = $p['extras'] ? ' | إضافات: '.implode('، ', $p['extras']) : '';
+                $extraNames = $p['extras'] ?? [];
+                $extras = $extraNames !== [] ? ' | إضافات: '.implode('، ', $extraNames) : '';
                 $lines[] = "  - {$p['name_ar']} | {$p['price']} {$p['currency']}{$status}{$extras}";
             }
         }

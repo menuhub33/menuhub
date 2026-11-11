@@ -40,6 +40,7 @@ class CatalogBuilder
                     'old_price' => $product['old_price'],
                     'image_url' => $primary['image_url'] ?? null,
                     'category' => $category['name_ar'],
+                    'extras' => [],
                 ];
             }
         }
