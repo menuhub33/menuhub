@@ -80,8 +80,9 @@ export function PublicCartSheet({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold">{product.name_ar}</p>
                   <p className="mt-0.5 text-[11px] text-zinc-500">
-                    {formatPrice(unit, product.currency)} × {quantity} ={" "}
-                    {formatPrice(unit * quantity, product.currency)}
+                    {product.price == null
+                      ? `بدون سعر × ${quantity}`
+                      : `${formatPrice(unit, product.currency)} × ${quantity} = ${formatPrice(unit * quantity, product.currency)}`}
                   </p>
                 </div>
                 <PublicQtyStepper

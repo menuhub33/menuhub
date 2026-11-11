@@ -164,7 +164,9 @@ export function OrdersView({
                               {item.quantity} × {item.name_ar}
                             </span>
                             <span className="shrink-0 text-zinc-500">
-                              {formatPrice(item.line_total, order.currency)}
+                              {item.line_total == null
+                                ? "بدون سعر"
+                                : formatPrice(item.line_total, order.currency)}
                             </span>
                           </li>
                         ))}

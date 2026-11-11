@@ -71,7 +71,11 @@ export function buildWhatsAppInvoice({
   lines.push("", `${copy.itemsLabel}:`, "──────────────");
 
   items.forEach((item, index) => {
-    const unit = item.product.price ?? 0;
+    if (item.product.price == null) {
+      lines.push(`${index + 1}) ${item.product.name_ar}`, `   ${item.quantity} × بدون سعر`);
+      return;
+    }
+    const unit = item.product.price;
     const lineTotal = unit * item.quantity;
     lines.push(
       `${index + 1}) ${item.product.name_ar}`,

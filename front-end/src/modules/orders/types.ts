@@ -7,9 +7,9 @@ export type OrderItem = {
   product_id: string | null;
   name_ar: string;
   quantity: number;
-  unit_price: number;
+  unit_price: number | null;
   extra: number;
-  line_total: number;
+  line_total: number | null;
 };
 
 export type ShopOrder = {

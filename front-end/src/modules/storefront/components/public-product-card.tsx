@@ -30,7 +30,6 @@ export function PublicProductCard({
   const imageUrl = productPrimaryImageUrl(product);
   const price = product.price;
   const oldPrice = product.old_price;
-  const priced = price != null;
   const showOldPrice = price != null && oldPrice != null && oldPrice > price;
 
   return (
@@ -82,12 +81,14 @@ export function PublicProductCard({
                 </span>
               ) : null}
             </p>
-          ) : null}
+          ) : (
+            <p className="text-[13px] font-bold text-zinc-500 sm:text-sm">بدون سعر</p>
+          )}
           {remaining && !unavailable ? (
             <p className="text-[10px] text-zinc-500">{remaining}</p>
           ) : null}
         </div>
-        {onQuantityChange && priced ? (
+        {onQuantityChange ? (
           <PublicQtyStepper
             value={quantity}
             onChange={onQuantityChange}

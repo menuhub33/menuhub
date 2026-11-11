@@ -30,9 +30,9 @@ class OrderResource extends JsonResource
                 'product_id' => $item->product_id,
                 'name_ar' => $item->name_ar,
                 'quantity' => $item->quantity,
-                'unit_price' => (float) $item->unit_price,
+                'unit_price' => $item->unit_price === null ? null : (float) $item->unit_price,
                 'extra' => (float) $item->extra,
-                'line_total' => (float) $item->line_total,
+                'line_total' => $item->line_total === null ? null : (float) $item->line_total,
             ])->values()->all()),
         ];
     }

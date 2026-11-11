@@ -75,20 +75,18 @@ export function PublicProductModal({
       hideHeader
       size="lg"
       footer={
-        unitPrice != null ? (
-          <button
-            type="button"
-            disabled={unavailable || quantity < 1 || !onAddToCart}
-            onClick={() => {
-              onAddToCart?.(quantity);
-              handleOpenChange(false);
-            }}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--mh-primary)] text-sm font-bold text-white disabled:opacity-50"
-          >
-            <CartIcon className="size-5" />
-            أضف للسلة
-          </button>
-        ) : undefined
+        <button
+          type="button"
+          disabled={unavailable || quantity < 1 || !onAddToCart}
+          onClick={() => {
+            onAddToCart?.(quantity);
+            handleOpenChange(false);
+          }}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--mh-primary)] text-sm font-bold text-white disabled:opacity-50"
+        >
+          <CartIcon className="size-5" />
+          أضف للسلة
+        </button>
       }
     >
       <div className="grid gap-4">
@@ -165,7 +163,9 @@ export function PublicProductModal({
                 </span>
               ) : null}
             </div>
-          ) : null}
+          ) : (
+            <p className="mt-2 text-sm font-bold text-zinc-500">بدون سعر</p>
+          )}
         </div>
 
         {unavailable ? (
@@ -174,7 +174,6 @@ export function PublicProductModal({
           </Alert>
         ) : null}
 
-        {unitPrice != null ? (
         <div className="grid gap-3 rounded-2xl bg-white p-4 shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/5">
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm font-bold">الكمية</span>
@@ -189,11 +188,10 @@ export function PublicProductModal({
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm font-bold">المجموع</span>
             <span className="text-base font-bold text-[var(--mh-primary)]">
-              {formatPrice(total, product.currency)}
+              {unitPrice == null ? "بدون سعر" : formatPrice(total, product.currency)}
             </span>
           </div>
         </div>
-        ) : null}
       </div>
       </div>
     </PublicSheet>

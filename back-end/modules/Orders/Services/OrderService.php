@@ -32,7 +32,7 @@ class OrderService
         return DB::transaction(function () use ($restaurant, $data, $lines) {
             $total = 0;
             foreach ($lines as $line) {
-                $total += $line['line_total'];
+                $total += $line['line_total'] ?? 0;
             }
 
             $order = Order::query()->create([
@@ -201,7 +201,7 @@ class OrderService
 
     /**
      * @param  list<array{product_id:string,quantity:int}>  $items
-     * @return list<array{product:Product,quantity:int,unit_price:float,extra:float,line_total:float,currency:string}>
+     * @return list<array{product:Product,quantity:int,unit_price:float|null,extra:float,line_total:float|null,currency:string}>
      */
     private function lines(Restaurant $restaurant, Menu $menu, array $items): array
     {
@@ -226,7 +226,16 @@ class OrderService
             }
 
             if ($product->price === null) {
-                throw ApiException::invalid('أحد المنتجات بدون سعر ولا يمكن طلبه');
+                $lines[] = [
+                    'product' => $product,
+                    'quantity' => $quantity,
+                    'unit_price' => null,
+                    'extra' => 0.0,
+                    'line_total' => null,
+                    'currency' => $product->currency,
+                ];
+
+                continue;
             }
 
             $extra = 0.0;
