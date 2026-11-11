@@ -15,6 +15,9 @@ type HeroSlide = {
   label: string;
 };
 
+const heroHeight =
+  "h-40 max-h-[42vh] min-[380px]:h-48 sm:h-56 sm:max-h-none md:h-64 lg:h-72 xl:h-80";
+
 export function PublicMenuHero({
   restaurant,
   featuredProducts,
@@ -88,11 +91,11 @@ export function PublicMenuHero({
             className="flex snap-x snap-mandatory overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {slides.map((slide, index) => (
-              <div key={slide.src} className="relative h-48 w-full shrink-0 snap-center sm:h-56">
+              <div key={slide.src} className={cn("relative w-full shrink-0 snap-center", heroHeight)}>
                 <ContentImage
                   src={slide.src}
                   alt={slide.label}
-                  sizes="100vw"
+                  sizes="(min-width: 1280px) 80rem, 100vw"
                   priority={index === 0}
                   className="size-full object-cover"
                 />
@@ -100,7 +103,7 @@ export function PublicMenuHero({
             ))}
           </div>
         ) : (
-          <div className="flex h-48 items-center justify-center bg-[var(--mh-primary)] sm:h-56">
+          <div className={cn("flex items-center justify-center bg-[var(--mh-primary)]", heroHeight)}>
             {restaurant.logo_url ? (
               <img
                 src={restaurant.logo_url}
@@ -138,14 +141,14 @@ export function PublicMenuHero({
           <img
             src={restaurant.logo_url}
             alt=""
-            className="absolute bottom-3 start-3 size-14 rounded-2xl border border-white/70 bg-white object-contain p-1"
+            className="absolute bottom-3 start-3 size-11 rounded-xl border border-white/70 bg-white object-contain p-1 min-[380px]:size-14 min-[380px]:rounded-2xl sm:size-16 md:size-20"
           />
         ) : null}
 
         {showName || slides.length > 1 ? (
-          <div className="absolute inset-x-0 bottom-3 px-16">
+          <div className="absolute inset-x-0 bottom-3 px-14 sm:px-16 md:px-24">
             {showName ? (
-              <h1 className="line-clamp-2 text-center text-2xl font-bold leading-tight text-white drop-shadow">
+              <h1 className="line-clamp-2 text-center text-lg font-bold leading-tight text-white drop-shadow min-[380px]:text-xl sm:text-2xl md:text-3xl lg:text-4xl">
                 {restaurant.name}
               </h1>
             ) : null}

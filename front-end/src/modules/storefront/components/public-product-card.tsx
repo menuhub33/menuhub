@@ -7,6 +7,7 @@ import { PublicQtyStepper } from "@/modules/storefront/components/public-qty-ste
 import { isShownUnavailable, stockCap, stockLabel } from "@/modules/catalog/lib/stock";
 import { ContentImage } from "@/core/ui/content-image";
 import { ImageIcon } from "@/core/ui/icons";
+import { menuImageSizes } from "@/modules/storefront/lib/menu-layout";
 
 export function PublicProductCard({
   product,
@@ -52,8 +53,8 @@ export function PublicProductCard({
             <ContentImage
               src={imageUrl}
               alt=""
-              sizes="(max-width: 768px) 46vw, 240px"
-              className="size-full object-contain p-3"
+              sizes={menuImageSizes}
+              className="size-full object-contain p-2 sm:p-3"
             />
           ) : (
             <span className="flex size-full items-center justify-center bg-[var(--mh-text)]/8">
@@ -62,20 +63,20 @@ export function PublicProductCard({
           )}
           <PublicProductBadges product={product} className="absolute top-2.5 start-2.5" />
         </div>
-        <h3 className="line-clamp-2 min-h-10 px-3 pt-3 text-start text-sm font-bold leading-snug text-zinc-900">
+        <h3 className="line-clamp-2 min-h-9 px-2.5 pt-2.5 text-start text-[13px] font-bold leading-snug text-zinc-900 sm:min-h-10 sm:px-3 sm:pt-3 sm:text-sm">
           {product.name_ar}
         </h3>
       </button>
-      <div className="flex items-end justify-between gap-2 px-3 pt-1 pb-3">
+      <div className="flex flex-wrap items-end justify-between gap-x-2 gap-y-1.5 px-2.5 pt-1 pb-2.5 sm:px-3 sm:pb-3">
         <div className="min-w-0">
           {price != null ? (
-            <p className="flex flex-wrap items-baseline gap-1.5">
-              <span className="text-sm font-bold text-zinc-900" dir="ltr">
+            <p className="flex flex-col items-start gap-0.5">
+              <span className="text-[13px] font-bold text-zinc-900 sm:text-sm" dir="ltr">
                 {currencySymbol(product.currency)}
                 {formatAmount(price)}
               </span>
               {showOldPrice && oldPrice != null ? (
-                <span className="text-xs text-zinc-400 line-through" dir="ltr">
+                <span className="text-[11px] text-zinc-400 line-through sm:text-xs" dir="ltr">
                   {currencySymbol(product.currency)}
                   {formatAmount(oldPrice)}
                 </span>
@@ -92,6 +93,7 @@ export function PublicProductCard({
             onChange={onQuantityChange}
             max={cap}
             disabled={unavailable}
+            className="shrink-0"
           />
         ) : null}
       </div>

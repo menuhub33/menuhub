@@ -92,7 +92,7 @@ export function PublicProductModal({
       }
     >
       <div className="grid gap-4">
-        <div className="relative flex h-56 items-center justify-center overflow-hidden rounded-2xl bg-[var(--mh-text)]/6">
+        <div className="relative flex h-48 items-center justify-center overflow-hidden rounded-2xl bg-[var(--mh-text)]/6 min-[380px]:h-56 sm:h-64 md:h-72">
           <button
             type="button"
             onClick={() => handleOpenChange(false)}

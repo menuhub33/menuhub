@@ -213,7 +213,7 @@ export function PublicOrderSheet({
               type="button"
               onClick={sendWhatsApp}
               disabled={sending}
-              className="flex h-12 flex-[2] items-center justify-center gap-2 rounded-xl bg-emerald-500 text-sm font-bold text-white disabled:opacity-60"
+              className="flex h-12 min-w-0 flex-[2] items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-2 text-xs font-bold text-white disabled:opacity-60 sm:gap-2 sm:text-sm"
             >
               <WhatsAppIcon className="size-5" />
               {sending ? "جارٍ تسجيل الطلب..." : "اطلب عبر واتساب"}
@@ -238,7 +238,14 @@ export function PublicOrderSheet({
 
         <section>
           <h3 className="mb-2 text-sm font-bold">{copy.sectionTitle}</h3>
-          <div className={cn("grid gap-2", deliveryOptions.length === 3 ? "grid-cols-3" : "grid-cols-2")}>
+          <div
+            className={cn(
+              "grid gap-2",
+              deliveryOptions.length === 3
+                ? "grid-cols-1 min-[420px]:grid-cols-3"
+                : "grid-cols-1 min-[420px]:grid-cols-2"
+            )}
+          >
             {deliveryOptions.map((option) => {
               const selected = deliveryType === option.id;
               const Icon = option.icon;

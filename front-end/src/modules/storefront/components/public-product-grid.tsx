@@ -1,6 +1,7 @@
 import { cn } from "@/core/lib/cn";
 import type { ProductWithRelations } from "@/modules/catalog/types";
 import { PublicProductCard } from "@/modules/storefront/components/public-product-card";
+import { menuGridClass } from "@/modules/storefront/lib/menu-layout";
 
 export function PublicProductGrid({
   products,
@@ -22,7 +23,7 @@ export function PublicProductGrid({
   if (visible.length === 0) return null;
 
   return (
-    <div className={cn("grid grid-cols-2 gap-3", className)}>
+    <div className={cn(menuGridClass, className)}>
       {visible.map((product) => (
         <PublicProductCard
           key={product.id}

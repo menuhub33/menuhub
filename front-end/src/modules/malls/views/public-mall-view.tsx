@@ -18,6 +18,7 @@ import {
 } from "@/modules/storefront/components/public-menu-navigation";
 import { PublicMenuSearch } from "@/modules/storefront/components/public-menu-search";
 import { MENU_BACKGROUND } from "@/modules/theming/lib/menu-background";
+import { menuGridClass, menuImageSizes, menuShellClass } from "@/modules/storefront/lib/menu-layout";
 import type { MallTheme, PublicMallState, PublicMallStore } from "@/modules/malls/types";
 
 const FALLBACK_THEME: MallTheme = {
@@ -100,7 +101,7 @@ export function PublicMallView({
     <div
       dir="rtl"
       lang="ar"
-      className="mh-mall flex min-h-dvh flex-col text-[var(--mh-text)]"
+      className="mh-mall flex min-h-dvh w-full min-w-0 flex-col text-[var(--mh-text)]"
       style={
         {
           ["--mh-primary"]: theme.primary_color,
@@ -117,7 +118,7 @@ export function PublicMallView({
         style={{ backgroundColor: MENU_BACKGROUND }}
       />
       {theme.custom_css ? <style>{`@scope (.mh-mall) {\n${theme.custom_css}\n}`}</style> : null}
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pt-4 pb-28">
+      <div className={menuShellClass}>
         <PublicMenuHero
           restaurant={{
             name: mall.name,
@@ -163,13 +164,13 @@ export function PublicMallView({
           </div>
         ) : null}
         <section id="menu-products" className="mt-6 scroll-mt-4">
-          <h2 className="mb-4 text-lg font-bold">{sectionTitle}</h2>
+          <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg md:text-xl">{sectionTitle}</h2>
           {visible.length === 0 ? (
             <p className="py-12 text-center text-sm opacity-60">
               {query.trim() ? "لا توجد نتائج مطابقة" : "لا توجد محلات في هذا الدليل"}
             </p>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className={menuGridClass}>
               {visible.map((store) => (
                 <StoreCard key={store.id} store={store} />
               ))}
@@ -200,14 +201,14 @@ function StoreCard({ store }: { store: PublicMallStore }) {
       <Link href={`/m/${store.slug}`} className="block text-start">
         <div className="relative aspect-square overflow-hidden bg-[var(--mh-text)]/8">
           {image ? (
-            <ContentImage src={image} alt="" sizes="(max-width: 768px) 46vw, 240px" className="size-full object-cover" />
+            <ContentImage src={image} alt="" sizes={menuImageSizes} className="size-full object-cover" />
           ) : (
             <span className="flex size-full items-center justify-center">
               <ImageIcon className="size-8 opacity-35" />
             </span>
           )}
         </div>
-        <h3 className="line-clamp-2 min-h-10 px-2.5 pt-2.5 text-center text-sm font-bold leading-snug">{store.name}</h3>
+        <h3 className="line-clamp-2 min-h-9 px-2.5 pt-2.5 text-center text-[13px] font-bold leading-snug sm:min-h-10 sm:text-sm">{store.name}</h3>
       </Link>
       <div className="px-2.5 pt-1 pb-2.5">
         <p className="truncate text-center text-xs font-bold text-[var(--mh-primary)]">

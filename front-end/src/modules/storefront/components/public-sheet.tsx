@@ -69,7 +69,7 @@ export function PublicSheet({
   };
 
   const panel = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={themeStyle}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-3 sm:items-center sm:p-4" style={themeStyle}>
       <button
         type="button"
         aria-label="إغلاق"
@@ -81,7 +81,7 @@ export function PublicSheet({
         aria-modal="true"
         aria-labelledby={title ? "public-sheet-title" : undefined}
         className={cn(
-          "relative z-10 flex max-h-[min(92dvh,40rem)] w-full flex-col overflow-hidden rounded-2xl bg-white text-[var(--mh-text)] shadow-2xl",
+          "relative z-10 flex max-h-[min(92dvh,44rem)] w-full flex-col overflow-hidden rounded-2xl bg-white text-[var(--mh-text)] shadow-2xl",
           widths[size],
           className
         )}

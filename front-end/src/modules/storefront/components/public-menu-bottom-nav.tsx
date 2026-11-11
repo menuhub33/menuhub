@@ -44,7 +44,7 @@ export function PublicMenuBottomNav({
       className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--mh-text)]/8 bg-[var(--mh-bg)]/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] backdrop-blur-md"
       aria-label="التنقل"
     >
-      <ul className={cn("mx-auto grid max-w-2xl px-2 pt-2 pb-2", columns)}>
+      <ul className={cn("mx-auto grid w-full max-w-lg px-1 pt-1.5 pb-1.5 sm:max-w-xl sm:px-2 sm:pt-2 sm:pb-2", columns)}>
         {items.map((item) => {
           const Icon = item.icon;
           const current = item.id !== "back" && item.id === active;
@@ -54,7 +54,7 @@ export function PublicMenuBottomNav({
                 type="button"
                 onClick={item.onClick}
                 className={cn(
-                  "relative flex w-full flex-col items-center gap-1 rounded-xl py-1 text-[11px] font-medium",
+                  "relative flex w-full min-w-0 flex-col items-center gap-0.5 rounded-xl px-0.5 py-1 text-[9px] font-medium leading-tight min-[360px]:text-[10px] sm:gap-1 sm:text-[11px]",
                   current ? "text-[var(--mh-primary)]" : "text-[var(--mh-text)]/55"
                 )}
               >
@@ -70,7 +70,7 @@ export function PublicMenuBottomNav({
                     </span>
                   ) : null}
                 </span>
-                {item.label}
+                <span className="max-w-full truncate">{item.label}</span>
               </button>
             </li>
           );

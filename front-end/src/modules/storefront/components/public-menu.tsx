@@ -37,6 +37,7 @@ import type { RestaurantTheme } from "@/modules/theming/types";
 import type { CSSProperties } from "react";
 import { DASHBOARD_FONT_FAMILY } from "@/core/lib/font";
 import { MENU_BACKGROUND } from "@/modules/theming/lib/menu-background";
+import { menuShellClass } from "@/modules/storefront/lib/menu-layout";
 
 const FALLBACK_THEME: Pick<
   RestaurantTheme,
@@ -289,7 +290,7 @@ export function PublicMenu({
       dir="rtl"
       lang="ar"
       className={cn(
-        "flex min-h-dvh flex-col text-[var(--mh-text)] [font-feature-settings:'locl'_0] [font-variant-numeric:lining-nums_tabular-nums]",
+        "flex min-h-dvh w-full min-w-0 flex-col text-[var(--mh-text)] [font-feature-settings:'locl'_0] [font-variant-numeric:lining-nums_tabular-nums]",
         className
       )}
       style={
@@ -307,7 +308,7 @@ export function PublicMenu({
         className="pointer-events-none fixed inset-0 -z-10 backdrop-blur-md"
         style={{ backgroundColor: MENU_BACKGROUND }}
       />
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pt-4 pb-28">
+      <div className={menuShellClass}>
         <PublicMenuHero
           restaurant={data.restaurant}
           featuredProducts={featuredProducts}
@@ -352,7 +353,7 @@ export function PublicMenu({
         </div>
 
         <section id="menu-products" className="mt-6 scroll-mt-4">
-          <h2 className="mb-4 text-lg font-bold">{sectionTitle}</h2>
+          <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg md:text-xl">{sectionTitle}</h2>
           {displayedProducts.length === 0 ? (
             <p className="py-12 text-center text-sm opacity-60">
               {searchQuery.trim() || filters

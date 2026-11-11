@@ -11,6 +11,9 @@ export const ALL_CATEGORIES_ID = "all";
 export const FEATURED_SECTION_ID = "featured";
 export const OFFER_SECTION_ID = "discount";
 
+const categoryTileClass =
+  "relative flex size-[5.25rem] items-center justify-center overflow-hidden rounded-2xl min-[380px]:size-24 sm:size-[6.75rem] lg:size-32";
+
 export type MenuNavSection = {
   id: string;
   label: string;
@@ -136,8 +139,8 @@ export function PublicMenuNavigation({
         disabled={!canPrev}
         aria-label="القسم السابق"
         className={cn(
-          "flex size-8 shrink-0 items-center justify-center rounded-full bg-white text-[var(--mh-primary)] shadow-[0_6px_18px_rgba(0,0,0,0.14)] disabled:opacity-30",
-          !showArrows && "invisible"
+          "hidden size-8 shrink-0 items-center justify-center rounded-full bg-white text-[var(--mh-primary)] shadow-[0_6px_18px_rgba(0,0,0,0.14)] disabled:opacity-30 sm:flex",
+          !showArrows && "sm:invisible"
         )}
       >
         <ChevronRightIcon className="size-4" />
@@ -177,11 +180,12 @@ export function PublicMenuNavigation({
             onClick={() => select(ALL_CATEGORIES_ID)}
             aria-pressed={selectedId === ALL_CATEGORIES_ID}
             className={cn(
-              "relative flex size-[6.75rem] items-center justify-center overflow-hidden rounded-2xl bg-[var(--mh-primary)] p-2 text-white shadow-[0_10px_24px_rgba(0,0,0,0.1)]",
+              categoryTileClass,
+              "bg-[var(--mh-primary)] p-2 text-white shadow-[0_10px_24px_rgba(0,0,0,0.1)]",
               selectedId === ALL_CATEGORIES_ID && "ring-2 ring-[var(--mh-primary)] ring-offset-2"
             )}
           >
-            <span className="text-center text-sm font-bold">الكل</span>
+            <span className="text-center text-xs font-bold sm:text-sm">الكل</span>
           </button>
         </li>
         {sections.map((section) => {
@@ -194,11 +198,12 @@ export function PublicMenuNavigation({
                 onClick={() => select(section.id)}
                 aria-pressed={selected}
                 className={cn(
-                  "relative flex size-[6.75rem] items-center justify-center overflow-hidden rounded-2xl bg-[var(--mh-primary)] p-2 text-white shadow-[0_10px_24px_rgba(0,0,0,0.1)]",
+                  categoryTileClass,
+                  "bg-[var(--mh-primary)] p-2 text-white shadow-[0_10px_24px_rgba(0,0,0,0.1)]",
                   selected && "ring-2 ring-[var(--mh-primary)] ring-offset-2"
                 )}
               >
-                <span className="px-1 text-center text-[13px] font-bold leading-snug">{section.label}</span>
+                <span className="px-1 text-center text-[11px] font-bold leading-snug sm:text-[13px]">{section.label}</span>
               </button>
             </li>
           );
@@ -214,7 +219,8 @@ export function PublicMenuNavigation({
                 onClick={() => select(category.id)}
                 aria-pressed={selected}
                 className={cn(
-                  "relative flex size-[6.75rem] items-center justify-center overflow-hidden rounded-2xl p-0 shadow-[0_10px_24px_rgba(0,0,0,0.08)]",
+                  categoryTileClass,
+                  "p-0 shadow-[0_10px_24px_rgba(0,0,0,0.08)]",
                   selected && "ring-2 ring-[var(--mh-primary)] ring-offset-2"
                 )}
               >
@@ -222,7 +228,7 @@ export function PublicMenuNavigation({
                   <ContentImage
                     src={imageUrl}
                     alt=""
-                    sizes="108px"
+                    sizes="(min-width: 1024px) 128px, 108px"
                     draggable={false}
                     className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
                   />
@@ -232,7 +238,7 @@ export function PublicMenuNavigation({
                   </span>
                 )}
                 <span className="pointer-events-none absolute inset-0 bg-black/10" />
-                <span className="pointer-events-none relative z-10 line-clamp-2 px-2 text-center text-[12px] font-bold leading-tight text-white drop-shadow">
+                <span className="pointer-events-none relative z-10 line-clamp-2 px-1.5 text-center text-[11px] font-bold leading-tight text-white drop-shadow sm:px-2 sm:text-[12px] lg:text-[13px]">
                   {category.name_ar}
                 </span>
               </button>
@@ -247,8 +253,8 @@ export function PublicMenuNavigation({
         disabled={!canNext}
         aria-label="القسم التالي"
         className={cn(
-          "flex size-8 shrink-0 items-center justify-center rounded-full bg-white text-[var(--mh-primary)] shadow-[0_6px_18px_rgba(0,0,0,0.14)] disabled:opacity-30",
-          !showArrows && "invisible"
+          "hidden size-8 shrink-0 items-center justify-center rounded-full bg-white text-[var(--mh-primary)] shadow-[0_6px_18px_rgba(0,0,0,0.14)] disabled:opacity-30 sm:flex",
+          !showArrows && "sm:invisible"
         )}
       >
         <ChevronLeftIcon className="size-4" />

@@ -125,12 +125,12 @@ export function PublicMenuChat({
             onClick={() => setOpen(true)}
             aria-label={`${name}: اسألني وأساعدك تختار`}
             style={themeStyle}
-            className="fixed right-4 z-40 flex max-w-[calc(100vw-2rem)] items-center gap-2 bg-transparent bottom-[calc(5.75rem+env(safe-area-inset-bottom))]"
+            className="fixed right-3 z-40 flex max-w-[calc(100vw-1.5rem)] items-center gap-2 bg-transparent bottom-[calc(6.25rem+env(safe-area-inset-bottom))] sm:right-4"
           >
-            <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[var(--mh-primary)] text-white shadow-[0_12px_30px_rgba(0,0,0,0.22)]">
-              <BotIcon className="size-7" />
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[var(--mh-primary)] text-white shadow-[0_12px_30px_rgba(0,0,0,0.22)] sm:size-14">
+              <BotIcon className="size-6 sm:size-7" />
             </span>
-            <span className="text-start text-sm font-semibold leading-5 text-[var(--mh-primary)]">
+            <span className="hidden text-start text-sm font-semibold leading-5 text-[var(--mh-primary)] sm:block">
               اسألني وأساعدك تختار
             </span>
           </button>,
