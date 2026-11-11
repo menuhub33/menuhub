@@ -45,7 +45,11 @@ export function LiveMenuPreview({
   const fallbackCategory = categoryName?.trim() || "اسم القسم";
   const fallbackProduct = productName?.trim() || "اسم المنتج";
 
-  const previewCategories =
+  const previewCategories: Array<{
+    name: string;
+    imageUrl: string | null;
+    products: LiveMenuPreviewItem[];
+  }> =
     categories && categories.length > 0
       ? categories.slice(0, 4).map((category) => ({
           name: category.name_ar,
