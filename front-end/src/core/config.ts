@@ -130,8 +130,11 @@ export function publicMenuUrl(
   }
 
   const scheme = protocol?.split(",")[0]?.trim() === "http" ? "http" : "https";
-  if (isSharedAppHost(hostname) && !configuredRootDomain()) {
-    return `${scheme}://${hostname}/m/${slug}`;
+  // Subdomains need a wildcard DNS record. Until ROOT_DOMAIN is set, menus
+  // stay on this host so the link resolves with the existing certificate.
+  if (!configuredRootDomain()) {
+    const withPort = port ? `${hostname}:${port}` : hostname;
+    return `${scheme}://${withPort}/m/${slug}`;
   }
 
   const root = menuRootDomain(hostname);
