@@ -15,11 +15,11 @@ export function BrandMark({
   return (
     <Link href={href} className={cn("block", className)}>
       <img
-        src="/menuhub-logo.jpg"
+        src={compact ? "/menuhub-mark.png" : "/menuhub-logo.png"}
         alt="MenuHub"
         className={cn(
           "w-full object-contain",
-          imageClassName ?? (compact ? "h-10" : "h-20"),
+          imageClassName ?? (compact ? "size-10" : "h-32"),
         )}
       />
     </Link>

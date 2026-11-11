@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandMark } from "@/core/components/layout/brand-mark";
 import { logout } from "@/modules/auth/actions/auth";
 import { Button } from "@/core/ui/button";
 import { redirect } from "next/navigation";
@@ -11,7 +12,7 @@ export function PendingAccessView({
 }) {
   return (
     <div className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-4 text-center">
-      <p className="text-sm font-medium text-teal-700">MenuHub</p>
+      <BrandMark href="/" className="mb-2 w-52" imageClassName="h-auto" />
       <h1 className="mt-3 text-2xl font-bold text-zinc-900">
         {restaurant ? "المطعم بانتظار التفعيل" : "لا يمكن إنشاء الموقع من هنا"}
       </h1>

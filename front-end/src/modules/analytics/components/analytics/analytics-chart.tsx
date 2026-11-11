@@ -1,7 +1,7 @@
 import { cn } from "@/core/lib/cn";
 import type { ChartPoint } from "@/modules/analytics/types";
 
-const TEAL = "#0f766e";
+const TEAL = "#0a6b4a";
 const WIDTH = 640;
 const HEIGHT = 240;
 const PAD = { top: 20, right: 16, bottom: 48, left: 52 };

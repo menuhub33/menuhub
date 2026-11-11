@@ -17,6 +17,10 @@ export const metadata: Metadata = {
     template: "%s | MenuHub",
   },
   description: "أنشئ منيو مطعمك الإلكترونية خلال دقائق مع رابط خاص ورمز QR ولوحة تحكم سهلة.",
+  icons: {
+    icon: "/menuhub-mark.png",
+    apple: "/menuhub-mark.png",
+  },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -27,7 +31,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       dir="rtl"
       className={`${expoArabic.variable} ${expoArabic.className} h-full antialiased`}
     >
-      <body className="flex min-h-dvh flex-col bg-zinc-50 text-zinc-900">
+      <body className="flex min-h-dvh flex-col bg-background text-zinc-900">
         <Providers host={origin.host} protocol={origin.protocol}>
           <div className="flex flex-1 flex-col">{children}</div>
           <SystemDesignerCredit />

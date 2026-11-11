@@ -8,7 +8,7 @@ export function AuthFrame({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-1 items-center justify-center bg-zinc-50 px-4 py-10">
+    <div className="flex flex-1 items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="mb-8 text-center">
           <BrandMark href="/" className="mx-auto w-full" imageClassName="h-36" />

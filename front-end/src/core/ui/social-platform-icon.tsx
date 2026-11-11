@@ -118,7 +118,7 @@ export const SOCIAL_PLATFORM_COLORS: Record<string, string> = {
   twitter: "#111111",
   youtube: "#FF0000",
   snapchat: "#c9b800",
-  website: "var(--mh-primary, #0f766e)",
+  website: "var(--mh-primary, #0a6b4a)",
   whatsapp: "#25D366",
 };
 

@@ -134,10 +134,10 @@ export function AdminShell({
   );
 
   return (
-    <div className="flex min-h-dvh bg-zinc-50">
+    <div className="flex min-h-dvh bg-background">
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-e border-zinc-200 bg-white lg:flex">
         <div className="px-4 py-4">
-          <BrandMark href="/admin" />
+          <BrandMark href="/admin" className="mx-auto w-44" imageClassName="h-auto" />
           <p className="mt-1 text-center text-xs font-medium text-zinc-400">
             {mallOnly ? "لوحة المول" : "لوحة الإدارة"}
           </p>
@@ -152,7 +152,7 @@ export function AdminShell({
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)} aria-label="فتح القائمة">
             <MenuIcon />
           </Button>
-          <BrandMark href="/admin" compact className="w-28 lg:hidden" />
+          <BrandMark href="/admin" compact className="w-10 lg:hidden" />
           <div className="ms-auto">
             <NotificationBell
               unreadCount={unreadCount}

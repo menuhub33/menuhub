@@ -49,7 +49,7 @@ export function DashboardHeader({
       <Button variant="ghost" size="icon" className="lg:hidden" onClick={onOpenNav} aria-label="فتح القائمة">
         <MenuIcon />
       </Button>
-      <BrandMark href="/dashboard" compact className="w-24 shrink-0" />
+      <BrandMark href="/dashboard" compact className="w-10 shrink-0" />
       {restaurant ? (
         <div className="min-w-0">
           <p className="truncate text-sm font-bold leading-5 text-zinc-900">{restaurant.name}</p>

@@ -1,42 +1,41 @@
 import Link from "next/link";
+import { BrandMark } from "@/core/components/layout/brand-mark";
+
+const CONTACT_HREF = "https://wa.me/963982941883";
+
+function ContactButton({ className }: { className: string }) {
+  return (
+    <a
+      href={CONTACT_HREF}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+    >
+      تواصل معنا
+    </a>
+  );
+}
 
 export default function HomePage() {
   return (
-    <div className="flex flex-1 flex-col bg-white">
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5">
-        <Link href="/" className="text-xl font-bold text-teal-800">
-          MenuHub
-        </Link>
-        <div className="flex items-center gap-3">
-          <Link href="/login" className="text-sm font-medium text-zinc-700 hover:text-zinc-900">
-            تسجيل الدخول
-          </Link>
-          <Link
-            href="/register"
-            className="inline-flex h-10 items-center rounded-xl bg-teal-700 px-4 text-sm font-medium text-white hover:bg-teal-800"
-          >
-            تسجيل حساب
-          </Link>
-        </div>
+    <div className="flex flex-1 flex-col bg-background">
+      <header className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-5">
+        <BrandMark href="/" compact className="w-12" imageClassName="size-12" />
+        <ContactButton className="inline-flex h-10 items-center gap-2 rounded-xl bg-teal-700 px-4 text-sm font-medium text-white hover:bg-teal-800" />
       </header>
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-start gap-8 px-4 py-16">
-        <p className="rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-800">
+        <p className="rounded-full bg-gold-100 px-3 py-1 text-sm font-medium text-gold-800">
           منصة المنيو الإلكترونية للمطاعم
         </p>
         <h1 className="max-w-3xl text-4xl font-bold leading-tight text-zinc-900 sm:text-5xl">
           حوّل منيو مطعمك الورقية إلى تجربة رقمية أنيقة خلال دقائق
         </h1>
         <p className="max-w-2xl text-lg text-zinc-600">
-          سجّل حسابك، ثم تتولى الإدارة إنشاء موقع مطعمك وتفعيله. بعد التفعيل تحصل على رابط خاص
-          على نطاقك ولوحة تحكم لإدارة المنيو ورمز QR.
+          تتولى الإدارة إنشاء موقع مطعمك وتفعيله. بعد التفعيل تحصل على رابط خاص على نطاقك ولوحة
+          تحكم لإدارة المنيو ورمز QR.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link
-            href="/register"
-            className="inline-flex h-12 items-center rounded-xl bg-teal-700 px-5 text-base font-medium text-white hover:bg-teal-800"
-          >
-            تسجيل حساب
-          </Link>
+          <ContactButton className="inline-flex h-12 items-center gap-2 rounded-xl bg-teal-700 px-5 text-base font-medium text-white hover:bg-teal-800" />
           <Link
             href="/m/demo"
             className="inline-flex h-12 items-center rounded-xl border border-teal-200 bg-teal-50 px-5 text-base font-medium text-teal-800 hover:bg-teal-100"
@@ -48,12 +47,6 @@ export default function HomePage() {
             className="inline-flex h-12 items-center rounded-xl border border-slate-300 bg-slate-50 px-5 text-base font-medium text-slate-800 hover:bg-slate-100"
           >
             معرض سيارات تجريبي
-          </Link>
-          <Link
-            href="/login"
-            className="inline-flex h-12 items-center rounded-xl border border-zinc-200 bg-white px-5 text-base font-medium text-zinc-800 hover:bg-zinc-50"
-          >
-            لدي حساب
           </Link>
         </div>
         <div className="mt-10 grid w-full gap-4 sm:grid-cols-3">

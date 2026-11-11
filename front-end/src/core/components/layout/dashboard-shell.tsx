@@ -52,7 +52,7 @@ export function DashboardShell({
   const unreadCount = notifications.filter((item) => !item.is_read).length;
 
   return (
-    <div className="flex min-h-dvh bg-zinc-50">
+    <div className="flex min-h-dvh bg-background">
       <div className="hidden lg:block">
         <div className="sticky top-0 h-dvh">
           <DashboardSidebar items={items} activeHref={pathname} />

@@ -13,6 +13,7 @@ import { updateMenuStatus } from "@/modules/catalog/actions/menus";
 import { uploadImageFile } from "@/modules/media/lib/upload-client";
 import { usePublicMenuHost } from "@/core/providers";
 import { isValidSlug, slugifyName } from "@/core/config";
+import { BrandMark } from "@/core/components/layout/brand-mark";
 import { FormField } from "@/core/components/forms/form-field";
 import { Alert } from "@/core/ui/alert";
 import { Button } from "@/core/ui/button";
@@ -135,7 +136,7 @@ export function OnboardingWizard({
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-10">
-      <p className="mb-2 text-center text-sm font-medium text-teal-700">MenuHub</p>
+      <BrandMark href="/" className="mx-auto mb-4 w-52" imageClassName="h-auto" />
       <h1 className="mb-6 text-center text-2xl font-bold">إعداد مطعمك</h1>
       {canOpenDashboard ? (
         <p className="-mt-4 mb-6 text-center text-sm">

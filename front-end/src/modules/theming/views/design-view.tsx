@@ -18,10 +18,10 @@ import type { Restaurant } from "@/modules/tenancy/types";
 import type { RestaurantTheme } from "@/modules/theming/types";
 
 const DEFAULT_THEME: ThemeCustomizerValues = {
-  primary_color: "#0f766e",
-  secondary_color: "#115e59",
-  background_color: "#fafafa",
-  text_color: "#18181b",
+  primary_color: "#0a6b4a",
+  secondary_color: "#c88828",
+  background_color: "#f2ebd9",
+  text_color: "#143028",
   font_family: "Expo Arabic",
   custom_css: null,
 };

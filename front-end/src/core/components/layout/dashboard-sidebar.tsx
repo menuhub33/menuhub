@@ -78,7 +78,7 @@ export function DashboardSidebar({
       )}
     >
       <div className="px-4 py-4">
-        <BrandMark href="/dashboard" />
+        <BrandMark href="/dashboard" className="mx-auto w-44" imageClassName="h-auto" />
         <p className="mt-1 text-center text-xs font-medium text-zinc-400">لوحة المنيو</p>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
