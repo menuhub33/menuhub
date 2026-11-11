@@ -40,7 +40,9 @@ export function DesignView({
   const [saving, setSaving] = useState(false);
   const [matching, setMatching] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [logoUrl, setLogoUrl] = useState(restaurant.logo_url);
+  const [coverUrl, setCoverUrl] = useState(restaurant.cover_image_url);
 
   async function save(next: ThemeCustomizerValues, themeId?: string | null) {
     setSaving(true);
@@ -95,6 +97,7 @@ export function DesignView({
   async function upload(kind: "logo_url" | "cover_image_url", file: File) {
     const isLogo = kind === "logo_url";
     if (isLogo) setUploadingLogo(true);
+    else setUploadingCover(true);
     try {
       const folder = isLogo ? "logos" : "covers";
       const uploaded = await uploadImageFile(file, folder);
@@ -108,11 +111,13 @@ export function DesignView({
         return;
       }
       if (isLogo) setLogoUrl(uploaded.data.url);
+      else setCoverUrl(uploaded.data.url);
       toast({ title: "تم تحديث الصورة", variant: "success" });
       reloadPage();
       if (isLogo) await matchLogo(file);
     } finally {
       if (isLogo) setUploadingLogo(false);
+      else setUploadingCover(false);
     }
   }
 
@@ -160,14 +165,29 @@ export function DesignView({
           </div>
         </FormField>
         <FormField label="صورة الغلاف">
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) void upload("cover_image_url", file);
-            }}
-          />
+          <div className="grid gap-3">
+            {coverUrl ? (
+              <img
+                src={coverUrl}
+                alt=""
+                className="h-28 w-full rounded-xl border border-zinc-200 object-cover"
+              />
+            ) : null}
+            <Input
+              type="file"
+              accept="image/*"
+              disabled={uploadingCover}
+              className="h-auto py-2 file:me-3 file:rounded-lg file:border-0 file:bg-teal-700 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void upload("cover_image_url", file);
+              }}
+            />
+            {uploadingCover ? (
+              <p className="text-sm font-medium text-teal-800">جار تحميل صورة الغلاف</p>
+            ) : null}
+          </div>
         </FormField>
       </div>
       <div className="flex justify-start">
@@ -186,6 +206,7 @@ export function DesignView({
         onSave={(next) => void save(next, current?.theme_id)}
         saving={saving}
         restaurantName={restaurant.name}
+        coverUrl={coverUrl}
         categories={categories}
         currency={restaurant.currency}
       />

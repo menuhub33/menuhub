@@ -26,6 +26,7 @@ export function ThemeCustomizer({
   saving,
   error,
   restaurantName,
+  coverUrl,
   categoryName,
   productName,
   productPrice,
@@ -39,6 +40,7 @@ export function ThemeCustomizer({
   saving?: boolean;
   error?: string | null;
   restaurantName?: string;
+  coverUrl?: string | null;
   categoryName?: string;
   productName?: string;
   productPrice?: number;
@@ -96,6 +98,7 @@ export function ThemeCustomizer({
         <LiveMenuPreview
           theme={value}
           restaurantName={restaurantName}
+          coverUrl={coverUrl}
           categoryName={categoryName}
           productName={productName}
           productPrice={productPrice}

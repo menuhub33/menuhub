@@ -25,6 +25,7 @@ export type LiveMenuPreviewItem = {
 export function LiveMenuPreview({
   theme,
   restaurantName,
+  coverUrl,
   categoryName,
   productName,
   productPrice,
@@ -34,6 +35,7 @@ export function LiveMenuPreview({
 }: {
   theme: LiveMenuPreviewTheme;
   restaurantName?: string;
+  coverUrl?: string | null;
   categoryName?: string;
   productName?: string;
   productPrice?: number;
@@ -100,12 +102,15 @@ export function LiveMenuPreview({
         <style>{`@scope (.mh-live-preview) {\n${theme.custom_css}\n}`}</style>
       ) : null}
       <div
-        className="flex h-20 items-end px-4 py-3"
-        style={{ backgroundColor: "var(--mh-primary)", color: "var(--mh-secondary)" }}
+        className="relative flex h-28 items-end overflow-hidden px-4 py-3"
+        style={{ backgroundColor: "var(--mh-primary)", color: "#fff" }}
       >
-        <div>
+        {coverUrl ? (
+          <img src={coverUrl} alt="" className="absolute inset-0 size-full object-cover" />
+        ) : null}
+        <div className="relative">
           <p className="text-[10px] opacity-80">المنيو</p>
-          <h3 className="truncate text-sm font-bold">{title}</h3>
+          <h3 className="truncate text-sm font-bold drop-shadow">{title}</h3>
         </div>
       </div>
       <div className="flex gap-2 overflow-x-auto px-3 py-3">
