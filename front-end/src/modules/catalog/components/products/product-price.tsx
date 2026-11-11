@@ -13,9 +13,7 @@ export function ProductPrice({
   currency?: string;
   className?: string;
 }) {
-  if (price == null) {
-    return <span className={cn("text-sm text-zinc-400", className)}>بدون سعر</span>;
-  }
+  if (price == null) return null;
 
   const discount = discountPercent(price, old_price);
 

@@ -81,9 +81,7 @@ export function PublicProductCard({
                 </span>
               ) : null}
             </p>
-          ) : (
-            <p className="text-[13px] font-bold text-zinc-500 sm:text-sm">بدون سعر</p>
-          )}
+          ) : null}
           {remaining && !unavailable ? (
             <p className="text-[10px] text-zinc-500">{remaining}</p>
           ) : null}

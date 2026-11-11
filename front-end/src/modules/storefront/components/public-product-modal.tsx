@@ -163,9 +163,7 @@ export function PublicProductModal({
                 </span>
               ) : null}
             </div>
-          ) : (
-            <p className="mt-2 text-sm font-bold text-zinc-500">بدون سعر</p>
-          )}
+          ) : null}
         </div>
 
         {unavailable ? (
@@ -185,12 +183,14 @@ export function PublicProductModal({
               disabled={unavailable}
             />
           </div>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-bold">المجموع</span>
-            <span className="text-base font-bold text-[var(--mh-primary)]">
-              {unitPrice == null ? "بدون سعر" : formatPrice(total, product.currency)}
-            </span>
-          </div>
+          {unitPrice != null ? (
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm font-bold">المجموع</span>
+              <span className="text-base font-bold text-[var(--mh-primary)]">
+                {formatPrice(total, product.currency)}
+              </span>
+            </div>
+          ) : null}
         </div>
       </div>
       </div>

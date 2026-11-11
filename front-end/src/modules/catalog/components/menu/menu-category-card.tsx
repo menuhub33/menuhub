@@ -208,13 +208,17 @@ export function MenuCategoryCard({
                   </div>
                   <div className="hidden shrink-0 items-center gap-2 sm:flex">
                     <StatusBadge kind="product" value={product.status} />
-                    <span className="text-sm font-medium text-teal-800">
-                      {product.price != null ? formatPrice(product.price, product.currency) : "بدون سعر"}
-                    </span>
+                    {product.price != null ? (
+                      <span className="text-sm font-medium text-teal-800">
+                        {formatPrice(product.price, product.currency)}
+                      </span>
+                    ) : null}
                   </div>
-                  <span className="text-sm font-medium text-teal-800 sm:hidden">
-                    {product.price != null ? formatPrice(product.price, product.currency) : "بدون سعر"}
-                  </span>
+                  {product.price != null ? (
+                    <span className="text-sm font-medium text-teal-800 sm:hidden">
+                      {formatPrice(product.price, product.currency)}
+                    </span>
+                  ) : null}
                   {canEdit && onEditProduct ? (
                     <Button
                       size="icon"

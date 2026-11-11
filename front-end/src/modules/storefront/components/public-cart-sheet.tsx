@@ -81,7 +81,7 @@ export function PublicCartSheet({
                   <p className="truncate text-sm font-bold">{product.name_ar}</p>
                   <p className="mt-0.5 text-[11px] text-zinc-500">
                     {product.price == null
-                      ? `بدون سعر × ${quantity}`
+                      ? `الكمية: ${quantity}`
                       : `${formatPrice(unit, product.currency)} × ${quantity} = ${formatPrice(unit * quantity, product.currency)}`}
                   </p>
                 </div>

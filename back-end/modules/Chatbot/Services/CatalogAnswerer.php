@@ -420,9 +420,9 @@ class CatalogAnswerer
                 $notes[] = 'مميز';
             }
             $extra = $notes === [] ? '' : ' ('.implode('، ', $notes).')';
-            $amount = $p['price'] === null ? 'بدون سعر' : $this->price((float) $p['price'], $p['currency']);
+            $amount = $p['price'] === null ? '' : ' — '.$this->price((float) $p['price'], $p['currency']);
 
-            return "• {$p['name_ar']} — {$amount}".$extra.$status;
+            return "• {$p['name_ar']}".$amount.$extra.$status;
         }, $products));
     }
 

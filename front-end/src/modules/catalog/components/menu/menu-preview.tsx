@@ -44,9 +44,11 @@ export function MenuPreview({
                           className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
                         >
                           <span className="truncate text-zinc-800">{product.name_ar}</span>
-                          <span className="shrink-0 font-medium text-teal-800">
-                            {product.price != null ? formatPrice(product.price, product.currency) : "بدون سعر"}
-                          </span>
+                          {product.price != null ? (
+                            <span className="shrink-0 font-medium text-teal-800">
+                              {formatPrice(product.price, product.currency)}
+                            </span>
+                          ) : null}
                         </li>
                       ))}
                     </ul>
