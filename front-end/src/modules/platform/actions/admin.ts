@@ -4,7 +4,7 @@ import { apiAll, apiData, run } from "@/core/api/client";
 import { fail, type ActionResult } from "@/core/api/result";
 import type { PlatformRole, Profile } from "@/modules/auth/types";
 import type { MenuBillingInput } from "@/modules/finance/lib/menu-billing";
-import type { Restaurant } from "@/modules/tenancy/types";
+import type { PosMode, Restaurant } from "@/modules/tenancy/types";
 
 // -------------------------------------------------------------- dashboards
 
@@ -90,6 +90,19 @@ export async function adminSetRestaurantBusinessType(
   );
 }
 
+export async function adminSetRestaurantPosMode(
+  id: string,
+  posMode: PosMode
+): Promise<ActionResult<Restaurant>> {
+  if (!id) return fail("معرّف المحل مطلوب");
+  return run(() =>
+    apiData<Restaurant>(`/admin/restaurants/${id}/pos-mode`, {
+      method: "PUT",
+      body: { pos_mode: posMode },
+    })
+  );
+}
+
 export async function adminChangeRestaurantPlan(
   restaurantId: string,
   planId: string
@@ -121,6 +134,7 @@ export async function adminCreateRestaurant(input: {
   slug?: string;
   phone?: string | null;
   business_type?: Restaurant["business_type"];
+  pos_mode?: PosMode;
   /** Omit to let the server decide. Null is a private store. */
   mall_id?: string | null;
   billing?: MenuBillingInput;
@@ -143,6 +157,7 @@ export async function adminCreateRestaurant(input: {
         slug: input.slug?.trim().toLowerCase() || undefined,
         phone: input.phone || undefined,
         business_type: input.business_type,
+        pos_mode: input.pos_mode,
         mall_id: input.mall_id,
         billing: billing
           ? {

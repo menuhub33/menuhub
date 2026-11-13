@@ -2,9 +2,10 @@
 
 import { RESTAURANT_ROLE_LABELS } from "@/core/lib/labels";
 import { Select } from "@/core/ui/select";
+import { usePosMode } from "@/modules/sales/lib/pos-mode";
 import type { RestaurantRole } from "@/modules/tenancy/types";
 
-const ROLES: RestaurantRole[] = ["OWNER", "MANAGER", "EDITOR"];
+const ROLES: RestaurantRole[] = ["OWNER", "MANAGER", "EDITOR", "CASHIER", "WAITER"];
 
 export function StaffRoleSelect({
   value,
@@ -24,6 +25,10 @@ export function StaffRoleSelect({
   className?: string;
 }) {
   const allowOwner = Boolean(canAssignOwner || canManageAll);
+  const posMode = usePosMode();
+  // Cashier / waiter accounts exist only when the restaurant has the matching POS package.
+  const unavailable = (role: RestaurantRole) =>
+    (role === "CASHIER" && posMode === "OFF") || (role === "WAITER" && posMode !== "CASHIER_WAITER");
 
   return (
     <Select
@@ -35,8 +40,10 @@ export function StaffRoleSelect({
       className={className}
       options={ROLES.map((role) => ({
         value: role,
-        label: RESTAURANT_ROLE_LABELS[role],
-        disabled: role === "OWNER" && !allowOwner,
+        label: unavailable(role)
+          ? `${RESTAURANT_ROLE_LABELS[role]} (غير مفعّل لهذا المحل)`
+          : RESTAURANT_ROLE_LABELS[role],
+        disabled: (role === "OWNER" && !allowOwner) || unavailable(role),
       }))}
     />
   );

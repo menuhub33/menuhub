@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Http\Controllers;
 
+use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -17,8 +18,18 @@ class ProductController extends ApiController
 {
     private const WITH = ['images', 'category:id,name_ar,name_en'];
 
-    public function __construct(private readonly ProductService $products) {}
+    public function __construct(private readonly ProductService $products)
+    {
+        // Marks the request so the resource includes `cost_price` (only for members who may read it).
+        // The public menu reuses the resource but never sets this, so costs can't leak.
+        $this->middleware(function (Request $request, Closure $next) {
+            if (ProductResource::memberCanSeeCost()) {
+                $request->attributes->set(ProductResource::EXPOSE_COST, true);
+            }
 
+            return $next($request);
+        });
+    }
     public function index(Request $request, Restaurant $restaurant)
     {
         $request->validate([
@@ -54,7 +65,7 @@ class ProductController extends ApiController
     {
         $data = $request->validate(['category_id' => ['required', 'uuid']] + $this->rules());
 
-        $product = $this->products->create($restaurant, $data);
+        $product = $this->products->create($restaurant, $this->withoutCostUnlessAllowed($data));
 
         return $this->created(new ProductResource($product->load(self::WITH)));
     }
@@ -63,7 +74,7 @@ class ProductController extends ApiController
     {
         $data = $request->validate(['category_id' => ['sometimes', 'uuid']] + $this->rules(partial: true));
 
-        $product = $this->products->update($product, $restaurant, $data);
+        $product = $this->products->update($product, $restaurant, $this->withoutCostUnlessAllowed($data));
 
         return $this->ok(new ProductResource($product->load(self::WITH)));
     }
@@ -102,6 +113,21 @@ class ProductController extends ApiController
         return $this->noContent();
     }
 
+    /**
+     * Only roles that can read sales reports may set a product's cost.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function withoutCostUnlessAllowed(array $data): array
+    {
+        if (! ProductResource::memberCanSeeCost()) {
+            unset($data['cost_price']);
+        }
+
+        return $data;
+    }
+
     /** @return array<string, array<int, mixed>> */
     private function rules(bool $partial = false): array
     {
@@ -112,7 +138,12 @@ class ProductController extends ApiController
             'name_en' => ['nullable', 'string', 'max:200'],
             'description_ar' => ['nullable', 'string', 'max:5000'],
             'description_en' => ['nullable', 'string', 'max:5000'],
-            'price' => [$partial ? 'sometimes' : 'nullable', 'nullable', 'numeric', 'min:0', 'max:9999999999'],
+            // The selling price is mandatory: showing or hiding prices is a menu-level switch, not an empty price.
+            'price' => [$partial ? 'sometimes' : 'required', 'numeric', 'min:0', 'max:9999999999'],
+            // Cost is mandatory for the members who can see it (the others never send it).
+            'cost_price' => ProductResource::memberCanSeeCost()
+                ? [$partial ? 'sometimes' : 'required', 'numeric', 'min:0', 'max:9999999999']
+                : ['nullable'], // ignored: stripped before saving
             'old_price' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             'currency' => ['sometimes', Rule::in(config('menuhub.currencies'))],
             'sort_order' => ['sometimes', 'integer', 'min:0'],

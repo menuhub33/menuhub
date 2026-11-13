@@ -17,6 +17,9 @@ class OrderItem extends BaseModel
             'unit_price' => 'decimal:2',
             'extra' => 'decimal:2',
             'line_total' => 'decimal:2',
+            'discount_total' => 'decimal:2',
+            'line_net' => 'decimal:2',
+            'cost_snapshot' => 'decimal:2',
         ];
     }
 

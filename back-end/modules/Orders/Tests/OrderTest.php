@@ -129,6 +129,21 @@ class OrderTest extends ApiTestCase
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $rejected);
+
+        // Decided orders older than 24 hours drop out of the lists; they stay in the database.
+        \Illuminate\Support\Facades\DB::table('orders')
+            ->whereIn('id', [$confirmed, $rejected])
+            ->update(['updated_at' => now()->subHours(25)]);
+
+        foreach (['CONFIRMED', 'REJECTED'] as $status) {
+            $this->getJson($this->api("restaurants/{$restaurant->id}/orders?status={$status}"))
+                ->assertOk()
+                ->assertJsonCount(0, 'data');
+        }
+
+        $this->getJson($this->api("restaurants/{$restaurant->id}/orders"))
+            ->assertOk()
+            ->assertJsonCount(1, 'data');
     }
 
     public function test_editor_cannot_manage_orders_and_orders_stay_inside_the_tenant(): void
@@ -184,6 +199,7 @@ class OrderTest extends ApiTestCase
             'category_id' => $category->id,
             'name_ar' => 'كنافة',
             'price' => 8000,
+            'cost_price' => 3000,
             'stock_quantity' => 0,
         ])->assertCreated()->assertJsonPath('data.stock_quantity', 0)->json('data.id');
 

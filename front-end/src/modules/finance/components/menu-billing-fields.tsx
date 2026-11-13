@@ -10,6 +10,8 @@ import {
   netMenuPrice,
   parseBillingInput,
   type BillingAdjustment,
+  type PosMode,
+  type PosPricing,
   type PricedPlan,
 } from "@/modules/finance/lib/menu-billing";
 
@@ -68,13 +70,18 @@ export function MenuBillingFields({
   onChange,
   plans,
   disabled,
+  posMode,
+  posPricing,
 }: {
   value: BillingFormState;
   onChange: (value: BillingFormState) => void;
   plans: PricedPlan[];
   disabled?: boolean;
+  /** The POS package that will be added to the price (platform admins only). */
+  posMode?: PosMode;
+  posPricing?: PosPricing | null;
 }) {
-  const parsed = parseBillingInput(value, plans);
+  const parsed = parseBillingInput(value, plans, { mode: posMode, pricing: posPricing });
   const preview = "value" in parsed ? parsed.value : null;
   const net = preview ? netMenuPrice(preview.price, preview.discountType, preview.discountValue) : null;
   const parts = preview && net !== null ? installmentAmounts(net, preview.installmentsCount) : [];
@@ -170,6 +177,12 @@ export function MenuBillingFields({
           onChange={(event) => update({ startsOn: event.target.value })}
         />
       </FormField>
+      {plan && preview && preview.posPrice > 0 ? (
+        <p className="rounded-xl bg-white px-3 py-2 text-sm text-zinc-700">
+          الخطة {formatPrice(plan.price_yearly, preview.currency)} + نقطة البيع{" "}
+          {formatPrice(preview.posPrice, preview.currency)} = {formatPrice(preview.price, preview.currency)}
+        </p>
+      ) : null}
       {plan && preview && net !== null ? (
         <p className="text-sm text-zinc-600">
           سعر {plan.name} السنوي {formatPrice(preview.price, preview.currency)}

@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { reloadPage } from "@/core/lib/reload";
-import { createPlan, updatePlan, updatePlanStatus } from "@/modules/billing/actions/billing";
+import { createPlan, deletePlan, updatePlan, updatePlanStatus, updatePosPricing } from "@/modules/billing/actions/billing";
+import type { PosPricing } from "@/modules/finance/lib/menu-billing";
+import { Select } from "@/core/ui/select";
 import { formatLimit, formatStorageLimit } from "@/modules/billing/components/plan-card";
 import { PageHeader } from "@/core/components/layout/page-header";
 import { FormField } from "@/core/components/forms/form-field";
 import { Button } from "@/core/ui/button";
+import { ConfirmDialog } from "@/core/ui/confirm-dialog";
 import { Dialog } from "@/core/ui/dialog";
 import { Input } from "@/core/ui/input";
 import { useToast } from "@/core/ui/toast";
@@ -83,12 +86,100 @@ function readLimit(value: string, max?: number): number | null | "invalid" {
   return parsed;
 }
 
-export function AdminPlansView({ plans }: { plans: Plan[] }) {
+const POS_CURRENCIES = ["USD", "SYP", "TRY", "EUR", "SAR", "AED"];
+
+/** Yearly price of each POS package. It is added to a restaurant's contract price when the package is chosen. */
+function PosPricingCard({ pricing }: { pricing: PosPricing }) {
+  const { toast } = useToast();
+  const [cashier, setCashier] = useState(String(pricing.cashier));
+  const [cashierWaiter, setCashierWaiter] = useState(String(pricing.cashier_waiter));
+  const [currency, setCurrency] = useState(pricing.currency);
+  const [saving, setSaving] = useState(false);
+
+  const cashierValue = readPrice(cashier);
+  const cashierWaiterValue = readPrice(cashierWaiter);
+  const dirty =
+    cashierValue !== pricing.cashier ||
+    cashierWaiterValue !== pricing.cashier_waiter ||
+    currency !== pricing.currency;
+
+  async function save() {
+    if (cashierValue == null || cashierWaiterValue == null) {
+      toast({ title: "أدخل سعراً صحيحاً للحزمتين", variant: "error" });
+      return;
+    }
+    setSaving(true);
+    const result = await updatePosPricing({
+      cashier: cashierValue,
+      cashier_waiter: cashierWaiterValue,
+      currency,
+    });
+    setSaving(false);
+    if (result.error) {
+      toast({ title: result.error, variant: "error" });
+      return;
+    }
+    toast({ title: "تم حفظ أسعار نقطة البيع", variant: "success" });
+    reloadPage();
+  }
+
+  return (
+    <section className="grid gap-4 rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5">
+      <div>
+        <h2 className="text-base font-semibold text-zinc-900">أسعار نقطة البيع (POS)</h2>
+        <p className="mt-1 text-sm text-zinc-500">
+          سعر سنوي لكل حزمة. عند اختيار الحزمة لمحل يُضاف سعرها إلى سعر خطته في العقد المالي. اجعل السعر 0 لحزمة بلا
+          رسوم.
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <FormField label="كاشير فقط" htmlFor="pos-price-cashier" hint="سعر سنوي">
+          <Input
+            id="pos-price-cashier"
+            type="number"
+            min={0}
+            step="0.01"
+            dir="ltr"
+            value={cashier}
+            onChange={(event) => setCashier(event.target.value)}
+          />
+        </FormField>
+        <FormField label="كاشير ونادل" htmlFor="pos-price-cashier-waiter" hint="سعر سنوي">
+          <Input
+            id="pos-price-cashier-waiter"
+            type="number"
+            min={0}
+            step="0.01"
+            dir="ltr"
+            value={cashierWaiter}
+            onChange={(event) => setCashierWaiter(event.target.value)}
+          />
+        </FormField>
+        <FormField label="العملة" htmlFor="pos-price-currency" hint="يجب أن تطابق عملة خطط المحلات">
+          <Select
+            id="pos-price-currency"
+            value={currency}
+            onChange={setCurrency}
+            options={POS_CURRENCIES.map((code) => ({ value: code, label: code }))}
+          />
+        </FormField>
+      </div>
+      <div className="flex justify-end">
+        <Button loading={saving} disabled={!dirty} onClick={() => void save()}>
+          حفظ الأسعار
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+export function AdminPlansView({ plans, posPricing }: { plans: Plan[]; posPricing: PosPricing }) {
   const { toast } = useToast();
   const [editing, setEditing] = useState<Plan | null>(null);
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState<Draft>(blankDraft());
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<Plan | null>(null);
 
   function openCreate() {
     setEditing(null);
@@ -171,6 +262,8 @@ export function AdminPlansView({ plans }: { plans: Plan[] }) {
         }
       />
 
+      <PosPricingCard pricing={posPricing} />
+
       <div className="overflow-x-auto rounded-2xl border border-zinc-200 bg-white">
         <table className="w-full min-w-[64rem] text-sm">
           <thead className="bg-zinc-50 text-zinc-500">
@@ -227,6 +320,11 @@ export function AdminPlansView({ plans }: { plans: Plan[] }) {
                       >
                         {plan.is_active ? "إيقاف" : "تفعيل"}
                       </Button>
+                      {plan.slug === "free" ? null : (
+                        <Button size="sm" variant="outline" onClick={() => setDeleting(plan)}>
+                          حذف
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -313,6 +411,26 @@ export function AdminPlansView({ plans }: { plans: Plan[] }) {
           ))}
         </div>
       </Dialog>
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null);
+        }}
+        title={deleting ? `حذف خطة ${deleting.name}؟` : "حذف الخطة؟"}
+        description="لا يمكن حذف خطة مرتبطة باشتراكات محلات؛ أوقفها بدلاً من ذلك. العقود المالية القديمة تحتفظ بسعرها."
+        confirmLabel="حذف"
+        onConfirm={async () => {
+          if (!deleting) return;
+          const result = await deletePlan(deleting.id);
+          if (result.error) {
+            toast({ title: result.error, variant: "error" });
+            return;
+          }
+          setDeleting(null);
+          toast({ title: "تم حذف الخطة", variant: "success" });
+          reloadPage();
+        }}
+      />
     </div>
   );
 }

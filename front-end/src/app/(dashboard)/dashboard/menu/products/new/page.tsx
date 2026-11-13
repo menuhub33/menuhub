@@ -2,6 +2,7 @@ import { getProductImageCap } from "@/modules/billing/actions/billing";
 import { getMenuCatalog } from "@/modules/catalog/actions/catalog";
 import { ProductEditorView } from "@/modules/catalog/views/product-editor-view";
 import { requirePermission } from "@/core/auth/authorization";
+import { hasPermission } from "@/core/auth/permissions";
 import { EmptyState } from "@/core/components/common/empty-state";
 import { ErrorState } from "@/core/components/common/error-state";
 import { Button } from "@/core/ui/button";
@@ -31,6 +32,7 @@ export default async function NewProductPage() {
   }
   return (
     <ProductEditorView
+      canEditCost={hasPermission(tenant.role, "reports.sales")}
       categories={categories}
       restaurantId={tenant.restaurant.id}
       maxImages={imageCap.data ?? 4}

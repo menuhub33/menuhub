@@ -10,6 +10,7 @@ use Modules\Orders\Models\MenuComplaint;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Services\OrderService;
 use Modules\Shared\Enums\OrderStatus;
+use Modules\Shared\Enums\SalesChannel;
 use Modules\Shared\Http\Controllers\ApiController;
 use Modules\Tenancy\Models\Restaurant;
 use Modules\Tenancy\Support\MallAccess;
@@ -22,11 +23,18 @@ class OrderController extends ApiController
     {
         $request->validate([
             'status' => ['nullable', Rule::enum(OrderStatus::class)],
+            'channel' => ['nullable', Rule::enum(SalesChannel::class)],
         ]);
+
+        // This is the QR orders inbox: sales of the other channels live in the sales ledger.
+        $status = $request->query('status', OrderStatus::Pending->value);
 
         $orders = Order::query()
             ->where('restaurant_id', $restaurant->id)
-            ->where('status', $request->query('status', OrderStatus::Pending->value))
+            ->where('channel', $request->query('channel', SalesChannel::Qr->value))
+            ->where('status', $status)
+            // Pending orders always show; decided ones (confirmed / rejected) only for the last 24 hours.
+            ->when($status !== OrderStatus::Pending->value, fn ($query) => $query->where('updated_at', '>=', now()->subDay()))
             ->latest()
             ->with('items')
             ->paginate($this->perPage(30));

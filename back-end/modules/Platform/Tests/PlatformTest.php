@@ -29,10 +29,12 @@ class PlatformTest extends ApiTestCase
             'email' => 'owner@nova.test',
             'password' => 'password123',
             'business_type' => 'CAFE',
+            'pos_mode' => 'CASHIER_WAITER',
             'billing' => [
                 'price' => 500, 'discount_type' => 'NONE', 'starts_on' => '2026-01-01', 'currency' => 'USD',
             ],
         ])->assertCreated()
+            ->assertJsonPath('data.pos_mode', 'CASHIER_WAITER')
             ->assertJsonPath('data.status', 'SUSPENDED')
             ->assertJsonPath('data.menu_status', 'DRAFT')
             ->assertJsonPath('data.business_type', 'CAFE')
@@ -151,6 +153,29 @@ class PlatformTest extends ApiTestCase
             'price_monthly' => 15,
             'price_yearly' => 150,
         ])->assertCreated()->assertJsonPath('data.slug', 'silver');
+    }
+
+    public function test_admin_can_delete_only_an_unused_non_free_plan(): void
+    {
+        $this->actingAdmin();
+        [, $restaurant] = $this->makeRestaurant();
+
+        $spare = $this->postJson($this->api('admin/plans'), [
+            'name' => 'مؤقتة',
+            'price_monthly' => 1,
+            'price_yearly' => 10,
+        ])->assertCreated()->json('data.id');
+
+        $this->deleteJson($this->api("admin/plans/{$spare}"))->assertNoContent();
+        $this->assertDatabaseMissing('plans', ['id' => $spare]);
+
+        $free = \Modules\Billing\Models\Plan::query()->where('slug', 'free')->firstOrFail();
+        $this->deleteJson($this->api("admin/plans/{$free->id}"))->assertStatus(422);
+
+        $pro = \Modules\Billing\Models\Plan::query()->where('slug', 'pro')->firstOrFail();
+        \Modules\Billing\Models\Subscription::query()->where('restaurant_id', $restaurant->id)->update(['plan_id' => $pro->id]);
+        $this->deleteJson($this->api("admin/plans/{$pro->id}"))->assertStatus(422);
+        $this->assertDatabaseHas('plans', ['id' => $pro->id]);
     }
 
     public function test_admin_can_update_plan_limits(): void

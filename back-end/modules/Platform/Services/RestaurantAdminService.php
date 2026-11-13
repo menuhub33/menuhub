@@ -7,6 +7,7 @@ use Modules\Finance\Models\MenuBilling;
 use Modules\Shared\Exceptions\ApiException;
 use Modules\Shared\Enums\BusinessType;
 use Modules\Shared\Enums\MenuStatus;
+use Modules\Shared\Enums\PosMode;
 use Modules\Shared\Enums\RestaurantStatus;
 use Modules\Shared\Events\RestaurantStatusChanged;
 use Modules\Tenancy\Models\Restaurant;
@@ -50,6 +51,15 @@ class RestaurantAdminService
         if ($from !== $status->value) {
             RestaurantStatusChanged::dispatch($restaurant->id, $restaurant->name, $from, $status->value);
         }
+
+        return $restaurant->refresh();
+    }
+
+    /** Optional POS package: OFF | CASHIER | CASHIER_WAITER (platform admins only). */
+    public function setPosMode(Restaurant $restaurant, PosMode $mode): Restaurant
+    {
+        $restaurant->pos_mode = $mode;
+        $restaurant->save();
 
         return $restaurant->refresh();
     }

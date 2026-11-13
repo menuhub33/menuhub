@@ -7,4 +7,6 @@ enum RestaurantRole: string
     case Owner = 'OWNER';
     case Manager = 'MANAGER';
     case Editor = 'EDITOR';
+    case Cashier = 'CASHIER';
+    case Waiter = 'WAITER';
 }

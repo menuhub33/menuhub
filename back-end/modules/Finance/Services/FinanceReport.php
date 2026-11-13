@@ -68,7 +68,7 @@ class FinanceReport
             'contracts' => $contracts,
             'restaurants' => MallAccess::scopeRestaurants(Restaurant::query(), $user)
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'pos_mode']),
             'summary' => $summary,
         ];
     }

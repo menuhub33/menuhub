@@ -242,6 +242,40 @@ class FinanceTest extends ApiTestCase
         ])->assertStatus(422)->assertJsonPath('code', 'BILLING_ADJUSTMENT');
     }
 
+    public function test_pos_package_price_is_added_to_the_contract_price(): void
+    {
+        $this->actingAdmin();
+        [, $restaurant] = $this->makeRestaurant();
+        $pro = Plan::query()->where('slug', 'pro')->firstOrFail();
+
+        $this->putJson($this->api('admin/pos-prices'), ['cashier' => 30, 'cashier_waiter' => 50, 'currency' => 'USD'])
+            ->assertOk()->assertJsonPath('data.cashier_waiter', 50);
+        $this->getJson($this->api('admin/pos-prices'))->assertOk()->assertJsonPath('data.cashier', 30);
+
+        $contract = ['plan_id' => $pro->id, 'discount_type' => 'PERCENT', 'discount_value' => 0, 'installments_count' => 1, 'starts_on' => '2026-01-01'];
+
+        // Without a package the price is the plan price only.
+        $this->putJson($this->api("admin/restaurants/{$restaurant->id}/billing"), $contract)
+            ->assertOk()->assertJsonPath('data.price', 100)->assertJsonPath('data.pos_price', 0);
+
+        // Selecting a package (even before it is applied to the restaurant) adds its price.
+        $this->putJson($this->api("admin/restaurants/{$restaurant->id}/billing"), $contract + ['pos_mode' => 'CASHIER'])
+            ->assertOk()->assertJsonPath('data.price', 130)->assertJsonPath('data.pos_price', 30);
+
+        $this->putJson($this->api("admin/restaurants/{$restaurant->id}/billing"), $contract + ['pos_mode' => 'CASHIER_WAITER'])
+            ->assertOk()->assertJsonPath('data.price', 150);
+
+        // A different currency than the plan can't be mixed into the price.
+        $this->putJson($this->api('admin/pos-prices'), ['cashier' => 30, 'cashier_waiter' => 50, 'currency' => 'SYP'])->assertOk();
+        $this->putJson($this->api("admin/restaurants/{$restaurant->id}/billing"), $contract + ['pos_mode' => 'CASHIER'])
+            ->assertStatus(422)->assertJsonPath('code', 'POS_PRICE_CURRENCY_MISMATCH');
+    }
+
+    public function test_pos_prices_are_admin_only(): void
+    {
+        $this->putJson($this->api('admin/pos-prices'), ['cashier' => 1, 'cashier_waiter' => 2, 'currency' => 'USD'])
+            ->assertStatus(401);
+    }
     /** @return array<string, mixed> */
     private function payload(): array
     {

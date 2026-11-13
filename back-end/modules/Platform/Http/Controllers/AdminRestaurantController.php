@@ -13,6 +13,7 @@ use Modules\Platform\Services\RestaurantAdminService;
 use Modules\Platform\Support\DemoData;
 use Modules\Shared\Enums\BusinessType;
 use Modules\Shared\Enums\DiscountType;
+use Modules\Shared\Enums\PosMode;
 use Modules\Shared\Enums\RestaurantStatus;
 use Modules\Shared\Http\Controllers\ApiController;
 use Modules\Tenancy\Http\Resources\RestaurantResource;
@@ -90,6 +91,7 @@ class AdminRestaurantController extends ApiController
             'phone' => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string', 'max:2000'],
             'business_type' => ['nullable', Rule::enum(BusinessType::class)],
+            'pos_mode' => ['nullable', Rule::enum(PosMode::class)],
             'mall_id' => ['nullable', 'uuid', Rule::exists('malls', 'id')],
             'billing' => ['nullable', 'array'],
             'billing.plan_id' => ['nullable', 'uuid', 'exists:plans,id'],
@@ -107,6 +109,8 @@ class AdminRestaurantController extends ApiController
         $scoped = MallAccess::scopedMall($request->user());
         if ($scoped) {
             $data['mall_id'] = $scoped->id;
+            // The POS package is decided by platform admins only, never by a mall manager.
+            unset($data['pos_mode']);
         }
 
         if (isset($data['billing']) && empty($data['billing']['plan_id']) && ! isset($data['billing']['price'])) {
@@ -225,6 +229,15 @@ class AdminRestaurantController extends ApiController
 
         return $this->ok(RestaurantResource::make(
             $this->admin->setBusinessType($restaurant, $data['business_type'])
+        )->resolve());
+    }
+
+    public function setPosMode(Request $request, Restaurant $restaurant): JsonResponse
+    {
+        $data = $request->validate(['pos_mode' => ['required', Rule::enum(PosMode::class)]]);
+
+        return $this->ok(RestaurantResource::make(
+            $this->admin->setPosMode($restaurant, PosMode::from($data['pos_mode']))
         )->resolve());
     }
 

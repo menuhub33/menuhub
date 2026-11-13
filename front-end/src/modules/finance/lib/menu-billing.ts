@@ -11,9 +11,27 @@ export type PricedPlan = {
   currency: string;
 };
 
+export type PosMode = "OFF" | "CASHIER" | "CASHIER_WAITER";
+
+/** Yearly price of the optional POS packages (edited in /admin/plans). */
+export type PosPricing = {
+  cashier: number;
+  cashier_waiter: number;
+  currency: string;
+};
+
+/** The part of a contract price that comes from the POS package (0 when OFF or no prices are set). */
+export function posPackagePrice(mode: PosMode | undefined, pricing: PosPricing | null | undefined) {
+  if (!pricing || !mode || mode === "OFF") return 0;
+  return roundMoney(mode === "CASHIER" ? pricing.cashier : pricing.cashier_waiter);
+}
+
 export type MenuBillingInput = {
   planId: string;
+  /** Plan price + POS package price (the server recomputes it, this is for display). */
   price: number;
+  posPrice: number;
+  posMode?: PosMode;
   setupCost: number;
   annualRenewal: number;
   discountType: DiscountType;
@@ -76,13 +94,20 @@ export function parseBillingInput(
     startsOn: string;
     notes?: string;
   },
-  plans: PricedPlan[]
+  plans: PricedPlan[],
+  pos?: { mode?: PosMode; pricing?: PosPricing | null }
 ): { error: string } | { value: MenuBillingInput } {
   const plan = plans.find((item) => item.id === input.planId);
   if (!plan) return { error: "اختر الخطة" };
 
-  const price = plan.price_yearly;
+  const posPrice = posPackagePrice(pos?.mode, pos?.pricing);
   const currency = plan.currency.toUpperCase();
+  if (posPrice > 0 && pos?.pricing && pos.pricing.currency.toUpperCase() !== currency) {
+    return {
+      error: `عملة سعر نقطة البيع (${pos.pricing.currency}) تختلف عن عملة الخطة (${currency}). عدّل عملة الأسعار من صفحة الخطط.`,
+    };
+  }
+  const price = plan.price_yearly + posPrice;
   if (!Number.isFinite(price) || price < 0) return { error: "سعر الخطة غير صالح" };
 
   const discountMode = input.adjustment === "discount";
@@ -106,6 +131,8 @@ export function parseBillingInput(
     value: {
       planId: plan.id,
       price: roundMoney(price),
+      posPrice,
+      posMode: pos?.mode,
       setupCost: 0,
       annualRenewal: 0,
       discountType: discountMode && discountValue > 0 ? "PERCENT" : "NONE",

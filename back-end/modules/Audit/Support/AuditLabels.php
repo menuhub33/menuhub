@@ -21,12 +21,16 @@ final class AuditLabels
         'branch' => 'فرع',
         'qr_code' => 'رمز QR',
         'custom_domain' => 'نطاق مخصص',
+        'sale' => 'فاتورة',
+        'order' => 'فاتورة',
+        'order_payment' => 'عملية دفع',
         'staff' => 'عضو فريق',
     ];
 
     private const EVENTS = [
         'created' => 'تمت إضافة',
         'updated' => 'تم تعديل',
+        'cancelled' => 'تم إلغاء',
         'deleted' => 'تم حذف',
     ];
 

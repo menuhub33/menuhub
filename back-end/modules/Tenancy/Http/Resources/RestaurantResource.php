@@ -31,6 +31,7 @@ class RestaurantResource extends JsonResource
             'menu_status' => $this->menu_status->value,
             'delivery_enabled' => $this->delivery_enabled,
             'business_type' => $this->business_type->value,
+            'pos_mode' => ($this->pos_mode ?? \Modules\Shared\Enums\PosMode::Off)->value,
             'mall_id' => $this->mall_id,
             'mall' => $this->whenLoaded('mall', fn () => $this->mall ? [
                 'id' => $this->mall->id,

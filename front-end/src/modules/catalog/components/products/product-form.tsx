@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { FormField } from "@/core/components/forms/form-field";
 import { PRODUCT_STATUS_LABELS } from "@/core/lib/labels";
-import { MENU_CURRENCIES } from "@/core/lib/format";
+import { MENU_CURRENCIES, formatAmount } from "@/core/lib/format";
 import type { ProductWithRelations } from "@/modules/catalog/types";
 import { ProductGallery, type ProductGalleryItem } from "@/modules/catalog/components/products/product-gallery";
 import { ProductPrice } from "@/modules/catalog/components/products/product-price";
@@ -28,6 +28,8 @@ export type ProductFormValues = {
   description_en: string | null;
   price: number | null;
   old_price: number | null;
+  /** Present only when the member may set costs. */
+  cost_price?: number | null;
   currency: string;
   category_id: string;
   status: ProductStatus;
@@ -44,6 +46,7 @@ type Draft = {
   description_en: string;
   price: string;
   old_price: string;
+  cost_price: string;
   currency: string;
   category_id: string;
   status: ProductStatus;
@@ -53,7 +56,7 @@ type Draft = {
   images: ProductGalleryItem[];
 };
 
-type FieldKey = "name_ar" | "price" | "category_id" | "old_price" | "sort_order" | "stock_quantity";
+type FieldKey = "name_ar" | "price" | "category_id" | "old_price" | "cost_price" | "sort_order" | "stock_quantity";
 
 const STATUS_OPTIONS: { value: ProductStatus; label: string }[] = [
   { value: "AVAILABLE", label: PRODUCT_STATUS_LABELS.AVAILABLE },
@@ -69,6 +72,7 @@ function emptyDraft(currency: string, categoryId: string, orderPosition: number)
     description_en: "",
     price: "",
     old_price: "",
+    cost_price: "",
     currency,
     category_id: categoryId,
     status: "AVAILABLE",
@@ -93,6 +97,7 @@ function fromProduct(
     description_en: product.description_en ?? "",
     price: product.price != null ? String(product.price) : "",
     old_price: product.old_price != null ? String(product.old_price) : "",
+    cost_price: product.cost_price != null ? String(product.cost_price) : "",
     currency: product.currency,
     category_id: product.category_id,
     status: product.status,
@@ -132,11 +137,14 @@ export function ProductForm({
   onCancel,
   onUploadImage,
   showStockCount = true,
+  canEditCost = false,
   orderPosition = 1,
 }: {
   product?: ProductWithRelations | null;
   categories: Category[];
   showStockCount?: boolean;
+  /** Owners / managers: shows the cost field and the profit per unit. */
+  canEditCost?: boolean;
   defaultCurrency?: string;
   defaultCategoryId?: string;
   maxImages?: number;
@@ -162,6 +170,9 @@ export function ProductForm({
   const previewPrice =
     parsedPreviewPrice != null && !Number.isNaN(parsedPreviewPrice) ? parsedPreviewPrice : null;
   const previewOldPrice = parseAmount(values.old_price);
+  const previewCost = canEditCost ? parseAmount(values.cost_price) : null;
+  const unitProfit =
+    previewPrice != null && previewCost != null && !Number.isNaN(previewCost) ? previewPrice - previewCost : null;
   const previewStock = /^\d+$/.test(values.stock_quantity.trim())
     ? Number.parseInt(values.stock_quantity.trim(), 10)
     : null;
@@ -175,6 +186,7 @@ export function ProductForm({
       key === "price" ||
       key === "category_id" ||
       key === "old_price" ||
+      key === "cost_price" ||
       key === "sort_order" ||
       key === "stock_quantity"
     );
@@ -208,6 +220,8 @@ export function ProductForm({
       } else {
         price = parsedPrice;
       }
+    } else {
+      nextErrors.price = "سعر البيع مطلوب";
     }
 
     let oldPrice: number | null = null;
@@ -221,6 +235,18 @@ export function ProductForm({
         nextErrors.old_price = "يجب أن يكون أكبر من السعر الحالي ليظهر الحسم";
       } else {
         oldPrice = parsed;
+      }
+    }
+
+    let costPrice: number | null = null;
+    if (canEditCost) {
+      const parsed = parseAmount(values.cost_price);
+      if (parsed == null) {
+        nextErrors.cost_price = "سعر التكلفة مطلوب";
+      } else if (Number.isNaN(parsed) || parsed < 0) {
+        nextErrors.cost_price = "سعر التكلفة يجب أن يكون صفراً أو أكبر";
+      } else {
+        costPrice = parsed;
       }
     }
 
@@ -249,6 +275,7 @@ export function ProductForm({
       description_en: toNullableText(values.description_en),
       price,
       old_price: oldPrice,
+      ...(canEditCost ? { cost_price: costPrice } : {}),
       currency: values.currency,
       category_id: values.category_id,
       status: values.status,
@@ -311,9 +338,10 @@ export function ProductForm({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
-            label="السعر"
+            label="سعر البيع"
             htmlFor="price"
-            hint="اتركه فارغاً إذا لا تريد إظهار السعر في المنيو"
+            required
+            hint="لإخفاء الأسعار عن الزبائن استخدم مفتاح «إظهار الأسعار» في صفحة المنيو"
             error={fieldErrors.price}
           >
             <div className="grid grid-cols-[minmax(0,1fr)_11rem] gap-2">
@@ -326,7 +354,7 @@ export function ProductForm({
                 value={values.price}
                 invalid={Boolean(fieldErrors.price)}
                 onChange={(event) => update("price", event.target.value)}
-                placeholder="اختياري"
+                required
               />
               <Select
                 id="currency"
@@ -358,6 +386,34 @@ export function ProductForm({
             />
           </FormField>
         </div>
+
+        {canEditCost ? (
+          <FormField
+            label="سعر التكلفة"
+            htmlFor="cost_price"
+            required
+            hint={
+              unitProfit != null
+                ? `ربح الوحدة ${formatAmount(unitProfit)} ${values.currency}${
+                    previewPrice ? ` (${Math.round((unitProfit / previewPrice) * 1000) / 10}%)` : ""
+                  }`
+                : "كم تكلّفك الوحدة الواحدة. لا يظهر للزبائن، ويُستخدم لحساب الربح في تقارير نقطة البيع."
+            }
+            error={fieldErrors.cost_price}
+          >
+            <Input
+              id="cost_price"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              step="0.01"
+              value={values.cost_price}
+              invalid={Boolean(fieldErrors.cost_price)}
+              onChange={(event) => update("cost_price", event.target.value)}
+              required
+            />
+          </FormField>
+        ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <FormField label="التصنيف" htmlFor="category_id" required error={fieldErrors.category_id}>

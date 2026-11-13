@@ -13,6 +13,7 @@ export type CreateProductInput = {
   description_en?: string | null;
   price?: number | null;
   old_price?: number | null;
+  cost_price?: number | null;
   currency?: string;
   sort_order?: number;
   is_featured?: boolean;
@@ -24,8 +25,12 @@ export async function createProduct(
 ): Promise<ActionResult<Product>> {
   const nameAr = input.name_ar?.trim();
   if (!input.category_id || !nameAr) return fail("التصنيف والاسم العربي مطلوبان");
-  if (input.price != null && (!Number.isFinite(input.price) || input.price < 0)) {
+  if (input.price == null) return fail("سعر البيع مطلوب");
+  if (!Number.isFinite(input.price) || input.price < 0) {
     return fail("السعر يجب أن يكون صفراً أو أكبر");
+  }
+  if (input.cost_price != null && (!Number.isFinite(input.cost_price) || input.cost_price < 0)) {
+    return fail("سعر التكلفة يجب أن يكون صفراً أو أكبر");
   }
   if (input.old_price != null && (input.price == null || input.old_price <= input.price)) {
     return fail("السعر قبل الحسم يجب أن يكون أكبر من السعر الحالي");
@@ -55,6 +60,7 @@ export type UpdateProductInput = {
   description_en?: string | null;
   price?: number | null;
   old_price?: number | null;
+  cost_price?: number | null;
   currency?: string;
   sort_order?: number;
   is_featured?: boolean;
@@ -69,6 +75,12 @@ export async function updateProduct(
   if (!id) return fail("معرّف المنتج مطلوب");
   if (changes.name_ar !== undefined && !changes.name_ar.trim()) {
     return fail("الاسم العربي مطلوب");
+  }
+  if (changes.cost_price != null && (!Number.isFinite(changes.cost_price) || changes.cost_price < 0)) {
+    return fail("سعر التكلفة يجب أن يكون صفراً أو أكبر");
+  }
+  if (changes.price === null || changes.cost_price === null) {
+    return fail("سعر البيع وسعر التكلفة مطلوبان");
   }
   if (changes.price != null && (!Number.isFinite(changes.price) || changes.price < 0)) {
     return fail("السعر يجب أن يكون صفراً أو أكبر");
@@ -93,6 +105,16 @@ export async function updateProduct(
       method: "PATCH",
       body: changes,
     });
+  });
+}
+
+/** The cost of one product (the catalog listing never carries it). Owners and managers only. */
+export async function getProductCost(id: string): Promise<ActionResult<number | null>> {
+  if (!id) return fail("معرّف المنتج مطلوب");
+  return run(async () => {
+    const restaurantId = await requireTenantId();
+    const product = await apiData<Product>(`/restaurants/${restaurantId}/products/${id}`);
+    return product.cost_price ?? null;
   });
 }
 

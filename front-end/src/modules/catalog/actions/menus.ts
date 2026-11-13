@@ -22,6 +22,21 @@ export async function getMenu(
   });
 }
 
+/** One switch that shows or hides the price of every product on the public menu. */
+export async function setMenuPricesVisible(
+  id: string,
+  restaurantId: string,
+  show: boolean
+): Promise<ActionResult<Menu>> {
+  if (!id || !restaurantId) return fail("معرّف القائمة مطلوب");
+  return run(() =>
+    apiData<Menu>(`/restaurants/${restaurantId}/menus/${id}`, {
+      method: "PATCH",
+      body: { show_prices: show },
+    })
+  );
+}
+
 /** Publishing / unpublishing also updates `restaurants.menu_status` in the API. */
 export async function updateMenuStatus(
   id: string,

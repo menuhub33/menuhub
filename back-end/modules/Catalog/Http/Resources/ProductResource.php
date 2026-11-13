@@ -5,6 +5,7 @@ namespace Modules\Catalog\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Catalog\Models\Product;
+use Modules\Tenancy\Support\TenantContext;
 
 /**
  * Matches the shape consumed by the front-end (`images`).
@@ -13,6 +14,15 @@ use Modules\Catalog\Models\Product;
  */
 class ProductResource extends JsonResource
 {
+    /** Request attribute the dashboard product endpoints set; the public menu never does. */
+    public const EXPOSE_COST = 'expose_product_cost';
+
+    /** True when the signed-in member may read and write product costs. */
+    public static function memberCanSeeCost(): bool
+    {
+        return app()->bound(TenantContext::class) && TenantContext::current()->can('reports.sales');
+    }
+
     public function toArray(Request $request): array
     {
         return [
@@ -24,6 +34,8 @@ class ProductResource extends JsonResource
             'description_en' => $this->description_en,
             'price' => $this->price === null ? null : (float) $this->price,
             'old_price' => $this->old_price === null ? null : (float) $this->old_price,
+            // Cost is a business secret: only roles that can read sales reports ever receive it.
+            'cost_price' => $this->when($request->attributes->get(self::EXPOSE_COST) === true, fn () => $this->cost_price === null ? null : (float) $this->cost_price),
             'currency' => $this->currency,
             'sort_order' => $this->sort_order,
             'status' => $this->status->value,

@@ -25,6 +25,7 @@ class StaffService
     {
         $email = strtolower(trim($data['email']));
         $role = RestaurantRole::from($data['role']);
+        $this->assertRoleAvailable($restaurant, $role);
 
         return DB::transaction(function () use ($restaurant, $email, $role, $data) {
             $user = User::query()->where('email', $email)->first();
@@ -55,7 +56,7 @@ class StaffService
             $this->assertStaffLimit($restaurant);
 
             if ($existing) {
-                $existing->update(['role' => $role, 'is_active' => true]);
+                $existing->update(['role' => $role, 'is_active' => true, 'branch_id' => $data['branch_id'] ?? null]);
 
                 return $existing->load('user');
             }
@@ -65,6 +66,7 @@ class StaffService
                 'user_id' => $user->id,
                 'role' => $role,
                 'is_active' => true,
+                'branch_id' => $data['branch_id'] ?? null,
             ])->load('user');
         });
     }
@@ -76,6 +78,10 @@ class StaffService
     {
         $this->assertEditable($membership, $actor);
 
+        if (isset($data['role']) && RestaurantRole::from($data['role']) !== $membership->role) {
+            $this->assertRoleAvailable($membership->restaurant, RestaurantRole::from($data['role']));
+        }
+
         if (isset($data['is_active']) && $data['is_active'] && ! $membership->is_active) {
             $this->assertStaffLimit($membership->restaurant);
         }
@@ -83,6 +89,7 @@ class StaffService
         $membership->fill([
             'role' => isset($data['role']) ? RestaurantRole::from($data['role']) : $membership->role,
             'is_active' => $data['is_active'] ?? $membership->is_active,
+            'branch_id' => array_key_exists('branch_id', $data) ? $data['branch_id'] : $membership->branch_id,
         ])->save();
 
         return $membership->load('user');
@@ -92,6 +99,20 @@ class StaffService
     {
         $this->assertEditable($membership, $actor);
         $membership->delete();
+    }
+
+    /** CASHIER / WAITER exist only when the restaurant has the matching POS package. */
+    private function assertRoleAvailable(Restaurant $restaurant, RestaurantRole $role): void
+    {
+        $mode = $restaurant->pos_mode;
+
+        if ($role === RestaurantRole::Cashier && ! $mode->enabled()) {
+            throw ApiException::invalid('نقطة البيع غير مفعّلة لهذا المحل، لا يمكن إضافة كاشير', 'POS_NOT_ENABLED');
+        }
+
+        if ($role === RestaurantRole::Waiter && ! $mode->waiterEnabled()) {
+            throw ApiException::invalid('شاشة النادل غير مفعّلة لهذا المحل، لا يمكن إضافة نادل', 'WAITER_NOT_ENABLED');
+        }
     }
 
     private function assertEditable(RestaurantUser $membership, User $actor): void

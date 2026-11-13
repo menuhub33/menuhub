@@ -17,31 +17,31 @@ const PERMISSIONS: Array<{
     key: "menu_edit",
     label: "تعديل المنيو",
     hint: "المنتجات والأقسام ومحتوى القائمة",
-    granted: { OWNER: true, MANAGER: true, EDITOR: true },
+    granted: { OWNER: true, MANAGER: true, EDITOR: true, CASHIER: false, WAITER: false },
   },
   {
     key: "publish",
     label: "نشر المنيو",
     hint: "نشر القائمة أو إلغاء نشرها للزوار",
-    granted: { OWNER: true, MANAGER: true, EDITOR: false },
+    granted: { OWNER: true, MANAGER: true, EDITOR: false, CASHIER: false, WAITER: false },
   },
   {
     key: "billing",
     label: "الفوترة والاشتراك",
     hint: "الخطط والمدفوعات والفواتير",
-    granted: { OWNER: true, MANAGER: false, EDITOR: false },
+    granted: { OWNER: true, MANAGER: false, EDITOR: false, CASHIER: false, WAITER: false },
   },
   {
     key: "staff",
     label: "إدارة الموظفين",
     hint: "دعوة الأعضاء وتغيير أدوارهم وإزالتهم",
-    granted: { OWNER: true, MANAGER: false, EDITOR: false },
+    granted: { OWNER: true, MANAGER: false, EDITOR: false, CASHIER: false, WAITER: false },
   },
   {
     key: "delete_restaurant",
     label: "حذف النشاط",
     hint: "حذف النشاط وكل بياناته بشكل نهائي",
-    granted: { OWNER: true, MANAGER: false, EDITOR: false },
+    granted: { OWNER: true, MANAGER: false, EDITOR: false, CASHIER: false, WAITER: false },
   },
 ];
 

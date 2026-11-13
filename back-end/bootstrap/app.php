@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Modules\Auth\Http\Middleware\EnsureOperator;
 use Modules\Auth\Http\Middleware\EnsurePlatformAdmin;
 use Modules\Auth\Http\Middleware\EnsureUserIsActive;
+use Modules\Sales\Http\Middleware\EnsurePosEnabled;
+use Modules\Sales\Http\Middleware\EnsureSalesEnabled;
 use Modules\Shared\Exceptions\ApiException;
 use Modules\Tenancy\Http\Middleware\EnsureRestaurantActive;
 use Modules\Tenancy\Http\Middleware\RequirePermission;
@@ -32,6 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant' => ResolveTenant::class,
             'tenant.active' => EnsureRestaurantActive::class,
             'permission' => RequirePermission::class,
+            'pos.enabled' => EnsurePosEnabled::class,
+            'sales.enabled' => EnsureSalesEnabled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

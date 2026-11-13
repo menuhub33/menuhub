@@ -20,6 +20,7 @@ class MenuBilling extends BaseModel
     {
         return [
             'price' => 'float',
+            'pos_price' => 'float',
             'setup_cost' => 'float',
             'annual_renewal' => 'float',
             'discount_value' => 'float',

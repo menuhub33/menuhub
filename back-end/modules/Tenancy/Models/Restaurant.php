@@ -9,6 +9,7 @@ use Modules\Shared\Concerns\Auditable;
 use Modules\Shared\Concerns\PublishesContentChanges;
 use Modules\Shared\Enums\BusinessType;
 use Modules\Shared\Enums\MenuStatus;
+use Modules\Shared\Enums\PosMode;
 use Modules\Shared\Enums\RestaurantStatus;
 use Modules\Shared\Models\BaseModel;
 use Modules\Users\Models\User;
@@ -24,6 +25,7 @@ use Modules\Users\Models\User;
  * @property RestaurantStatus $status
  * @property MenuStatus $menu_status
  * @property BusinessType $business_type
+ * @property PosMode $pos_mode
  * @property string|null $mall_id
  */
 class Restaurant extends BaseModel
@@ -31,6 +33,8 @@ class Restaurant extends BaseModel
     use Auditable, PublishesContentChanges;
 
     protected $table = 'restaurants';
+
+    protected $attributes = ['pos_mode' => 'OFF'];
 
     /** Columns an owner/manager may change through the dashboard. */
     public const DASHBOARD_FIELDS = [
@@ -46,6 +50,7 @@ class Restaurant extends BaseModel
             'status' => RestaurantStatus::class,
             'menu_status' => MenuStatus::class,
             'business_type' => BusinessType::class,
+            'pos_mode' => PosMode::class,
             'delivery_enabled' => 'boolean',
             'chatbot_enabled' => 'boolean',
             'latitude' => 'float',

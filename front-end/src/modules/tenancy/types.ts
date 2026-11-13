@@ -8,9 +8,12 @@ export type RestaurantStatus =
   | "EXPIRED"
   | "CANCELLED";
 
-export type RestaurantRole = "OWNER" | "MANAGER" | "EDITOR";
+export type RestaurantRole = "OWNER" | "MANAGER" | "EDITOR" | "CASHIER" | "WAITER";
 
 export type BusinessType = "RESTAURANT" | "CAFE" | "SHOP";
+
+/** Optional POS package, set per restaurant by a platform admin. */
+export type PosMode = "OFF" | "CASHIER" | "CASHIER_WAITER";
 
 export type Restaurant = {
   id: string;
@@ -32,6 +35,7 @@ export type Restaurant = {
   menu_status: MenuStatus;
   delivery_enabled: boolean;
   business_type: BusinessType;
+  pos_mode: PosMode;
   /** Null when the menu belongs to a private store, not a mall. */
   mall_id: string | null;
   mall?: { id: string; name: string; slug: string } | null;

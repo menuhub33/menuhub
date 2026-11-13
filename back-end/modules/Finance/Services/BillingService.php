@@ -10,13 +10,17 @@ use Modules\Finance\Models\MenuInstallment;
 use Modules\Finance\Support\BillingCalculator as Calc;
 use Modules\Shared\Enums\DiscountType;
 use Modules\Shared\Enums\InstallmentKind;
+use Modules\Shared\Contracts\PricesPosPackage;
 use Modules\Shared\Enums\InstallmentStatus;
+use Modules\Shared\Enums\PosMode;
 use Modules\Shared\Enums\SubscriptionStatus;
 use Modules\Shared\Exceptions\ApiException;
 use Modules\Tenancy\Models\Restaurant;
 
 class BillingService
 {
+    public function __construct(private readonly PricesPosPackage $posPricing) {}
+
     /**
      * Creates or updates the contract and regenerates its pending schedule.
      * Refused once any regular installment has been paid.
@@ -35,8 +39,11 @@ class BillingService
             }
 
             $plan = $this->pricedPlan($input);
+            $posPrice = 0.0;
             if ($plan) {
-                $input['price'] = $plan->price_yearly;
+                // Plan price + the restaurant's optional POS package (priced in /admin/plans).
+                $posPrice = $this->posPrice($restaurant, $input, $plan);
+                $input['price'] = Calc::round((float) $plan->price_yearly + $posPrice);
                 $input['currency'] = $plan->currency;
                 $input['setup_cost'] = 0;
                 $input['annual_renewal'] = 0;
@@ -58,6 +65,7 @@ class BillingService
             $billing->fill([
                 'plan_id' => $plan?->id,
                 'price' => $price,
+                'pos_price' => $posPrice,
                 'setup_cost' => Calc::round((float) ($input['setup_cost'] ?? 0)),
                 'annual_renewal' => Calc::round((float) ($input['annual_renewal'] ?? 0)),
                 'discount_type' => $type,
@@ -110,6 +118,31 @@ class BillingService
 
             return $billing->refresh()->load('installments');
         });
+    }
+
+    /**
+     * Yearly price of the restaurant's POS package (0 when OFF). `pos_mode` in the input prices a change
+     * that is about to be applied; otherwise the restaurant's current package is used.
+     *
+     * @param  array<string, mixed>  $input
+     */
+    private function posPrice(Restaurant $restaurant, array $input, Plan $plan): float
+    {
+        $mode = isset($input['pos_mode']) ? PosMode::normalize((string) $input['pos_mode']) : $restaurant->pos_mode;
+        $priced = $this->posPricing->priceFor($mode);
+
+        if ($priced['amount'] <= 0) {
+            return 0.0;
+        }
+
+        if (strtoupper($priced['currency']) !== strtoupper($plan->currency)) {
+            throw ApiException::invalid(
+                "عملة سعر نقطة البيع ({$priced['currency']}) تختلف عن عملة الخطة ({$plan->currency}). عدّل عملة الأسعار من صفحة الخطط.",
+                'POS_PRICE_CURRENCY_MISMATCH',
+            );
+        }
+
+        return Calc::round($priced['amount']);
     }
 
     /** @param  array<string, mixed>  $input */

@@ -23,7 +23,7 @@ class ProductService
 
     private const FILLABLE = [
         'category_id', 'name_ar', 'name_en', 'description_ar', 'description_en',
-        'price', 'old_price', 'currency', 'sort_order', 'status', 'is_featured', 'stock_quantity',
+        'price', 'old_price', 'cost_price', 'currency', 'sort_order', 'status', 'is_featured', 'stock_quantity',
     ];
 
     public function __construct(private readonly PlanGuard $limits) {}

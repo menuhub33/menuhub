@@ -46,6 +46,7 @@ export function OnboardingWizard({
   const [categoryName, setCategoryName] = useState("البرغر");
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
+  const [productCost, setProductCost] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -101,16 +102,15 @@ export function OnboardingWizard({
         const categoryId = sessionStorage.getItem("mh-first-category");
         if (!categoryId) throw new Error("أنشئ قسماً أولاً");
         if (!productName.trim()) throw new Error("أدخل اسم المنتج");
-        const trimmedPrice = productPrice.trim();
-        let price: number | null = null;
-        if (trimmedPrice) {
-          price = Number(trimmedPrice);
-          if (!Number.isFinite(price) || price < 0) throw new Error("أدخل سعراً صالحاً أو اتركه فارغاً");
-        }
+        const price = productPrice.trim() === "" ? NaN : Number(productPrice);
+        const cost = productCost.trim() === "" ? NaN : Number(productCost);
+        if (!Number.isFinite(price) || price < 0) throw new Error("أدخل سعر بيع صالحاً");
+        if (!Number.isFinite(cost) || cost < 0) throw new Error("أدخل سعر تكلفة صالحاً");
         const result = await createProduct({
           category_id: categoryId,
           name_ar: productName,
           price,
+          cost_price: cost,
         });
         if (result.error) throw new Error(result.error);
       }
@@ -227,8 +227,11 @@ export function OnboardingWizard({
             <FormField label="اسم المنتج" htmlFor="product" required>
               <Input id="product" value={productName} onChange={(event) => setProductName(event.target.value)} />
             </FormField>
-            <FormField label="السعر" htmlFor="price" hint="اتركه فارغاً إذا لا تريد إظهار السعر">
-              <Input id="price" type="number" min={0} value={productPrice} onChange={(event) => setProductPrice(event.target.value)} placeholder="اختياري" />
+            <FormField label="سعر البيع" htmlFor="price" required>
+              <Input id="price" type="number" min={0} value={productPrice} onChange={(event) => setProductPrice(event.target.value)} />
+            </FormField>
+            <FormField label="سعر التكلفة" htmlFor="cost" required hint="لا يظهر للزبائن، ويُستخدم لحساب الربح">
+              <Input id="cost" type="number" min={0} value={productCost} onChange={(event) => setProductCost(event.target.value)} />
             </FormField>
           </div>
         ) : null}

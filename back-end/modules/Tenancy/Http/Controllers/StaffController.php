@@ -13,8 +13,8 @@ use Modules\Tenancy\Services\StaffService;
 
 class StaffController extends ApiController
 {
-    /** Staff can be MANAGER or EDITOR; the single OWNER is set by an admin. */
-    private const ASSIGNABLE = ['MANAGER', 'EDITOR'];
+    /** Staff can be MANAGER, EDITOR, CASHIER or WAITER; the single OWNER is set by an admin. */
+    private const ASSIGNABLE = ['MANAGER', 'EDITOR', 'CASHIER', 'WAITER'];
 
     public function __construct(private readonly StaffService $staff) {}
 
@@ -33,6 +33,7 @@ class StaffController extends ApiController
             'full_name' => ['nullable', 'string', 'max:150'],
             'password' => ['nullable', Password::min(8)],
             'phone' => ['nullable', 'string', 'max:50'],
+            'branch_id' => $this->branchRule($restaurant),
         ]);
 
         return $this->created($this->present($this->staff->add($restaurant, $data)));
@@ -43,6 +44,7 @@ class StaffController extends ApiController
         $data = $request->validate([
             'role' => ['sometimes', Rule::in(self::ASSIGNABLE)],
             'is_active' => ['sometimes', 'boolean'],
+            'branch_id' => $this->branchRule($restaurant),
         ]);
 
         return $this->ok($this->present($this->staff->update($membership, $request->user(), $data)));
@@ -55,11 +57,18 @@ class StaffController extends ApiController
         return $this->noContent();
     }
 
+    /** A member can be pinned to one branch of this restaurant (null = every branch). */
+    private function branchRule(Restaurant $restaurant): array
+    {
+        return ['sometimes', 'nullable', 'uuid', Rule::exists('branches', 'id')->where('restaurant_id', $restaurant->id)];
+    }
+
     private function present(RestaurantUser $membership): array
     {
         return [
             'id' => $membership->id,
             'role' => $membership->role->value,
+            'branch_id' => $membership->branch_id,
             'is_active' => $membership->is_active,
             'user' => [
                 'id' => $membership->user->id,

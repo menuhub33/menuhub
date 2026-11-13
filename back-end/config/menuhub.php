@@ -24,6 +24,14 @@ return [
     */
     'enforce_plan_limits' => (bool) env('ENFORCE_PLAN_LIMITS', true),
 
+    /*
+    | Kill switch of the sales ledger / POS endpoints (modules `Sales`, `Inventory`).
+    | While false the `restaurants/{id}/sales/*` routes answer 404, whatever the plan.
+    */
+    'sales' => [
+        'enabled' => (bool) env('SALES_ENABLED', false),
+    ],
+
     /* Create the public `demo` / `demo-cars` menus when running `db:seed`. */
     'seed_demo' => (bool) env('SEED_DEMO', true),
 

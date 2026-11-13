@@ -7,6 +7,7 @@ import type {
   InstallmentKind,
   InstallmentStatus,
   MenuBillingInput,
+  PosMode,
 } from "@/modules/finance/lib/menu-billing";
 
 export type FinanceInstallment = {
@@ -26,6 +27,7 @@ export type FinanceContract = {
   restaurant_name: string;
   plan_id?: string | null;
   price: number;
+  pos_price?: number;
   annual_renewal: number;
   setup_cost: number;
   discount_type: DiscountType;
@@ -38,12 +40,12 @@ export type FinanceContract = {
 };
 
 export async function getAdminFinance(): Promise<
-  ActionResult<{ contracts: FinanceContract[]; restaurants: { id: string; name: string }[] }>
+  ActionResult<{ contracts: FinanceContract[]; restaurants: { id: string; name: string; pos_mode?: PosMode }[] }>
 > {
   return run(async () => {
     const report = await apiData<{
       contracts: FinanceContract[];
-      restaurants: { id: string; name: string }[];
+      restaurants: { id: string; name: string; pos_mode?: PosMode }[];
     }>("/admin/finance");
     return { contracts: report.contracts, restaurants: report.restaurants };
   });
@@ -62,6 +64,7 @@ export async function saveMenuBilling(
       body: {
         plan_id: input.planId,
         price: input.price,
+        ...(input.posMode ? { pos_mode: input.posMode } : {}),
         setup_cost: input.setupCost,
         annual_renewal: input.annualRenewal,
         discount_type: input.discountType,

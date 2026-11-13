@@ -10,6 +10,8 @@ export type Menu = {
   description: string | null;
   status: MenuStatus;
   is_default: boolean;
+  /** When false the public menu shows no price on any product. */
+  show_prices?: boolean;
   published_at: string | null;
   created_at: string;
   updated_at: string;
@@ -38,6 +40,8 @@ export type Product = {
   description_en: string | null;
   price: number | null;
   old_price: number | null;
+  /** Only sent to roles that can read sales reports. */
+  cost_price?: number | null;
   currency: string;
   sort_order: number;
   status: ProductStatus;

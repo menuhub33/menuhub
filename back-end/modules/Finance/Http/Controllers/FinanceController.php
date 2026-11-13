@@ -12,6 +12,7 @@ use Modules\Finance\Services\BillingService;
 use Modules\Finance\Services\FinanceReport;
 use Modules\Finance\Services\YearlyMenuSubscription;
 use Modules\Shared\Enums\DiscountType;
+use Modules\Shared\Enums\PosMode;
 use Modules\Shared\Http\Controllers\ApiController;
 use Modules\Tenancy\Models\Restaurant;
 use Modules\Tenancy\Support\MallAccess;
@@ -36,6 +37,7 @@ class FinanceController extends ApiController
         $data = $request->validate([
             'plan_id' => ['nullable', 'uuid', 'exists:plans,id'],
             'price' => ['nullable', 'numeric', 'min:0'],
+            'pos_mode' => ['nullable', Rule::enum(PosMode::class)],
             'setup_cost' => ['nullable', 'numeric', 'min:0'],
             'annual_renewal' => ['nullable', 'numeric', 'min:0'],
             'discount_type' => ['required', Rule::enum(DiscountType::class)],
@@ -45,6 +47,11 @@ class FinanceController extends ApiController
             'currency' => ['nullable', Rule::in(config('menuhub.currencies'))],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
+
+        // Only platform admins decide the POS package; a mall manager never changes what a contract is priced with.
+        if (MallAccess::scopedMall($request->user())) {
+            unset($data['pos_mode']);
+        }
 
         if (empty($data['plan_id']) && ! isset($data['price'])) {
             return response()->json(['message' => 'سعر المنيو أو الخطة مطلوب'], 422);

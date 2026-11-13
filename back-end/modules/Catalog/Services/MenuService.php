@@ -50,7 +50,7 @@ class MenuService
                 $menu->is_default = true;
             }
 
-            $menu->fill(array_intersect_key($data, array_flip(['name', 'slug', 'description'])))->save();
+            $menu->fill(array_intersect_key($data, array_flip(['name', 'slug', 'description', 'show_prices'])))->save();
 
             return $menu->refresh();
         });

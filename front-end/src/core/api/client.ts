@@ -22,6 +22,8 @@ export type ApiOptions = {
   /** Seconds to cache a GET in the Next data cache. Default: no caching. */
   revalidate?: number;
   tags?: string[];
+  /** Extra request headers (e.g. `Idempotency-Key`). */
+  headers?: Record<string, string>;
 };
 
 export class ApiError extends Error {
@@ -64,6 +66,7 @@ async function send(path: string, options: ApiOptions = {}): Promise<unknown> {
   const headers: Record<string, string> = {
     Accept: "application/json",
     "Accept-Language": "ar",
+    ...options.headers,
   };
 
   if (options.auth !== false) {

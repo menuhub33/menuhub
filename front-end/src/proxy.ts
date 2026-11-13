@@ -12,7 +12,7 @@ const AUTH_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"
 // Reachable while signed in (the first one clears a token the API rejected).
 const AUTH_EXEMPT = ["/auth/expired", "/verify-email", "/reset-password"];
 
-const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/admin"];
+const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/admin", "/pos", "/waiter"];
 
 const matches = (pathname: string, paths: string[]) =>
   paths.some((path) => pathname === path || pathname.startsWith(`${path}/`));

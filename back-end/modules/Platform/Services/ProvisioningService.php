@@ -8,6 +8,7 @@ use Modules\Catalog\Models\Menu;
 use Modules\Finance\Services\BillingService;
 use Modules\Shared\Enums\BusinessType;
 use Modules\Shared\Enums\MenuStatus;
+use Modules\Shared\Enums\PosMode;
 use Modules\Shared\Enums\RestaurantRole;
 use Modules\Shared\Enums\RestaurantStatus;
 use Modules\Shared\Support\Slug;
@@ -56,6 +57,7 @@ class ProvisioningService
                 'status' => RestaurantStatus::Suspended,
                 'menu_status' => MenuStatus::Draft,
                 'business_type' => BusinessType::normalize($input['business_type'] ?? null),
+                'pos_mode' => PosMode::normalize($input['pos_mode'] ?? null),
                 'mall_id' => $input['mall_id'] ?? null,
                 'currency' => empty($input['billing']['plan_id'])
                     ? strtoupper((string) ($input['billing']['currency'] ?? 'SYP'))

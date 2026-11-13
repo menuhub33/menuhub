@@ -35,12 +35,14 @@ export function ProductEditorView({
   categories,
   maxImages = 4,
   showStockCount = true,
+  canEditCost = false,
 }: {
   product?: ProductWithRelations | null;
   categories: CategoryWithProducts[];
   restaurantId: string;
   maxImages?: number;
   showStockCount?: boolean;
+  canEditCost?: boolean;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -67,6 +69,7 @@ export function ProductEditorView({
           description_en: values.description_en,
           price: values.price,
           old_price: values.old_price,
+          ...(canEditCost ? { cost_price: values.cost_price } : {}),
           currency: values.currency,
           sort_order: values.sort_order,
           is_featured: values.is_featured,
@@ -146,6 +149,7 @@ export function ProductEditorView({
         ]}
       />
       <ProductForm
+        canEditCost={canEditCost}
         product={product}
         categories={categories}
         maxImages={maxImages}

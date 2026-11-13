@@ -27,6 +27,7 @@ class Product extends BaseModel
         return [
             'price' => 'decimal:2',
             'old_price' => 'decimal:2',
+            'cost_price' => 'decimal:2',
             'sort_order' => 'integer',
             'is_featured' => 'boolean',
             'stock_quantity' => 'integer',

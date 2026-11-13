@@ -14,6 +14,7 @@ use Modules\Tenancy\Models\Restaurant;
  * @property string $restaurant_id
  * @property MenuStatus $status
  * @property bool $is_default
+ * @property bool $show_prices
  */
 class Menu extends BaseModel
 {
@@ -26,6 +27,7 @@ class Menu extends BaseModel
         return [
             'status' => MenuStatus::class,
             'is_default' => 'boolean',
+            'show_prices' => 'boolean',
             'published_at' => 'datetime',
         ];
     }

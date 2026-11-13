@@ -54,7 +54,8 @@ class MallTest extends ApiTestCase
             'email' => 'private@example.com',
             'password' => 'password123',
             'mall_id' => null,
-        ])->assertCreated()->assertJsonPath('data.mall_id', $mallId);
+            'pos_mode' => 'CASHIER', // a mall manager cannot grant the POS package
+        ])->assertCreated()->assertJsonPath('data.mall_id', $mallId)->assertJsonPath('data.pos_mode', 'OFF');
 
         $this->getJson($this->api('admin/restaurants'))
             ->assertOk()

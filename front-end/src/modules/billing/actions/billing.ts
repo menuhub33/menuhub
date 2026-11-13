@@ -2,6 +2,7 @@
 
 import { apiData, run } from "@/core/api/client";
 import { fail, type ActionResult } from "@/core/api/result";
+import type { PosPricing } from "@/modules/finance/lib/menu-billing";
 import type { Plan, Subscription, SubscriptionStatus } from "@/modules/billing/types";
 
 // ------------------------------------------------------------------ plans
@@ -80,6 +81,20 @@ export async function updatePlan(input: UpdatePlanInput): Promise<ActionResult<P
   );
 }
 
+/** Yearly prices of the optional POS packages (platform administrators only). */
+export async function getPosPricing(): Promise<ActionResult<PosPricing>> {
+  return run(() => apiData<PosPricing>("/admin/pos-prices"));
+}
+
+export async function updatePosPricing(input: PosPricing): Promise<ActionResult<PosPricing>> {
+  if (!Number.isFinite(input.cashier) || input.cashier < 0) return fail("سعر الكاشير غير صالح");
+  if (!Number.isFinite(input.cashier_waiter) || input.cashier_waiter < 0) {
+    return fail("سعر الكاشير والنادل غير صالح");
+  }
+  if (!input.currency) return fail("اختر العملة");
+  return run(() => apiData<PosPricing>("/admin/pos-prices", { method: "PUT", body: input }));
+}
+
 /** Gallery size for the active restaurant. Falls back to 4 when the plan leaves it open. */
 export async function getProductImageCap(restaurantId: string): Promise<ActionResult<number>> {
   return run(async () => {
@@ -88,6 +103,15 @@ export async function getProductImageCap(restaurantId: string): Promise<ActionRe
     }>(`/restaurants/${restaurantId}`);
     const cap = payload?.plan?.caps?.product_images;
     return cap == null ? 4 : cap;
+  });
+}
+
+/** Deletes an unused plan. The free plan and plans with subscriptions are refused by the server. */
+export async function deletePlan(id: string): Promise<ActionResult<{ success: true }>> {
+  if (!id) return fail("معرّف الخطة مطلوب");
+  return run(async () => {
+    await apiData(`/admin/plans/${id}`, { method: "DELETE" });
+    return { success: true as const };
   });
 }
 

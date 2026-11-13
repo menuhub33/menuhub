@@ -113,10 +113,11 @@ class PublicMenuService
                     'description' => $menu->description,
                     'status' => $menu->status->value,
                     'is_default' => $menu->is_default,
+                    'show_prices' => (bool) $menu->show_prices,
                     'published_at' => $menu->published_at?->toIso8601String(),
                 ],
                 'theme' => $theme?->toArray(),
-                'categories' => CategoryResource::collection($categories)->resolve(),
+                'categories' => $this->withPricesIf($menu->show_prices, CategoryResource::collection($categories)->resolve()),
                 'socialLinks' => SocialLink::query()->where('restaurant_id', $restaurant->id)
                     ->where('is_active', true)->orderBy('sort_order')->get()->toArray(),
                 'branches' => Branch::query()->where('restaurant_id', $restaurant->id)->where('is_active', true)
@@ -126,6 +127,29 @@ class PublicMenuService
                 'branding' => ['remove_branding' => (bool) $features['remove_branding']],
             ],
         ]);
+    }
+
+    /**
+     * When the owner turned prices off, no product leaves the server with a price (the menu
+     * already renders a product without a price as price-less), so nothing can leak client-side.
+     *
+     * @param  list<array<string, mixed>>  $categories
+     * @return list<array<string, mixed>>
+     */
+    private function withPricesIf(bool $show, array $categories): array
+    {
+        if ($show) {
+            return $categories;
+        }
+
+        return array_map(function (array $category) {
+            $category['products'] = array_map(
+                fn (array $product) => [...$product, 'price' => null, 'old_price' => null],
+                $category['products'] ?? [],
+            );
+
+            return $category;
+        }, $categories);
     }
 
     /** @param  array<string, mixed>  $payload */

@@ -5,6 +5,8 @@ export type NavItem = {
   badge?: number;
   children?: NavItem[];
   permission?: string;
+  /** Hidden unless the restaurant has this optional package. */
+  requires?: "pos";
 };
 
 export type BreadcrumbItem = {

@@ -6,13 +6,21 @@ use Modules\Shared\Enums\RestaurantRole;
 
 /**
  * Role -> permission matrix (port of the front-end `permissions.ts`),
- * extended with `branches.manage`, `domains.manage` and `audit.view`.
+ * extended with `branches.manage`, `domains.manage` and `audit.view`,
+ * and with the sales permissions (`pos.use`, `sales.*`, `reports.*`).
  *
  * This is the single source of truth: routes are protected with
  * `permission:{name}` so UI and API can never disagree.
  */
 final class Permissions
 {
+    /** Sales / POS permissions (see pos-spec.md §7.2). */
+    public const SALES = [
+        'pos.use', 'sales.view', 'sales.create', 'sales.create_staff', 'sales.collect',
+        'sales.discount', 'sales.cancel', 'sales.refund',
+        'reports.sales', 'reports.own',
+    ];
+
     public const ALL = [
         'restaurant.view', 'restaurant.update',
         'menu.view', 'menu.publish',
@@ -24,6 +32,7 @@ final class Permissions
         'staff.manage', 'subscription.manage',
         'branches.manage', 'domains.manage',
         'settings.view',
+        ...self::SALES,
     ];
 
     private const MANAGER = [
@@ -35,6 +44,7 @@ final class Permissions
         'analytics.view', 'audit.view',
         'branches.manage',
         'settings.view',
+        ...self::SALES,
     ];
 
     private const EDITOR = [
@@ -45,6 +55,19 @@ final class Permissions
         'settings.view',
     ];
 
+    private const CASHIER = [
+        'restaurant.view',
+        'orders.view',
+        'pos.use', 'sales.view', 'sales.create', 'sales.create_staff', 'sales.collect',
+        'reports.own',
+    ];
+
+    private const WAITER = [
+        'restaurant.view',
+        'orders.view', 'orders.manage',
+        'sales.create_staff',
+    ];
+
     /** @return list<string> */
     public static function for(?RestaurantRole $role): array
     {
@@ -52,6 +75,8 @@ final class Permissions
             RestaurantRole::Owner => self::ALL,
             RestaurantRole::Manager => self::MANAGER,
             RestaurantRole::Editor => self::EDITOR,
+            RestaurantRole::Cashier => self::CASHIER,
+            RestaurantRole::Waiter => self::WAITER,
             default => [],
         };
     }

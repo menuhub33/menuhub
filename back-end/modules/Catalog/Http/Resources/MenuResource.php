@@ -19,6 +19,7 @@ class MenuResource extends JsonResource
             'description' => $this->description,
             'status' => $this->status->value,
             'is_default' => $this->is_default,
+            'show_prices' => (bool) $this->show_prices,
             'published_at' => $this->published_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

@@ -25,7 +25,7 @@ import { Dialog } from "@/core/ui/dialog";
 import { FormField } from "@/core/components/forms/form-field";
 import { Select } from "@/core/ui/select";
 import { useToast } from "@/core/ui/toast";
-import { parseBillingInput, contractProfit, type PricedPlan } from "@/modules/finance/lib/menu-billing";
+import { parseBillingInput, contractProfit, type PosMode, type PosPricing, type PricedPlan } from "@/modules/finance/lib/menu-billing";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -41,11 +41,14 @@ export function AdminFinanceView({
   contracts,
   restaurants,
   plans = [],
+  posPricing = null,
   mallName = null,
 }: {
   contracts: FinanceContract[];
-  restaurants: { id: string; name: string }[];
+  restaurants: { id: string; name: string; pos_mode?: PosMode }[];
   plans?: PricedPlan[];
+  /** Yearly POS package prices (platform admins only); added to the contract price. */
+  posPricing?: PosPricing | null;
   mallName?: string | null;
 }) {
   const { toast } = useToast();
@@ -100,8 +103,14 @@ export function AdminFinanceView({
   const linked = new Set(contracts.map((contract) => contract.restaurant_id));
   const available = restaurants.filter((restaurant) => !linked.has(restaurant.id));
 
+  /** The POS package that is added to a contract is the one the restaurant currently has. */
+  function posOptions(targetId: string) {
+    const mode = restaurants.find((restaurant) => restaurant.id === targetId)?.pos_mode ?? "OFF";
+    return { mode, pricing: posPricing };
+  }
+
   async function save(targetId: string) {
-    const parsed = parseBillingInput(form, plans);
+    const parsed = parseBillingInput(form, plans, posOptions(targetId));
     if ("error" in parsed) {
       toast({ title: parsed.error, variant: "error" });
       return;
@@ -273,7 +282,14 @@ export function AdminFinanceView({
               placeholder="اختر محلاً"
             />
           </FormField>
-          <MenuBillingFields plans={plans} value={form} onChange={setForm} disabled={saving} />
+          <MenuBillingFields
+            plans={plans}
+            value={form}
+            onChange={setForm}
+            disabled={saving}
+            posMode={posOptions(restaurantId).mode}
+            posPricing={posPricing}
+          />
         </div>
       </Dialog>
 
@@ -293,7 +309,14 @@ export function AdminFinanceView({
           </>
         }
       >
-        <MenuBillingFields plans={plans} value={form} onChange={setForm} disabled={saving} />
+        <MenuBillingFields
+          plans={plans}
+          value={form}
+          onChange={setForm}
+          disabled={saving}
+          posMode={posOptions(editing?.restaurant_id ?? "").mode}
+          posPricing={posPricing}
+        />
       </Dialog>
 
       <Dialog

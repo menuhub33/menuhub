@@ -48,6 +48,8 @@ export const DOMAIN_STATUS_LABELS: Record<DomainStatus, string> = {
 };
 
 export const RESTAURANT_ROLE_LABELS: Record<RestaurantRole, string> = {
+  CASHIER: "كاشير",
+  WAITER: "نادل",
   OWNER: "مالك",
   MANAGER: "مدير",
   EDITOR: "محرر",

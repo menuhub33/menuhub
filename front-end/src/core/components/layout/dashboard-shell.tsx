@@ -2,7 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { reloadPage } from "@/core/lib/reload";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useIncomingOrders } from "@/modules/orders/lib/use-incoming-orders";
 import { logout } from "@/modules/auth/actions/auth";
 import { markAllNotificationsRead } from "@/modules/notifications/actions/notifications";
 import { DesignerCredit } from "@/core/components/layout/designer-credit";
@@ -17,10 +18,12 @@ import { hasPermission, type Permission } from "@/core/auth/permissions";
 import type { NavItem } from "@/core/lib/types";
 import type { Notification } from "@/modules/notifications/types";
 import type { Profile } from "@/modules/auth/types";
-import type { Restaurant, RestaurantRole } from "@/modules/tenancy/types";
+import { PosModeProvider } from "@/modules/sales/lib/pos-mode";
+import type { PosMode, Restaurant, RestaurantRole } from "@/modules/tenancy/types";
 
-function filterNav(items: NavItem[], role: RestaurantRole): NavItem[] {
+function filterNav(items: NavItem[], role: RestaurantRole, posMode: PosMode): NavItem[] {
   return items
+    .filter((item) => item.requires !== "pos" || posMode !== "OFF")
     .filter((item) => !item.permission || hasPermission(role, item.permission as Permission))
     .map((item) => ({
       ...item,
@@ -48,7 +51,23 @@ export function DashboardShell({
   const pathname = usePathname();
   const router = useRouter();
   const [navOpen, setNavOpen] = useState(false);
-  const items = useMemo(() => filterNav(DEFAULT_DASHBOARD_NAV, role), [role]);
+  const posMode: PosMode = restaurant.pos_mode ?? "OFF";
+  const canSeeOrders = hasPermission(role, "orders.view");
+  const incoming = useIncomingOrders(canSeeOrders);
+  const baseItems = useMemo(() => filterNav(DEFAULT_DASHBOARD_NAV, role, posMode), [role, posMode]);
+  const items = useMemo(
+    () =>
+      baseItems.map((item) =>
+        item.href === "/dashboard/orders" ? { ...item, badge: incoming.pending } : item
+      ),
+    [baseItems, incoming.pending]
+  );
+
+  // A new customer order arrived: reload the server data of the open page (e.g. the orders list).
+  const { version } = incoming;
+  useEffect(() => {
+    if (version > 0) router.refresh();
+  }, [version, router]);
   const unreadCount = notifications.filter((item) => !item.is_read).length;
 
   return (
@@ -81,7 +100,7 @@ export function DashboardShell({
         <div className="hidden border-b border-zinc-100 bg-white px-6 py-2 lg:block">
           <RestaurantSwitcher restaurants={restaurants} currentId={restaurant.id} />
         </div>
-        <main className="flex-1 px-4 py-6 pb-24 lg:px-8 lg:pb-8">{children}</main>
+        <main className="flex-1 px-4 py-6 pb-24 lg:px-8 lg:pb-8"><PosModeProvider mode={posMode}>{children}</PosModeProvider></main>
         <DesignerCredit className="mt-auto px-4 pt-2 pb-24 lg:pb-4" />
       </div>
       <DashboardMobileNav

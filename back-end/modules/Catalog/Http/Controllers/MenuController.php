@@ -49,6 +49,7 @@ class MenuController extends ApiController
             'slug' => ['sometimes', 'string', 'max:100', 'regex:'.Slug::PATTERN,
                 Rule::unique('menus', 'slug')->where('restaurant_id', $restaurant->id)->ignore($menu->id)],
             'description' => ['nullable', 'string', 'max:2000'],
+            'show_prices' => ['sometimes', 'boolean'],
             'is_default' => ['sometimes', 'boolean'],
         ]);
 

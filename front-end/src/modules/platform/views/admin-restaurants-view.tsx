@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   adminCreateRestaurant,
   adminDeleteRestaurant,
+  adminSetRestaurantPosMode,
   adminSetRestaurantStatus,
   adminUpdateRestaurant,
 } from "@/modules/platform/actions/admin";
@@ -29,13 +30,20 @@ import {
   MenuBillingFields,
   type BillingFormState,
 } from "@/modules/finance/components/menu-billing-fields";
-import { netMenuPrice, parseBillingInput, type PricedPlan } from "@/modules/finance/lib/menu-billing";
+import {
+  netMenuPrice,
+  parseBillingInput,
+  posPackagePrice,
+  type PosPricing,
+  type PricedPlan,
+} from "@/modules/finance/lib/menu-billing";
 import { saveMenuBilling } from "@/modules/finance/actions/finance";
 import { BusinessTypePicker } from "@/modules/tenancy/components/restaurants/business-type-picker";
 import { setCurrentRestaurant } from "@/modules/tenancy/actions/restaurants";
 import { isRestaurantActivated } from "@/modules/tenancy/lib/restaurant-status";
 import { BUSINESS_TYPE_OPTIONS, normalizeBusinessType } from "@/modules/tenancy/lib/business-type";
-import type { BusinessType, Restaurant, RestaurantStatus } from "@/modules/tenancy/types";
+import { POS_MODE_OPTIONS } from "@/modules/sales/lib/pos-mode";
+import type { BusinessType, PosMode, Restaurant, RestaurantStatus } from "@/modules/tenancy/types";
 
 const PAGE_SIZE = 10;
 
@@ -77,11 +85,14 @@ export function AdminRestaurantsView({
   restaurants = [],
   malls = [],
   plans = [],
+  posPricing = null,
   lockedMall = null,
 }: {
   restaurants?: RestaurantRow[];
   malls?: { id: string; name: string }[];
   plans?: PricedPlan[];
+  /** Yearly POS package prices (platform admins only); added to the contract price. */
+  posPricing?: PosPricing | null;
   /** Set for a mall manager: every new menu is forced into this mall. */
   lockedMall?: { id: string; name: string } | null;
 }) {
@@ -99,6 +110,7 @@ export function AdminRestaurantsView({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [businessType, setBusinessType] = useState<BusinessType>("RESTAURANT");
+  const [posMode, setPosMode] = useState<PosMode>("OFF");
   const [affiliation, setAffiliation] = useState("private");
   const [billing, setBilling] = useState<BillingFormState>(emptyBillingForm());
   const [editing, setEditing] = useState<RestaurantRow | null>(null);
@@ -109,6 +121,7 @@ export function AdminRestaurantsView({
   const [editStatus, setEditStatus] = useState<RestaurantStatus>("SUSPENDED");
   const [editBusinessType, setEditBusinessType] = useState<BusinessType>("RESTAURANT");
   const [editMallId, setEditMallId] = useState("private");
+  const [editPosMode, setEditPosMode] = useState<PosMode>("OFF");
   const [editEmail, setEditEmail] = useState("");
   const [editPassword, setEditPassword] = useState("");
   const [editPlanId, setEditPlanId] = useState("");
@@ -130,15 +143,26 @@ export function AdminRestaurantsView({
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const billingInput = parseBillingInput(billing, plans);
+  const createPosMode: PosMode = lockedMall ? "OFF" : posMode;
+  const billingInput = parseBillingInput(billing, plans, { mode: createPosMode, pricing: posPricing });
   const canCreate = Boolean(name.trim() && email.trim() && password.length >= 8 && "value" in billingInput);
   const canSave = Boolean(editName.trim() && editSlug.trim() && editEmail.trim());
   const editPlan = plans.find((plan) => plan.id === editPlanId) ?? null;
   const editDiscountNumber = editDiscount.trim() === "" ? 0 : Number(editDiscount);
+  const editEffectivePos: PosMode = lockedMall ? (editing?.pos_mode ?? "OFF") : editPosMode;
+  const editPosPrice =
+    editPlan && posPricing && posPricing.currency.toUpperCase() === editPlan.currency.toUpperCase()
+      ? posPackagePrice(editEffectivePos, posPricing)
+      : 0;
+  const editPosMismatch =
+    Boolean(editPlan && posPricing) &&
+    posPackagePrice(editEffectivePos, posPricing) > 0 &&
+    editPosPrice === 0;
+  const editGross = editPlan ? editPlan.price_yearly + editPosPrice : null;
   const editNet =
-    editPlan && Number.isFinite(editDiscountNumber)
+    editPlan && editGross != null && Number.isFinite(editDiscountNumber)
       ? netMenuPrice(
-          editPlan.price_yearly,
+          editGross,
           editDiscountNumber > 0 ? "PERCENT" : "NONE",
           editDiscountNumber
         )
@@ -153,6 +177,7 @@ export function AdminRestaurantsView({
     setEditStatus(restaurant.status);
     setEditBusinessType(normalizeBusinessType(restaurant.business_type));
     setEditMallId(restaurant.mall_id ?? "private");
+    setEditPosMode(restaurant.pos_mode ?? "OFF");
     setEditEmail(restaurant.owner_email ?? "");
     setEditPassword(restaurant.owner_password ?? "");
     setEditPlanId(
@@ -171,6 +196,7 @@ export function AdminRestaurantsView({
         email: email.trim(),
         password,
         business_type: businessType,
+        pos_mode: lockedMall ? undefined : posMode,
         mall_id: lockedMall ? undefined : affiliation === "private" ? null : affiliation,
         billing: "value" in billingInput ? billingInput.value : undefined,
       });
@@ -184,6 +210,7 @@ export function AdminRestaurantsView({
       setEmail("");
       setPassword("");
       setBusinessType("RESTAURANT");
+      setPosMode("OFF");
       setAffiliation("private");
       setBilling(emptyBillingForm(plans[0]?.id ?? ""));
       reloadPage();
@@ -217,7 +244,17 @@ export function AdminRestaurantsView({
       toast({ title: result.error, variant: "error" });
       return;
     }
-    if (editPlanId) {
+    // The POS package is decided by platform admins only (mall managers never see this control).
+    const posChanged = !lockedMall && editPosMode !== (editing.pos_mode ?? "OFF");
+    // Re-price the contract only when something that affects it changed, so an unrelated edit
+    // never trips the "installment already paid" guard.
+    const billingDirty =
+      editPlanId !== (editing.plan_id ?? "") ||
+      editDiscount !== discountInput(editing) ||
+      editInstallments !== (editing.installments_count ?? 1) ||
+      editStartsOn !== (editing.billing_starts_on ?? "") ||
+      posChanged;
+    if (editPlanId && billingDirty) {
       const plan = plans.find((item) => item.id === editPlanId);
       const discount = editDiscount.trim() === "" ? 0 : Number(editDiscount);
       if (!plan) {
@@ -232,7 +269,10 @@ export function AdminRestaurantsView({
       }
       const billed = await saveMenuBilling(editing.id, {
         planId: plan.id,
-        price: plan.price_yearly,
+        price: plan.price_yearly + editPosPrice,
+        posPrice: editPosPrice,
+        // The package is priced before it is applied, so a failed contract save leaves the restaurant untouched.
+        posMode: posChanged ? editPosMode : undefined,
         setupCost: 0,
         annualRenewal: 0,
         discountType: discount > 0 ? "PERCENT" : "NONE",
@@ -244,6 +284,14 @@ export function AdminRestaurantsView({
       if (billed.error) {
         setSaving(false);
         toast({ title: billed.error, variant: "error" });
+        return;
+      }
+    }
+    if (posChanged) {
+      const pos = await adminSetRestaurantPosMode(editing.id, editPosMode);
+      if (pos.error) {
+        setSaving(false);
+        toast({ title: pos.error, variant: "error" });
         return;
       }
     }
@@ -462,6 +510,21 @@ export function AdminRestaurantsView({
             <Input id="admin-restaurant-name" value={name} onChange={(event) => setName(event.target.value)} />
           </FormField>
           <BusinessTypePicker value={businessType} onChange={setBusinessType} disabled={saving} />
+          {lockedMall ? null : (
+            <FormField
+              label="نقطة البيع (POS)"
+              htmlFor="admin-restaurant-pos"
+              hint={POS_MODE_OPTIONS.find((option) => option.value === posMode)?.hint}
+            >
+              <Select
+                id="admin-restaurant-pos"
+                value={posMode}
+                disabled={saving}
+                onChange={(value) => setPosMode(value as PosMode)}
+                options={POS_MODE_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
+              />
+            </FormField>
+          )}
           {lockedMall ? (
             <p className="rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-800">
               هذا المنيو سيظهر في دليل {lockedMall.name}.
@@ -497,7 +560,14 @@ export function AdminRestaurantsView({
               onChange={setPassword}
             />
           </FormField>
-          <MenuBillingFields plans={plans} value={billing} onChange={setBilling} disabled={saving} />
+          <MenuBillingFields
+            plans={plans}
+            value={billing}
+            onChange={setBilling}
+            disabled={saving}
+            posMode={createPosMode}
+            posPricing={posPricing}
+          />
         </div>
       </Dialog>
       <Dialog
@@ -536,6 +606,21 @@ export function AdminRestaurantsView({
             />
           </FormField>
           <BusinessTypePicker value={editBusinessType} onChange={setEditBusinessType} disabled={saving} />
+          {lockedMall ? null : (
+            <FormField
+              label="نقطة البيع (POS)"
+              htmlFor="edit-restaurant-pos"
+              hint={POS_MODE_OPTIONS.find((option) => option.value === editPosMode)?.hint}
+            >
+              <Select
+                id="edit-restaurant-pos"
+                value={editPosMode}
+                disabled={saving}
+                onChange={(value) => setEditPosMode(value as PosMode)}
+                options={POS_MODE_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
+              />
+            </FormField>
+          )}
           {lockedMall ? null : (
             <FormField label="الانتماء" htmlFor="edit-restaurant-mall">
               <Select
@@ -578,7 +663,15 @@ export function AdminRestaurantsView({
           {editPlan ? (
             <p className="text-sm text-zinc-600">
               سعر {editPlan.name} السنوي {formatPrice(editPlan.price_yearly, editPlan.currency)}
+              {editPosPrice > 0
+                ? ` + نقطة البيع ${formatPrice(editPosPrice, editPlan.currency)} = ${formatPrice(editGross ?? 0, editPlan.currency)}`
+                : ""}
               {editNet != null ? `، بعد الحسم ${formatPrice(editNet, editPlan.currency)}` : ""}.
+            </p>
+          ) : null}
+          {editPosMismatch ? (
+            <p className="text-sm text-red-600">
+              عملة سعر نقطة البيع تختلف عن عملة هذه الخطة، عدّلها من صفحة الخطط قبل الحفظ.
             </p>
           ) : null}
           <FormField label="الحالة" htmlFor="edit-restaurant-status">

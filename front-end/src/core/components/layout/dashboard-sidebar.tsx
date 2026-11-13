@@ -10,6 +10,7 @@ import {
   ChartIcon,
   ChevronDownIcon,
   ClipboardIcon,
+  CreditCardIcon,
   HomeIcon,
   LayoutIcon,
   PaletteIcon,
@@ -24,6 +25,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   home: HomeIcon,
   menu: UtensilsIcon,
   orders: ClipboardIcon,
+  pos: CreditCardIcon,
   complaints: AlertCircleIcon,
   layout: LayoutIcon,
   theme: PaletteIcon,
@@ -46,6 +48,14 @@ export const DEFAULT_DASHBOARD_NAV: NavItem[] = [
     ],
   },
   { href: "/dashboard/orders", label: "الطلبات", icon: "orders", permission: "orders.view" },
+  { href: "/pos", label: "نقطة البيع", icon: "pos", permission: "pos.use", requires: "pos" },
+  {
+    href: "/dashboard/pos-reports",
+    label: "تقارير نقطة البيع",
+    icon: "analytics",
+    permission: "reports.sales",
+    requires: "pos",
+  },
   { href: "/dashboard/complaints", label: "الشكاوي", icon: "complaints", permission: "orders.view" },
   { href: "/dashboard/design", label: "التصميم", icon: "theme", permission: "design.update" },
   { href: "/dashboard/qr", label: "QR Code", icon: "qr", permission: "qr.manage" },
@@ -153,6 +163,11 @@ function NavLink({ item, activeHref }: { item: NavItem; activeHref?: string }) {
     >
       {Icon ? <Icon className="size-5" /> : null}
       <span className="flex-1">{item.label}</span>
+      {item.badge ? (
+        <span className="min-w-5 rounded-full bg-red-600 px-1.5 text-center text-xs font-bold leading-5 text-white">
+          {item.badge > 99 ? "99+" : item.badge}
+        </span>
+      ) : null}
     </Link>
   );
 }

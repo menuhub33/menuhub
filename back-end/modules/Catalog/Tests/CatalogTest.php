@@ -18,6 +18,7 @@ class CatalogTest extends ApiTestCase
             'category_id' => $category->id,
             'name_ar' => 'برغر',
             'price' => 25000,
+            'cost_price' => 10000,
         ])->assertCreated()->assertJsonPath('data.price', 25000)->json('data.id');
 
         $this->getJson($this->api("restaurants/{$restaurant->id}/products/{$id}"))
@@ -75,7 +76,7 @@ class CatalogTest extends ApiTestCase
         $category = $this->makeCategory($restaurant);
         Sanctum::actingAs($owner);
 
-        $payload = ['category_id' => $category->id, 'name_ar' => 'x', 'price' => 1];
+        $payload = ['category_id' => $category->id, 'name_ar' => 'x', 'price' => 1, 'cost_price' => 1];
         $path = $this->api("restaurants/{$restaurant->id}/products");
 
         $this->postJson($path, $payload)->assertCreated();
@@ -111,37 +112,37 @@ class CatalogTest extends ApiTestCase
             ->assertJsonPath('code', 'PRODUCT_IMAGE_LIMIT');
     }
 
-    public function test_product_price_can_be_left_empty(): void
+    public function test_product_price_and_cost_are_required_and_discount_stays_validated(): void
     {
         [$owner, $restaurant] = $this->makeRestaurant();
         $category = $this->makeCategory($restaurant);
         Sanctum::actingAs($owner);
         $path = $this->api("restaurants/{$restaurant->id}/products");
 
+        // Hiding prices is a menu-level switch now, so a product can't be saved without them.
+        $this->postJson($path, ['category_id' => $category->id, 'name_ar' => 'استشارة'])
+            ->assertStatus(422)->assertJsonValidationErrors(['price', 'cost_price']);
+
         $id = $this->postJson($path, [
             'category_id' => $category->id,
             'name_ar' => 'استشارة',
-        ])->assertCreated()
-            ->assertJsonPath('data.price', null)
-            ->json('data.id');
+            'price' => 3000,
+            'cost_price' => 1000,
+        ])->assertCreated()->json('data.id');
 
-        $this->patchJson($path.'/'.$id, [
-            'price' => 5000,
-            'old_price' => 7000,
-        ])->assertOk()->assertJsonPath('data.price', 5000);
+        $this->patchJson($path.'/'.$id, ['price' => 5000, 'old_price' => 7000])
+            ->assertOk()->assertJsonPath('data.price', 5000);
 
-        $this->patchJson($path.'/'.$id, ['price' => null])
-            ->assertOk()
-            ->assertJsonPath('data.price', null)
-            ->assertJsonPath('data.old_price', null);
+        $this->patchJson($path.'/'.$id, ['price' => null])->assertStatus(422);
 
         $this->postJson($path, [
             'category_id' => $category->id,
-            'name_ar' => 'حسم بلا سعر',
-            'old_price' => 100,
+            'name_ar' => 'حسم أقل من السعر',
+            'price' => 100,
+            'cost_price' => 50,
+            'old_price' => 80,
         ])->assertStatus(422)->assertJsonPath('code', 'INVALID_DISCOUNT');
     }
-
     public function test_product_can_be_featured_and_discounted(): void
     {
         [$owner, $restaurant] = $this->makeRestaurant();
@@ -153,6 +154,7 @@ class CatalogTest extends ApiTestCase
             'category_id' => $category->id,
             'name_ar' => 'فتوش',
             'price' => 16000,
+            'cost_price' => 9000,
             'old_price' => 20000,
             'is_featured' => true,
         ])->assertCreated()
@@ -168,6 +170,7 @@ class CatalogTest extends ApiTestCase
             'category_id' => $category->id,
             'name_ar' => 'حسم غير صالح',
             'price' => 100,
+            'cost_price' => 50,
             'old_price' => 80,
         ])->assertStatus(422);
     }

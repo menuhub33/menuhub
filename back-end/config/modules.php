@@ -24,6 +24,8 @@ return [
         'Notifications',
         'Catalog',
         'Orders',
+        'Inventory',
+        'Sales',
         'Theming',
         'Operations',
         'Media',

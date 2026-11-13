@@ -32,7 +32,30 @@ export type Permission =
   | "subscription.manage"
   | "branches.manage"
   | "domains.manage"
-  | "settings.view";
+  | "settings.view"
+  | "pos.use"
+  | "sales.view"
+  | "sales.create"
+  | "sales.create_staff"
+  | "sales.collect"
+  | "sales.discount"
+  | "sales.cancel"
+  | "sales.refund"
+  | "reports.sales"
+  | "reports.own";
+
+const SALES: Permission[] = [
+  "pos.use",
+  "sales.view",
+  "sales.create",
+  "sales.create_staff",
+  "sales.collect",
+  "sales.discount",
+  "sales.cancel",
+  "sales.refund",
+  "reports.sales",
+  "reports.own",
+];
 
 const OWNER: Permission[] = [
   "restaurant.view",
@@ -59,6 +82,7 @@ const OWNER: Permission[] = [
   "branches.manage",
   "domains.manage",
   "settings.view",
+  ...SALES,
 ];
 
 const MANAGER: Permission[] = [
@@ -81,6 +105,7 @@ const MANAGER: Permission[] = [
   "audit.view",
   "branches.manage",
   "settings.view",
+  ...SALES,
 ];
 
 const EDITOR: Permission[] = [
@@ -96,10 +121,25 @@ const EDITOR: Permission[] = [
   "settings.view",
 ];
 
+const CASHIER: Permission[] = [
+  "restaurant.view",
+  "orders.view",
+  "pos.use",
+  "sales.view",
+  "sales.create",
+  "sales.create_staff",
+  "sales.collect",
+  "reports.own",
+];
+
+const WAITER: Permission[] = ["restaurant.view", "orders.view", "orders.manage", "sales.create_staff"];
+
 const ROLE_PERMISSIONS: Record<RestaurantRole, Permission[]> = {
   OWNER,
   MANAGER,
   EDITOR,
+  CASHIER,
+  WAITER,
 };
 
 export function hasPermission(
