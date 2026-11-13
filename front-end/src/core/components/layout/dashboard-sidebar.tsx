@@ -49,6 +49,7 @@ export const DEFAULT_DASHBOARD_NAV: NavItem[] = [
   },
   { href: "/dashboard/orders", label: "الطلبات", icon: "orders", permission: "orders.view" },
   { href: "/pos", label: "نقطة البيع", icon: "pos", permission: "pos.use", requires: "pos" },
+  { href: "/kitchen", label: "شاشة المطبخ", icon: "orders", permission: "kitchen.view", requires: "pos" },
   {
     href: "/dashboard/pos-reports",
     label: "تقارير نقطة البيع",

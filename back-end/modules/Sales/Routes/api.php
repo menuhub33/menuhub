@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Sales\Http\Controllers\KitchenController;
 use Modules\Sales\Http\Controllers\PaymentController;
 use Modules\Sales\Http\Controllers\ReportController;
 use Modules\Sales\Http\Controllers\SalesOrderController;
@@ -24,6 +25,9 @@ Route::middleware(['sales.enabled', 'auth:sanctum', 'active', 'tenant', 'tenant.
         Route::post('orders/{sale}/payments', [PaymentController::class, 'collect'])->middleware('permission:sales.collect');
         Route::post('orders/{sale}/refunds', [PaymentController::class, 'refund'])->middleware('permission:sales.refund');
         Route::post('orders/{sale}/cancel', [SalesOrderController::class, 'cancel'])->middleware('permission:sales.cancel');
+
+        Route::get('kitchen/orders', [KitchenController::class, 'index'])->middleware('permission:kitchen.view');
+        Route::patch('kitchen/orders/{sale}', [KitchenController::class, 'update'])->middleware('permission:kitchen.manage');
 
         Route::get('me/collections', [ReportController::class, 'myCollections'])->middleware('permission:reports.own');
 

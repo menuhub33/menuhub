@@ -7,7 +7,7 @@ import { listOrders } from "@/modules/orders/actions/orders";
 const POLL_MS = 8_000;
 
 /** Short two-tone chime. Browsers may block audio before the first click: that is ignored. */
-function chime() {
+export function chime() {
   try {
     const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctx) return;

@@ -37,6 +37,7 @@ export async function PosPage({ mode }: { mode: "pos" | "waiter" }) {
       canViewSales={hasPermission(tenant.role, "sales.view")}
       canViewOrders={hasPermission(tenant.role, "orders.view")}
       canManageOrders={hasPermission(tenant.role, "orders.manage")}
+      canViewKitchen={hasPermission(tenant.role, "kitchen.view")}
       businessType={tenant.restaurant.business_type}
       dashboardHref={tenant.role === "CASHIER" || tenant.role === "WAITER" ? null : "/dashboard"}
       initialCatalog={catalog.data}

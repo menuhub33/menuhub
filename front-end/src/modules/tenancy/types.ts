@@ -8,7 +8,7 @@ export type RestaurantStatus =
   | "EXPIRED"
   | "CANCELLED";
 
-export type RestaurantRole = "OWNER" | "MANAGER" | "EDITOR" | "CASHIER" | "WAITER";
+export type RestaurantRole = "OWNER" | "MANAGER" | "EDITOR" | "CASHIER" | "WAITER" | "KITCHEN";
 
 export type BusinessType = "RESTAURANT" | "CAFE" | "SHOP";
 

@@ -43,6 +43,7 @@ export function PosScreen({
   canViewSales,
   canViewOrders = false,
   canManageOrders = false,
+  canViewKitchen = false,
   businessType = "RESTAURANT",
   dashboardHref,
   initialCatalog,
@@ -57,6 +58,8 @@ export function PosScreen({
   /** Customer (QR menu) orders inbox inside the screen. */
   canViewOrders?: boolean;
   canManageOrders?: boolean;
+  /** Shows a link to the kitchen display (`/kitchen`). */
+  canViewKitchen?: boolean;
   businessType?: BusinessType;
   /** Link back to the dashboard; null when the role has no dashboard access. */
   dashboardHref: string | null;
@@ -276,13 +279,18 @@ export function PosScreen({
           </div>
         ) : null}
 
-        {dashboardHref ? (
-          <Link href={dashboardHref} className="shrink-0 text-sm font-medium text-teal-700 hover:underline">
-            لوحة التحكم
-          </Link>
-        ) : (
-          <span />
-        )}
+        <div className="flex shrink-0 items-center gap-4">
+          {canViewKitchen ? (
+            <Link href="/kitchen" className="text-sm font-medium text-teal-700 hover:underline">
+              المطبخ
+            </Link>
+          ) : null}
+          {dashboardHref ? (
+            <Link href={dashboardHref} className="text-sm font-medium text-teal-700 hover:underline">
+              لوحة التحكم
+            </Link>
+          ) : null}
+        </div>
       </header>
 
       {tab === "orders" ? (

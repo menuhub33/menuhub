@@ -101,13 +101,17 @@ class StaffService
         $membership->delete();
     }
 
-    /** CASHIER / WAITER exist only when the restaurant has the matching POS package. */
+    /** CASHIER / WAITER / KITCHEN exist only when the restaurant has the matching POS package. */
     private function assertRoleAvailable(Restaurant $restaurant, RestaurantRole $role): void
     {
         $mode = $restaurant->pos_mode;
 
         if ($role === RestaurantRole::Cashier && ! $mode->enabled()) {
             throw ApiException::invalid('نقطة البيع غير مفعّلة لهذا المحل، لا يمكن إضافة كاشير', 'POS_NOT_ENABLED');
+        }
+
+        if ($role === RestaurantRole::Kitchen && ! $mode->enabled()) {
+            throw ApiException::invalid('نقطة البيع غير مفعّلة لهذا المحل، لا يمكن إضافة حساب مطبخ', 'POS_NOT_ENABLED');
         }
 
         if ($role === RestaurantRole::Waiter && ! $mode->waiterEnabled()) {

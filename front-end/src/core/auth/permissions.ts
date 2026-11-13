@@ -42,7 +42,9 @@ export type Permission =
   | "sales.cancel"
   | "sales.refund"
   | "reports.sales"
-  | "reports.own";
+  | "reports.own"
+  | "kitchen.view"
+  | "kitchen.manage";
 
 const SALES: Permission[] = [
   "pos.use",
@@ -56,6 +58,8 @@ const SALES: Permission[] = [
   "reports.sales",
   "reports.own",
 ];
+
+const KITCHEN: Permission[] = ["kitchen.view", "kitchen.manage"];
 
 const OWNER: Permission[] = [
   "restaurant.view",
@@ -83,6 +87,7 @@ const OWNER: Permission[] = [
   "domains.manage",
   "settings.view",
   ...SALES,
+  ...KITCHEN,
 ];
 
 const MANAGER: Permission[] = [
@@ -106,6 +111,7 @@ const MANAGER: Permission[] = [
   "branches.manage",
   "settings.view",
   ...SALES,
+  ...KITCHEN,
 ];
 
 const EDITOR: Permission[] = [
@@ -130,9 +136,19 @@ const CASHIER: Permission[] = [
   "sales.create_staff",
   "sales.collect",
   "reports.own",
+  ...KITCHEN,
 ];
 
-const WAITER: Permission[] = ["restaurant.view", "orders.view", "orders.manage", "sales.create_staff"];
+const WAITER: Permission[] = [
+  "restaurant.view",
+  "orders.view",
+  "orders.manage",
+  "sales.create_staff",
+  "kitchen.view",
+];
+
+/** A kitchen account only works the kitchen screen. */
+const KITCHEN_STAFF: Permission[] = ["restaurant.view", ...KITCHEN];
 
 const ROLE_PERMISSIONS: Record<RestaurantRole, Permission[]> = {
   OWNER,
@@ -140,6 +156,7 @@ const ROLE_PERMISSIONS: Record<RestaurantRole, Permission[]> = {
   EDITOR,
   CASHIER,
   WAITER,
+  KITCHEN: KITCHEN_STAFF,
 };
 
 export function hasPermission(

@@ -21,6 +21,9 @@ final class Permissions
         'reports.sales', 'reports.own',
     ];
 
+    /** Kitchen screen: `kitchen.view` sees the queue, `kitchen.manage` moves orders along it. */
+    public const KITCHEN = ['kitchen.view', 'kitchen.manage'];
+
     public const ALL = [
         'restaurant.view', 'restaurant.update',
         'menu.view', 'menu.publish',
@@ -33,6 +36,7 @@ final class Permissions
         'branches.manage', 'domains.manage',
         'settings.view',
         ...self::SALES,
+        ...self::KITCHEN,
     ];
 
     private const MANAGER = [
@@ -45,6 +49,7 @@ final class Permissions
         'branches.manage',
         'settings.view',
         ...self::SALES,
+        ...self::KITCHEN,
     ];
 
     private const EDITOR = [
@@ -60,12 +65,20 @@ final class Permissions
         'orders.view',
         'pos.use', 'sales.view', 'sales.create', 'sales.create_staff', 'sales.collect',
         'reports.own',
+        ...self::KITCHEN,
     ];
 
     private const WAITER = [
         'restaurant.view',
         'orders.view', 'orders.manage',
         'sales.create_staff',
+        'kitchen.view',
+    ];
+
+    /** A kitchen account only works the kitchen screen. */
+    private const KITCHEN_STAFF = [
+        'restaurant.view',
+        ...self::KITCHEN,
     ];
 
     /** @return list<string> */
@@ -77,6 +90,7 @@ final class Permissions
             RestaurantRole::Editor => self::EDITOR,
             RestaurantRole::Cashier => self::CASHIER,
             RestaurantRole::Waiter => self::WAITER,
+            RestaurantRole::Kitchen => self::KITCHEN_STAFF,
             default => [],
         };
     }

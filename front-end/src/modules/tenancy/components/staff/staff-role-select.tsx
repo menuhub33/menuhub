@@ -5,7 +5,7 @@ import { Select } from "@/core/ui/select";
 import { usePosMode } from "@/modules/sales/lib/pos-mode";
 import type { RestaurantRole } from "@/modules/tenancy/types";
 
-const ROLES: RestaurantRole[] = ["OWNER", "MANAGER", "EDITOR", "CASHIER", "WAITER"];
+const ROLES: RestaurantRole[] = ["OWNER", "MANAGER", "EDITOR", "CASHIER", "WAITER", "KITCHEN"];
 
 export function StaffRoleSelect({
   value,
@@ -26,9 +26,10 @@ export function StaffRoleSelect({
 }) {
   const allowOwner = Boolean(canAssignOwner || canManageAll);
   const posMode = usePosMode();
-  // Cashier / waiter accounts exist only when the restaurant has the matching POS package.
+  // Cashier / waiter / kitchen accounts exist only when the restaurant has the matching POS package.
   const unavailable = (role: RestaurantRole) =>
-    (role === "CASHIER" && posMode === "OFF") || (role === "WAITER" && posMode !== "CASHIER_WAITER");
+    ((role === "CASHIER" || role === "KITCHEN") && posMode === "OFF") ||
+    (role === "WAITER" && posMode !== "CASHIER_WAITER");
 
   return (
     <Select

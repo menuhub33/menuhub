@@ -4,6 +4,24 @@ export type PaymentMethod = "CASH" | "CARD" | "OTHER";
 export type SalesPaymentStatus = "UNPAID" | "PARTIAL" | "PAID" | "REFUNDED" | "PARTIALLY_REFUNDED";
 export type DiscountType = "FIXED" | "PERCENT";
 
+export type KitchenStatus = "NEW" | "PREPARING" | "READY" | "SERVED";
+
+/** An order as the kitchen screen sees it: what to cook, no prices. */
+export type KitchenOrder = {
+  id: string;
+  number: string;
+  channel: SalesChannel;
+  order_type: OrderType | null;
+  table_number: string | null;
+  branch_name: string | null;
+  notes: string | null;
+  kitchen_status: KitchenStatus;
+  kitchen_status_at: string | null;
+  confirmed_at: string | null;
+  opened_by: string | null;
+  items: { id: string; name_ar: string; quantity: number; note: string | null }[];
+};
+
 export type CatalogCategory = {
   id: string;
   name_ar: string;

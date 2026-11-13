@@ -19,6 +19,7 @@ class SalesOrderResource extends JsonResource
             'status' => $this->status->value,
             'fulfillment_status' => $this->status->fulfillment(),
             'payment_status' => $this->payment_status->value,
+            'kitchen_status' => $this->kitchen_status->value,
             'is_legacy' => $this->is_legacy,
             'requires_pricing' => $this->relationLoaded('items')
                 ? $this->items->contains(fn ($item) => $item->line_total === null)

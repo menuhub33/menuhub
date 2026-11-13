@@ -4,6 +4,7 @@ namespace Modules\Orders\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Shared\Enums\KitchenStatus;
 use Modules\Shared\Enums\OrderStatus;
 use Modules\Shared\Enums\SalesChannel;
 use Modules\Shared\Enums\SalesPaymentStatus;
@@ -36,6 +37,7 @@ class Order extends BaseModel
         'discount_total' => '0.00',
         'paid_amount' => '0.00',
         'refunded_amount' => '0.00',
+        'kitchen_status' => 'NEW',
     ];
 
     /** `delivery_type` (stored) => `order_type` (API). */
@@ -52,6 +54,8 @@ class Order extends BaseModel
             'channel' => SalesChannel::class,
             'payment_status' => SalesPaymentStatus::class,
             'is_legacy' => 'boolean',
+            'kitchen_status' => KitchenStatus::class,
+            'kitchen_status_at' => 'datetime',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
             'total' => 'decimal:2',

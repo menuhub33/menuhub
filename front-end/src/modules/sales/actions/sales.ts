@@ -8,6 +8,8 @@ import type {
   CatalogCategory,
   CatalogProduct,
   CollectInput,
+  KitchenOrder,
+  KitchenStatus,
   Receipt,
   Sale,
   SaleInput,
@@ -80,6 +82,24 @@ export async function collectPayment(
       method: "POST",
       body: input,
       headers: { "Idempotency-Key": idempotencyKey },
+    })
+  );
+}
+
+/** Confirmed orders the kitchen still has to cook or hand over (oldest first). */
+export async function listKitchenOrders(): Promise<ActionResult<KitchenOrder[]>> {
+  return run(async () => (await apiData<KitchenOrder[]>(`${await base()}/kitchen/orders`)) ?? []);
+}
+
+/** Moves an order one step along NEW -> PREPARING -> READY -> SERVED (or one step back). */
+export async function setKitchenStatus(
+  orderId: string,
+  status: KitchenStatus
+): Promise<ActionResult<KitchenOrder>> {
+  return run(async () =>
+    apiData<KitchenOrder>(`${await base()}/kitchen/orders/${orderId}`, {
+      method: "PATCH",
+      body: { kitchen_status: status },
     })
   );
 }

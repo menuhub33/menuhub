@@ -13,8 +13,8 @@ use Modules\Tenancy\Services\StaffService;
 
 class StaffController extends ApiController
 {
-    /** Staff can be MANAGER, EDITOR, CASHIER or WAITER; the single OWNER is set by an admin. */
-    private const ASSIGNABLE = ['MANAGER', 'EDITOR', 'CASHIER', 'WAITER'];
+    /** Staff can be MANAGER, EDITOR, CASHIER, WAITER or KITCHEN; the single OWNER is set by an admin. */
+    private const ASSIGNABLE = ['MANAGER', 'EDITOR', 'CASHIER', 'WAITER', 'KITCHEN'];
 
     public function __construct(private readonly StaffService $staff) {}
 
