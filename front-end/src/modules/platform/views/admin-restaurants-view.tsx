@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { reloadPage } from "@/core/lib/reload";
 import { useRouter } from "next/navigation";
 import {
+  adminChangeRestaurantPlan,
   adminCreateRestaurant,
   adminDeleteRestaurant,
   adminSetRestaurantPosMode,
@@ -53,6 +54,8 @@ type RestaurantRow = Restaurant & {
   owner_password?: string | null;
   plan_id?: string | null;
   plan_name?: string | null;
+  /** A paid installment freezes the contract price; the plan itself can still change. */
+  billing_locked?: boolean;
   billing_price?: number | null;
   discount_type?: "NONE" | "PERCENT" | "AMOUNT" | null;
   discount_value?: number | null;
@@ -254,7 +257,18 @@ export function AdminRestaurantsView({
       editInstallments !== (editing.installments_count ?? 1) ||
       editStartsOn !== (editing.billing_starts_on ?? "") ||
       posChanged;
-    if (editPlanId && billingDirty) {
+    const contractLocked = editing.billing_locked === true;
+    if (editPlanId && contractLocked) {
+      // A paid installment freezes the contract price, but the plan (features and limits) can still move.
+      if (editPlanId !== (editing.plan_id ?? "")) {
+        const moved = await adminChangeRestaurantPlan(editing.id, editPlanId);
+        if (moved.error) {
+          setSaving(false);
+          toast({ title: moved.error, variant: "error" });
+          return;
+        }
+      }
+    } else if (editPlanId && billingDirty) {
       const plan = plans.find((item) => item.id === editPlanId);
       const discount = editDiscount.trim() === "" ? 0 : Number(editDiscount);
       if (!plan) {
@@ -655,12 +669,17 @@ export function AdminRestaurantsView({
               max="100"
               step="0.01"
               dir="ltr"
-              disabled={saving || !editPlanId}
+              disabled={saving || !editPlanId || editing?.billing_locked === true}
               value={editDiscount}
               onChange={(event) => setEditDiscount(event.target.value)}
             />
           </FormField>
-          {editPlan ? (
+          {editing?.billing_locked ? (
+            <p className="text-sm text-amber-700">
+              هذا النشاط سدّد قسطًا من عقده، لذلك يتغيّر الاشتراك (المزايا والحدود) عند اختيار خطة أخرى دون تعديل سعر العقد والحسم.
+            </p>
+          ) : null}
+          {editPlan && !editing?.billing_locked ? (
             <p className="text-sm text-zinc-600">
               سعر {editPlan.name} السنوي {formatPrice(editPlan.price_yearly, editPlan.currency)}
               {editPosPrice > 0

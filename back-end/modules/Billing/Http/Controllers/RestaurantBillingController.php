@@ -20,7 +20,7 @@ class RestaurantBillingController extends ApiController
     public function subscription(Restaurant $restaurant): JsonResponse
     {
         $subscription = Subscription::query()->with('plan')
-            ->where('restaurant_id', $restaurant->id)->latest('created_at')->first();
+            ->where('restaurant_id', $restaurant->id)->latest('created_at')->latest('id')->first();
 
         return $this->ok([
             'subscription' => $subscription,

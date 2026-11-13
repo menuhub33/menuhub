@@ -21,6 +21,7 @@ export async function getAdminRestaurants(): Promise<
       discount_value?: number | null;
       installments_count?: number | null;
       billing_starts_on?: string | null;
+      billing_locked?: boolean;
     })[]
   >
 > {
@@ -37,6 +38,7 @@ export async function getAdminRestaurants(): Promise<
         discount_value?: number | null;
         installments_count?: number | null;
         billing_starts_on?: string | null;
+      billing_locked?: boolean;
       }
     >("/admin/restaurants")
   );

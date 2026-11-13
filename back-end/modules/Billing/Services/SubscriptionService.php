@@ -9,9 +9,17 @@ use Modules\Tenancy\Models\Restaurant;
 
 class SubscriptionService
 {
-    /** Starts the default trial on the free plan (no-op when it does not exist). */
+    /**
+     * Starts the default trial on the free plan. No-op when that plan does not exist, and when the restaurant
+     * already has a subscription (a contract created with a plan has already put it on that plan: a second
+     * free-trial row would be newer than the chosen plan and shadow it everywhere).
+     */
     public function startTrial(Restaurant $restaurant): ?Subscription
     {
+        if (Subscription::query()->where('restaurant_id', $restaurant->id)->exists()) {
+            return null;
+        }
+
         $plan = Plan::query()->where('slug', 'free')->first();
 
         if (! $plan) {
@@ -32,6 +40,7 @@ class SubscriptionService
         $current = Subscription::query()
             ->where('restaurant_id', $restaurant->id)
             ->latest('created_at')
+            ->latest('id')
             ->first();
 
         if ($current) {

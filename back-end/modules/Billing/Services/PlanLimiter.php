@@ -152,6 +152,7 @@ class PlanLimiter implements EnforcesPlanLimits
                 SubscriptionStatus::PastDue->value,
             ])
             ->latest('created_at')
+            ->latest('id')
             ->first();
     }
 

@@ -114,6 +114,42 @@ class PlatformTest extends ApiTestCase
         $this->getJson($this->api("public/menus/{$restaurant->slug}"))->assertJsonPath('data.kind', 'live');
     }
 
+    public function test_a_restaurant_created_with_a_plan_stays_on_that_plan(): void
+    {
+        $this->actingAdmin();
+        $pro = Plan::query()->where('slug', 'pro')->firstOrFail();
+
+        $id = $this->postJson($this->api('admin/restaurants'), [
+            'name' => 'Pro Cafe',
+            'email' => 'owner@procafe.test',
+            'password' => 'password123',
+            'billing' => [
+                'plan_id' => $pro->id, 'discount_type' => 'NONE', 'starts_on' => '2026-01-01',
+            ],
+        ])->assertCreated()->json('data.id');
+
+        // No second "free trial" row may shadow the plan the contract put the restaurant on.
+        $this->assertSame(1, \Modules\Billing\Models\Subscription::query()->where('restaurant_id', $id)->count());
+        $this->getJson($this->api("restaurants/{$id}/subscription"))
+            ->assertJsonPath('data.subscription.plan.slug', 'pro');
+
+        $row = collect($this->getJson($this->api('admin/restaurants?per_page=100'))->json('data'))
+            ->firstWhere('id', $id);
+        $this->assertSame($pro->id, $row['plan_id']);
+        $this->assertFalse($row['billing_locked']);
+
+        // Once an installment is paid the contract is frozen, but the plan can still be changed.
+        \Illuminate\Support\Facades\DB::table('menu_installments')
+            ->where('restaurant_id', $id)->update(['status' => 'PAID']);
+        $business = Plan::query()->where('slug', 'business')->firstOrFail();
+        $this->putJson($this->api("admin/restaurants/{$id}/plan"), ['plan_id' => $business->id])->assertOk();
+
+        $row = collect($this->getJson($this->api('admin/restaurants?per_page=100'))->json('data'))
+            ->firstWhere('id', $id);
+        $this->assertSame($business->id, $row['plan_id']);
+        $this->assertTrue($row['billing_locked']);
+    }
+
     public function test_plan_change_updates_limits(): void
     {
         $this->actingAdmin();

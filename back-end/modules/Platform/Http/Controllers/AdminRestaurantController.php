@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Modules\Finance\Models\MenuBilling;
+use Modules\Finance\Models\MenuInstallment;
 use Modules\Finance\Services\YearlyMenuSubscription;
 use Modules\Platform\Services\DemoCatalogService;
 use Modules\Platform\Services\ProvisioningService;
@@ -13,6 +14,8 @@ use Modules\Platform\Services\RestaurantAdminService;
 use Modules\Platform\Support\DemoData;
 use Modules\Shared\Enums\BusinessType;
 use Modules\Shared\Enums\DiscountType;
+use Modules\Shared\Enums\InstallmentKind;
+use Modules\Shared\Enums\InstallmentStatus;
 use Modules\Shared\Enums\PosMode;
 use Modules\Shared\Enums\RestaurantStatus;
 use Modules\Shared\Http\Controllers\ApiController;
@@ -54,6 +57,14 @@ class AdminRestaurantController extends ApiController
             ->get()
             ->keyBy('restaurant_id');
 
+        // A contract with a paid installment can no longer be re-priced (its plan can still be changed).
+        $locked = MenuInstallment::query()
+            ->whereIn('restaurant_id', $restaurants->getCollection()->pluck('id'))
+            ->where('kind', InstallmentKind::Installment->value)
+            ->where('status', InstallmentStatus::Paid->value)
+            ->pluck('restaurant_id')
+            ->flip();
+
         $owners = RestaurantUser::query()
             ->with('user:id,full_name,email,password_visible')
             ->whereIn('restaurant_id', $restaurants->pluck('id'))
@@ -75,6 +86,8 @@ class AdminRestaurantController extends ApiController
                 'discount_value' => $billings->get($r->id)?->discount_value,
                 'installments_count' => $billings->get($r->id)?->installments_count,
                 'billing_starts_on' => $billings->get($r->id)?->starts_on?->toDateString(),
+                'billing_locked' => $locked->has($r->id)
+                    && ($billings->get($r->id)?->next_renewal_on?->toDateString() ?? '') > now()->toDateString(),
             ],
         ));
 
